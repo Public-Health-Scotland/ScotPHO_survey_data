@@ -44,6 +44,9 @@ source("../scotpho-indicator-production/2.deprivation_analysis.R")
 # temporary functions:
 source(here("functions", "temp_depr_analysis_updates.R")) # 22.1.25: sources some temporary functions needed until PR #97 is merged into the indicator production repo 
 
+## C. Path to the data derived by this script
+
+derived_data <- "/conf/MHI_Data/derived data/"
 
 
 # 1. Find survey data files, extract variable names and labels (descriptions), and save this info to a spreadsheet
@@ -51,7 +54,7 @@ source(here("functions", "temp_depr_analysis_updates.R")) # 22.1.25: sources som
 
 ## Create a new workbook (first time only. don't run this now)
 #wb <- createWorkbook()
-#saveWorkbook(wb, file = here("data", "all_survey_var_info.xlsx"))
+#saveWorkbook(wb, file = paste0(derived_data, "all_survey_var_info.xlsx"))
 
 save_var_descriptions(survey = "unsoc", 
                       name_pattern = "\\/([a-z]*)_.*") # the regular expression for this survey's filenames that identifies the survey year(s)
@@ -84,21 +87,21 @@ extracted_survey_data_unsoc <- extracted_survey_data_unsoc %>%
                           TRUE ~ as.character(NA)))
 
 # save the file
-saveRDS(extracted_survey_data_unsoc, here("data", "extracted_survey_data_unsoc.rds"))
+saveRDS(extracted_survey_data_unsoc, paste0(derived_data, "extracted_survey_data_unsoc.rds"))
 
 
 # 4. What are the possible responses?
 # =================================================================================================================
 
 # Read in the data if necessary
-# extracted_survey_data_unsoc <- readRDS(here("data", "extracted_survey_data_unsoc.rds"))
+# extracted_survey_data_unsoc <- readRDS(paste0(derived_data, "extracted_survey_data_unsoc.rds"))
 
 
 # get the responses recorded for each variable (combined over the years), and save to xlsx and rds
 
 # 1st run through to see how to identify variables that can be excluded (and the unique characters that will identify these):
 # extract_responses(survey = "unsoc") 
-# responses_as_list_unsoc <- readRDS(here("data", paste0("responses_as_list_unsoc.rds")))
+# responses_as_list_unsoc <- readRDS(paste0(derived_data, "responses_as_list_unsoc.rds"))
 # responses_as_list_unsoc  # examine the output
 
 # 2nd run to exclude the numeric vars that don't need codings and/or muck up the output:
@@ -109,7 +112,7 @@ extract_responses(survey = "unsoc", #survey acronym
 # read the responses back in and print out so we can work out how they should be coded
 # (also useful to see how sex/geography/simd variables have been recorded, for later standardisation)
 
-responses_as_list_unsoc <- readRDS(here("data", paste0("responses_as_list_unsoc.rds")))
+responses_as_list_unsoc <- readRDS(paste0(derived_data, "responses_as_list_unsoc.rds"))
 responses_as_list_unsoc
 
 # responses_as_list_unsoc printed out
@@ -176,10 +179,9 @@ unsoc_indresp_df <- extracted_survey_data_unsoc %>%
   unnest(cols = survey_data) %>% # unnests into a flat file
   select(-c(sex, fileloc)) %>%
   filter(gor_dv=="Scotland") %>% # n = 21184
-  mutate(jbsec_r = case_when(jbsec %in% insecure ~ "insecure",
-                             jbsec %in% notinsecure ~ "not insecure",
-                             jbsec %in% na ~ "NA")) 
-
+  mutate(job_insecurity = case_when(jbsec %in% insecure ~ "yes",
+                                    jbsec %in% notinsecure ~ "no",
+                                    jbsec %in% na ~ "NA")) 
 
 # data checks
 table(unsoc_indresp_df$age_dv, useNA = "always") # all are 16+
@@ -206,252 +208,155 @@ table(unsoc_simd_df$imd2016qs_dv, useNA = "always") # all are between 1 and 5
 
 
 #merge SIMD quintiles into indresp data
-unsoc <- unsoc_indresp_df %>%
-  merge(unsoc_simd_df, by=c("year", "pidp")) %>%
-  select(-starts_with("filename")) %>% # n = 21184
-  filter(jbsec_r != "NA") %>% # n = 10142 (dropped where missing: "inapplicable", "missing", "proxy", "refusal", "Not available for IEMB")
-  # over half were 'inapplicable' according to unsoc website: https://www.understandingsociety.ac.uk/documentation/mainstage/dataset-documentation/variable/jbsec
-  select(year, strata, psu, sex_dv, indinuwt, jbsec_r, imd2020qs_dv)
+unsoc_total <- unsoc_indresp_df %>%
+  mutate(sex_dv = "Total") 
 
 unsoc_sex <- unsoc_indresp_df %>%
-  merge(unsoc_simd_df, by=c("year", "pidp")) %>%
-  select(-starts_with("filename")) %>% # n = 21184
-  filter(jbsec_r != "NA") %>% # n = 10142
   mutate(sex_dv = as.character(sex_dv)) %>%
-  filter(sex_dv %in% c("Male", "Female")) %>% # 2 missings dropped: n = 10140 (this is why a separate dataset was created, for the setting up of the survey design dfs below)
-  select(year, strata, psu, sex_dv, indinuwt, jbsec_r, imd2020qs_dv) 
+  filter(sex_dv %in% c("Male", "Female")) %>% # 2 missings dropped: n = 10140 
+  rbind(unsoc_total) %>%
+  merge(unsoc_simd_df, by=c("year", "pidp")) %>%
+  filter(job_insecurity != "NA") %>% # n = 10142
+  select(year, strata, psu, sex=sex_dv, indinuwt, job_insecurity, quintile = imd2020qs_dv) %>%
+  rename(trend_axis = year) %>%
+  mutate(year = as.numeric(substr(trend_axis, 1, 4)),
+         quintile = as.character(quintile))
+  # over half were 'inapplicable' according to unsoc website: https://www.understandingsociety.ac.uk/documentation/mainstage/dataset-documentation/variable/jbsec
 
+table(unsoc_sex$sex, useNA = "always")
+table(unsoc_sex$job_insecurity, useNA = "always")
+table(unsoc_sex$quintile, useNA = "always")
 
+# 8. Calculate indicator values by various groupings
+# =================================================================================================================
 
-# Run svydesign() function to set up the dfs that the survey package needs to compute survey stats -------------------
+# The survey calculation functions are in the functions.R script
 
-options(survey.lonely.psu="adjust") # single-PSU strata are centred at the sample mean
+jobsec <- calc_indicator_data(unsoc_sex, "job_insecurity", "indinuwt", ind_id=30055, type= "percent") %>% # ok
+  mutate(code = as.character(code))
 
-unsoc_svy <- svydesign(id=~psu, 
-                       strata=~strata,
-                       weights=~indinuwt, 
-                       data=unsoc) # data with no missings for SIMD
+# There are some warnings that appear: a deprecated bit (I can't find where to change this) and some cases where wt=0 (16 in total). 
+# The zero weights are in the original data.
 
-unsoc_sex_svy <- svydesign(id=~psu, 
-                           strata=~strata,
-                           weights=~indinuwt, 
-                           data=unsoc_sex) # data with missing sex removed
-
-# Run the svyby() function to compute survey stats, by different groupings:
-
-# BY YEAR
-
-# 1. get estimated percents and their CIs
-jbsec_year_pc <- data.frame(svyby(~I(jbsec_r=="insecure"), ~year, unsoc_svy, 
-                                  svyciprop, ci=TRUE, vartype="ci", method="logit")) %>% # produces CIs appropriate for proportions, using the logit method 
-  # (this fits a logistic regression model and computes a Wald-type interval on the log-odds scale, which is then transformed to the probability scale)
-  mutate(percent = I.jbsec_r.....insecure.. * 100, 
-         lower_ci = ci_l * 100,
-         upper_ci = ci_u * 100) %>%
-  select(year, percent, lower_ci, upper_ci) 
-
-# 2. get weighted counts
-jbsec_year_total_wt <- data.frame(svyby(~jbsec_r, ~year, unsoc_svy, svytotal)) %>%
-  mutate(Nw = jbsec_rinsecure + jbsec_rnot.insecure) %>%
-  select(year, nw = jbsec_rinsecure, Nw) 
-
-# 3. get unweighted counts
-jbsec_year_total_unwt <- unsoc %>%
-  group_by(year, jbsec_r) %>%
-  summarise(nuw = n()) %>%
-  ungroup() %>%
-  group_by(year) %>%
-  summarise(Nuw = sum(nuw, na.rm=TRUE),
-            nuw = nuw[jbsec_r=="insecure"]) %>%
-  ungroup()
-
-# 4. combine these statistics
-jbsec_year <- jbsec_year_pc %>%
-  merge(y = jbsec_year_total_unwt, by="year") %>%
-  merge(y = jbsec_year_total_wt, by="year") %>%
-  mutate(spatial.scale = "Scotland",
-         spatial.unit = "Scotland")
-
-# BY YEAR AND SEX
-
-# 1. get estimated percents and their CIs
-jbsec_year_sex_pc <- data.frame(svyby(~I(jbsec_r=="insecure"), ~year+sex_dv, unsoc_sex_svy, 
-                                  svyciprop, ci=TRUE, vartype="ci", method="logit")) %>% # produces CIs appropriate for proportions, using the logit method 
-  # (this fits a logistic regression model and computes a Wald-type interval on the log-odds scale, which is then transformed to the probability scale)
-  mutate(percent = I.jbsec_r.....insecure.. * 100, 
-         lower_ci = ci_l * 100,
-         upper_ci = ci_u * 100) %>%
-  select(year, sex=sex_dv, percent, lower_ci, upper_ci) 
-
-# 2. get weighted counts
-jbsec_year_sex_total_wt <- data.frame(svyby(~jbsec_r, ~year+sex_dv, unsoc_sex_svy, svytotal)) %>%
-  mutate(Nw = jbsec_rinsecure + jbsec_rnot.insecure) %>%
-  select(year, sex=sex_dv, nw = jbsec_rinsecure, Nw)
-
-# 3. get unweighted counts
-jbsec_year_sex_total_unwt <- unsoc_sex %>%
-  rename(sex = sex_dv) %>%
-  group_by(year, sex, jbsec_r) %>%
-  summarise(nuw = n()) %>%
-  ungroup() %>%
-  group_by(year, sex) %>%
-  summarise(Nuw = sum(nuw, na.rm=TRUE),
-            nuw = nuw[jbsec_r=="insecure"]) %>%
-  ungroup()
-
-# 4. combine these statistics
-jbsec_year_sex <- jbsec_year_sex_pc %>%
-  merge(y = jbsec_year_sex_total_unwt, by=c("year", "sex")) %>%
-  merge(y = jbsec_year_sex_total_wt, by=c("year", "sex")) %>%
-  mutate(spatial.scale = "Scotland",
-         spatial.unit = "Scotland")
-
-# BY YEAR AND SIMD2020 QUINTILE
-
-# 1. get estimated percents and their CIs
-jbsec_year_simd_pc <- data.frame(svyby(~I(jbsec_r=="insecure"), ~year+imd2020qs_dv, unsoc_svy, 
-                                      svyciprop, ci=TRUE, vartype="ci", method="logit")) %>% # produces CIs appropriate for proportions, using the logit method 
-  # (this fits a logistic regression model and computes a Wald-type interval on the log-odds scale, which is then transformed to the probability scale)
-  mutate(percent = I.jbsec_r.....insecure.. * 100, 
-         lower_ci = ci_l * 100,
-         upper_ci = ci_u * 100) %>%
-  select(year, imd2020qs_dv, percent, lower_ci, upper_ci) 
-
-# 2. get weighted counts
-jbsec_year_simd_total_wt <- data.frame(svyby(~jbsec_r, ~year+imd2020qs_dv, unsoc_svy, svytotal)) %>%
-  mutate(Nw = jbsec_rinsecure + jbsec_rnot.insecure) %>%
-  select(year, imd2020qs_dv, nw = jbsec_rinsecure, Nw) 
-
-# 3. get unweighted counts
-jbsec_year_simd_total_unwt <- unsoc %>%
-  group_by(year, imd2020qs_dv, jbsec_r) %>%
-  summarise(nuw = n()) %>%
-  ungroup() %>%
-  group_by(year, imd2020qs_dv) %>%
-  summarise(Nuw = sum(nuw, na.rm=TRUE),
-            nuw = nuw[jbsec_r=="insecure"]) %>%
-  ungroup()
-
-# 4. combine these statistics
-jbsec_year_simd <- jbsec_year_simd_pc %>%
-  merge(y = jbsec_year_simd_total_unwt, by=c("year", "imd2020qs_dv")) %>%
-  merge(y = jbsec_year_simd_total_wt, by=c("year", "imd2020qs_dv")) %>%
-  mutate(spatial.scale = "SIMD") %>%
-  rename(spatial.unit = imd2020qs_dv) %>%
-  mutate(spatial.unit = case_when(
-    spatial.unit == 1 ~ "1st - Most deprived",
-    spatial.unit == 2 ~ "2nd",
-    spatial.unit == 3 ~ "3rd",
-    spatial.unit == 4 ~ "4th",
-    spatial.unit == 5 ~ "5th - Least deprived"
-  )
-  )
-
-# Combine the data ready for dashboard 
-jobsec <- rbind(jbsec_year, jbsec_year_simd) %>%
-  mutate(sex = "Total") %>%
-  rbind(jbsec_year_sex) %>%
-  pivot_longer(cols = c(percent:Nw), values_to = "value", names_to = "statistic") %>%
-  mutate(var_label = "jobsec",
-         dataset = 'UnSoc (UKDS data)', 
-         measure_type = 'percent',
-         year_label = year,
-         year = as.numeric(substr(year, 1, 4)))  
-
-
+# Check for suppression issues:
+# Nome: smallest denominator here is 58.
 
 # Save the indicator data
+#arrow::write_parquet(jobsec, paste0(derived_data, "jobsec.parquet"))
+#jobsec <- arrow::read_parquet(paste0(derived_data, "jobsec.parquet"))
 
-#arrow::write_parquet(jobsec, here("data", "jobsec.parquet"))
-jobsec <- arrow::read_parquet(here("data", "jobsec.parquet"))
-
-
-# 7. What are the smallest numbers? Any suppression issues?
-# =================================================================================================================
-
-# look for smallest sample sizes (Nuw)
-jobsec %>% filter(statistic=="Nuw" & spatial.scale == "Scotland") %>% arrange(value)
-# smallest unweighted N is 530 for Scotland (males, 2020/21)
-
-jobsec %>% filter(statistic=="Nuw" & spatial.scale == "SIMD") %>% arrange(value)
-# smallest unweighted N is 142 (SIMD quintile 1 in 2020/21)
-
-
-# look for smallest number of cases (nuw)
-jobsec %>% filter(statistic=="nuw" & spatial.scale == "Scotland") %>% arrange(value)
-# smallest unweighted n cases is 33 for Scotland (females, 2018/19)
-
-jobsec %>% filter(statistic=="nuw" & spatial.scale == "SIMD") %>% arrange(value)
-# smallest unweighted n cases is 9 (SIMD quintile 4 in 2018/19)
-
-# Unweighted bases
-# =================================================================================================================
-# No reporting guidelines found for UnSoc results
-# 
-unsoc_unweighted_bases <- jobsec %>%
-  filter(statistic %in% c("Nuw"))
-
-# National 
-unsoc_unweighted_bases %>%
-  filter(sex=="Male", spatial.scale == "Scotland") %>%
-  ggplot(aes(year, value)) +
-  geom_point() + geom_line() 
-# all >500
-
-# SIMD 
-unsoc_unweighted_bases %>%
-  filter(spatial.scale == "SIMD" & sex=="Total") %>%
-  ggplot(aes(year, value, group = spatial.unit, colour = spatial.unit)) +
-  geom_point() + geom_line() 
-# all >100
-
-
-# 8. Data amendments following data checks
-# =================================================================================================================
-
-# None required
 
 
 # 9. Data availability
 # =================================================================================================================
 
-unsoc_percents <- jobsec %>% 
-  filter(statistic=="percent") 
-
-ftable(unsoc_percents$var_label, unsoc_percents$spatial.scale, unsoc_percents$sex , unsoc_percents$year)
-# Scotland and SIMD, 2010 to 2020
-
-
-# 10. Plot the indicator(s)
-# =================================================================================================================
-# Let's now see what the series look like: 
-
-# National
-jobsec %>% 
-  pivot_wider(names_from = statistic, values_from = value) %>%
-  filter(spatial.unit=="Scotland" & sex=="Total") %>% 
-  ggplot(aes(year, percent, group = sex, colour = sex, shape = sex)) + 
-  geom_point() + geom_line() +
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.1) 
-
-# National by sex
-jobsec %>% 
-  pivot_wider(names_from = statistic, values_from = value) %>%
-  filter(spatial.unit=="Scotland" & sex!="Total") %>% 
-  ggplot(aes(year, percent, group = sex, colour = sex)) + 
-  geom_point() + geom_line() +
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.1) 
-
-# SIMD
-jobsec %>% 
-  pivot_wider(names_from = statistic, values_from = value) %>%
-  filter(spatial.scale=="SIMD" & spatial.unit %in% c("1st - Most deprived", "5th - Least deprived")) %>% 
-  ggplot(aes(year, percent, group = spatial.unit, colour = spatial.unit)) + 
-  geom_point() + geom_line() +
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.1) 
+ftable(jobsec$indicator, jobsec$code, jobsec$quintile, jobsec$sex , jobsec$year)
+# Scotland and SIMD, 2010/11 to 2020/21, by sex
 
 
 
+##########################################################
+### 3. Prepare final files -----
+##########################################################
+
+# Eventually we'll use the analysis functions:
+
+# # main dataset analysis functions ----
+# analyze_first(filename = "smoking_during_preg", geography = "datazone11", measure = "percent", 
+#               yearstart = 2020, yearend = 2023, time_agg = 3)
+# 
+# analyze_second(filename = "smoking_during_preg", measure = "percent", time_agg = 3, 
+#                ind_id = 30058, year_type = "calendar")
+# 
+# # deprivation analysis function ----
+# analyze_deprivation(filename="smoking_during_preg_depr", measure="percent", time_agg=3, 
+#                     yearstart= 2020, yearend=2023, year_type = "calendar", ind_id = 30058)
+
+# But for now:
+
+# Function to prepare final files: main_data and popgroup
+prepare_final_files <- function(ind){
+  
+  # 1 - main data (ie data behind summary/trend/rank tab)
+  
+  main_data <- jobsec %>% 
+    filter(indicator == ind,
+           split_value == "Total",
+           sex == "Total") %>% 
+    select(code, ind_id, year, 
+           numerator, rate, upci, lowci, 
+           def_period, trend_axis) %>%
+    unique() 
+  
+  # Save
+  # Including both rds and csv file for now
+  write_rds(main_data, file = paste0(data_folder, "Data to be checked/", ind, "_shiny.rds"))
+  write_csv(main_data, file = paste0(data_folder, "Data to be checked/", ind, "_shiny.csv"))
+  
+  # 2 - population groups data (ie data behind population groups tab)
+  
+  pop_grp_data <- jobsec %>% 
+    filter(indicator == ind,
+           split_value == "Total") %>% # split_value here refers to SIMD quintile
+    select(-split_value) %>% #... so drop and replace with sex
+    mutate(split_name = "Sex") %>%
+    rename(split_value = sex) %>%
+    select(code, ind_id, year, numerator, rate, upci, 
+           lowci, def_period, trend_axis, split_name, split_value) 
+  
+  # Save
+  # Including both rds and csv file for now
+  write_rds(pop_grp_data, file = paste0(data_folder, "Data to be checked/", ind, "_shiny_popgrp.rds"))
+  write_csv(pop_grp_data, file = paste0(data_folder, "Data to be checked/", ind, "_shiny_popgrp.csv"))
+  
+  
+  # 3 - SIMD data (ie data behind deprivation tab)
+  
+  # Process SIMD data
+  # NATIONAL LEVEL ONLY (BY SEX)
+  simd_data <- jobsec %>% 
+    filter(indicator == ind) %>% 
+    unique() %>%
+    mutate(quint_type = "sc_quin") %>%
+    select(code, ind_id, year, numerator, rate, upci, 
+           lowci, def_period, trend_axis, quintile, quint_type, sex) 
+  
+  # Save intermediate SIMD file
+  write_rds(simd_data, file = paste0(data_folder, "Prepared Data/", ind, "_shiny_depr_raw.rds"))
+  write.csv(simd_data, file = paste0(data_folder, "Prepared Data/", ind, "_shiny_depr_raw.csv"), row.names = FALSE)
+  
+  #get ind_id argument for the analysis function 
+  ind_id <- unique(simd_data$ind_id)
+  
+  # Run the deprivation analysis (saves the processed file to 'Data to be checked')
+  analyze_deprivation_aggregated(filename = paste0(ind, "_shiny_depr"), 
+                                 pop = "depr_pop_16+", # 16+ by sex (and age). The function aggregates over the age groups.
+                                 ind_id, 
+                                 ind
+  )
+  
+  # Make data created available outside of function so it can be visually inspected if required
+  main_data_result <<- main_data
+  pop_grp_data_result <<- pop_grp_data
+  simd_data_result <<- simd_data
+  
+  
+}
 
 
+# Run function to create final files
+prepare_final_files(ind = "job_insecurity")   
 
+
+# # Run QA reports 
+# These currently use local copies of the .Rmd files.
+# These can be deleted once PR #116 is merged into scotpho-indicator-production repo
+
+# # main data: 
+run_qa(filename = "job_insecurity")    
+
+# ineq data: 
+# get the run_ineq_qa to use full Rmd filepath so can be run from here
+run_ineq_qa(filename = "job_insecurity")
+
+## END

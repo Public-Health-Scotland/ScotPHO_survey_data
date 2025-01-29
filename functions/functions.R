@@ -209,14 +209,14 @@ save_var_descriptions <- function (survey, name_pattern) {
   
   # Load the workbook in, add the filenames, variable names and variable descriptions, and save 
   
-  wb <- loadWorkbook(here("data", "all_survey_var_info.xlsx"))
+  wb <- loadWorkbook("/conf/MHI_Data/derived data/all_survey_var_info.xlsx")
   safe_removeWorksheet(wb, paste0("files-", survey)) # remove pre-existing worksheet, if it exists
   addWorksheet(wb, paste0("files-", survey))
   writeData(wb, paste0("files-", survey), survey_year_lookups)
   safe_removeWorksheet(wb, paste0("vars-", survey)) # remove pre-existing worksheet, if it exists
   addWorksheet(wb, paste0("vars-", survey))
   writeData(wb, paste0("vars-", survey), survey_var_descs)
-  saveWorkbook(wb, file = here("data", "all_survey_var_info.xlsx"), overwrite = TRUE)
+  saveWorkbook(wb, file = "/conf/MHI_Data/derived data/all_survey_var_info.xlsx", overwrite = TRUE)
   
 }
 
@@ -245,7 +245,7 @@ extract_survey_data <- function (survey) {
   
   # Extract the paths to the relevant survey files
   
-  survey_year_lookups <- read.xlsx(xlsxFile = here("data", "all_survey_var_info.xlsx"), 
+  survey_year_lookups <- read.xlsx("/conf/MHI_Data/derived data/all_survey_var_info.xlsx", 
                                    sheet = paste0("files-", survey))
   
   # Source the variables to extract
@@ -283,7 +283,7 @@ extract_survey_data <- function (survey) {
   
   
   # Save this object 
-  write_rds(extracted_survey_data, here("data", paste0("extracted_survey_data_", survey, ".rds")))
+  write_rds(extracted_survey_data, paste0("/conf/MHI_Data/derived data/extracted_survey_data_", survey, ".rds"))
 }
 
 
@@ -299,7 +299,7 @@ extract_survey_data <- function (survey) {
 extract_responses <- function (survey, chars_to_exclude=NULL) {
   
   # read in the survey data
-  df <- readRDS(here("data", paste0("extracted_survey_data_", survey, ".rds")))
+  df <- readRDS(paste0("/conf/MHI_Data/derived data/extracted_survey_data_", survey, ".rds"))
   
   # Produce a df with var_name column for the variable name, and responses column containing a list of all recorded responses for that variable
   if(survey=="unsoc"){
@@ -349,18 +349,18 @@ extract_responses <- function (survey, chars_to_exclude=NULL) {
   names(responses_as_list) <- all_responses$var_name # add the variable names to the list
 
   # Save this list
-  write_rds(responses_as_list, here("data", paste0("responses_as_list_", survey, ".rds")))
+  write_rds(responses_as_list, paste0("/conf/MHI_Data/derived data/responses_as_list_", survey, ".rds"))
   
   # Make a flat df (no lists) for saving into xlsx
   responses_df <- data.frame(all_responses %>% unnest(cols = c(responses)))
   
   # Load the workbook in, add a worksheet to store the responses for this survey, and save
   safe_removeWorksheet <- possibly(removeWorksheet, otherwise = NULL)
-  wb <- loadWorkbook(here("data", "all_survey_var_info.xlsx"))
+  wb <- loadWorkbook("/conf/MHI_Data/derived data/all_survey_var_info.xlsx")
   safe_removeWorksheet(wb, paste0("responses-", survey)) # remove pre-existing worksheet, if it exists
   addWorksheet(wb, paste0("responses-", survey))
   writeData(wb, paste0("responses-", survey), responses_df)
-  saveWorkbook(wb, file = here("data", "all_survey_var_info.xlsx"), overwrite = TRUE)
+  saveWorkbook(wb, file = "/conf/MHI_Data/derived data/all_survey_var_info.xlsx", overwrite = TRUE)
   
 }
 
@@ -477,7 +477,7 @@ add_std_weight <- function (df, var, wt) {
     mutate(wt = .data[[wt]] * scaling) %>% # makes a new weight for the individual that incorporates the age-standardisation
     filter(!is.na(wt)) %>%
     filter(var!="NA") %>%
-    select(year, trend_axis, var, wt, sex, quintile, hb, psu, strata)
+    select(year, trend_axis, var, wt, sex, quintile, spatial.unit, spatial.scale, psu, strata)
   
   df
   
@@ -519,7 +519,7 @@ prep_df_for_svy_calc <- function(df, var, wt, variables, type) {
 # Function to run the survey calculation for the indicator
 # Specifies the survey design, and runs the right model, depending on whether the indicator type is percent or score. 
 
-run_svy_calc <- function(svy_df, variables, var, type) {
+run_svy_calc <- function(df, variables, var, type) {
   
   # single-PSU strata are centred at the sample mean
   options(survey.lonely.psu="adjust") 
@@ -528,7 +528,7 @@ run_svy_calc <- function(svy_df, variables, var, type) {
   svy_design <- svydesign(id=~psu,
                           strata=~strata,
                           weights=~wt,
-                          data=svy_df,
+                          data=df,
                           nest=TRUE) #different strata might have same psu numbering (which are different psu)
   
   if (type == "percent") {
@@ -576,7 +576,7 @@ add_more_required_cols <- function(df, var, svy_result, variables, type) {
   # Options:
   # variables <- c("trend_axis", "sex")
   # variables <- c("trend_axis", "sex", "quintile")
-  # variables <- c("trend_axis", "sex", "hb")
+  # variables <- c("trend_axis", "sex", "spatial.unit")
   
   # add numerators and denominators (including zeroes if present)
   
@@ -607,27 +607,22 @@ add_more_required_cols <- function(df, var, svy_result, variables, type) {
   }
   
   
-  if ("quintile" %in% variables) {
+  if ("quintile" %in% variables) { # only deals with Scotland-level quintiles for Scotland currently. If a survey has data for quintiles within HBs/CAs this will need to be amended.
     
+    # SIMD results:
     results <- results %>%
       mutate(spatial.scale = "Scotland",
              spatial.unit = "Scotland") 
     
-  } else if ("hb" %in% variables) {
+  } else if (!"spatial.unit" %in% variables) { # spatial.unit included in any HB/CA level analyses
     
-    results <- results %>%
-      mutate(spatial.scale = "Health board",
-             quintile = "Total") %>%
-      rename(spatial.unit = hb)
-    
-  } else {
-    
+    # whole Scotland results:
     results <- results %>%
       mutate(spatial.scale = "Scotland",
              spatial.unit = "Scotland",
              quintile = "Total")
     
-  }
+  } else { results } # any processed while grouped by spatial.unit should have spatial.scale and spatial.unit vars already?
   
 }  
 
@@ -648,25 +643,32 @@ calc_single_breakdown <- function (df, var, wt, variables, type) {
 calc_indicator_data <- function (df, var, wt, ind_id, type) {
   
   # Scotland by sex
-  results_scot <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "sex"), type)
+  results <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "sex"), type)
   
   # Scotland by SIMD and sex 
-  if ("agegp7" %in% names(df)) { # adult data
-    simd_df <- add_std_weight(df, var, wt) 
-  }  else { # child data
-    simd_df <- df
-  }
+  if ("quintile" %in% names(df)) {
+    
+    if ("agegp7" %in% names(df)) { # For SHeS the adult data has agegroups, so that the SIMD calcs can be age-standardised
+      simd_df <- add_std_weight(df, var, wt) # adjust the weight to age-standardise the result
+    }  else { # SHeS child data or any data that doesn't need the SIMD calc to be age-standardised
+      simd_df <- df
+    }
   
   results_simd <- calc_single_breakdown(simd_df, var, wt, variables = c("trend_axis", "sex", "quintile"), type)
+  results <- bind_rows(results, results_simd)
   
-  all_results <- bind_rows(results_scot, results_simd)
+  }
   
-  # HB by sex
-  if (!wt %in% c("verawt", "bio_wt", "intakewt")) { #only analyse these at national and SIMD levels
+  # Lower geographies
+  if (wt %in% c("intwt") ) { # identify the weights (and hence variables) that can be analysed at lower geographies. Currenlty just intwt in SHeS data.
     
-    results_hb <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "sex", "hb"), type)
-    all_results <- bind_rows(all_results,
-                             results_hb)
+  # HB by sex 
+    results_hb <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "sex", "spatial.unit"), type) %>%
+      mutate(spatial.scale = "Health board", # (amend this if different geographies are needed)
+             quintile = "Total") 
+    
+    results <- bind_rows(results,
+                         results_hb)
     
   }
   
@@ -674,23 +676,25 @@ calc_indicator_data <- function (df, var, wt, ind_id, type) {
   geo_lookup <- readRDS(paste0(lookups, "Geography/opt_geo_lookup.rds")) %>% 
     select(!c(parent_area, areaname_full))
   
-  all_results <- all_results %>%
+  results <- results %>%
     mutate(ind_id = ind_id) %>%
     # add the geog codes, 
     merge(y=geo_lookup, by.x=c("spatial.unit", "spatial.scale"), by.y=c("areaname", "areatype")) %>%
     # add year back in
     # Replicating the standard used elsewhere in ScotPHO: year = the midpoint of the year range, rounded up if decimal
-    mutate(year = case_when(nchar(trend_axis)==4 ~ as.numeric(trend_axis), 
-                            nchar(trend_axis)>4 ~ rnd(0.5*(as.numeric(substr(trend_axis, 6, 9)) + as.numeric(substr(trend_axis, 1, 4)))), # e.g., "2015-2018" -> "2017" or "2015-2016" to "2016"
+    mutate(year = case_when(nchar(trend_axis)==4 ~ as.numeric(trend_axis), # single years
+                            substr(trend_axis, 5, 5)=="/" ~ as.numeric(substr(trend_axis, 1, 4)), # single financial/school years (e.g., "2015/16" -> 2015)
+                            nchar(trend_axis)>7 ~ rnd(0.5*(as.numeric(substr(trend_axis, 6, 9)) + as.numeric(substr(trend_axis, 1, 4)))), # e.g., "2015-2018" -> "2017" or "2015-2016" to "2016"
                             TRUE ~ as.numeric(NA))) %>% # shouldn't be any...
     # add def_period
     mutate(def_period = case_when(nchar(trend_axis) == 4 ~ paste0("Survey year (", trend_axis, ")"),
-                                  nchar(trend_axis) > 4 ~ paste0("Aggregated survey years (", trend_axis, ")"))) %>%
+                                  substr(trend_axis, 5, 5)=="/" ~ paste0("Survey year (", trend_axis, ")"),
+                                  nchar(trend_axis) > 7 ~ paste0("Aggregated survey years (", trend_axis, ")"))) %>%
     # add split info
-    mutate(split_name = case_when(is.na(quintile) ~ "Sex", # doesn't work, as there's always an entry in quintile (number or 'Total')
+    mutate(split_name = case_when(is.na(quintile) ~ "Sex", # not used, as there's always an entry in quintile (number or 'Total')
                                   !is.na(quintile) ~ "Deprivation (SIMD)",
                                   TRUE ~ as.character(NA))) %>%
-    mutate(split_value = case_when(is.na(quintile) ~ sex, # doesn't work, as there's always an entry in quintile (number or 'Total')
+    mutate(split_value = case_when(is.na(quintile) ~ sex, # not used, as there's always an entry in quintile (number or 'Total')
                                    !is.na(quintile) ~ quintile,
                                    TRUE ~ as.character(NA))) %>%
     # Result: All split names are called Deprivation: can fix this in the final processing 

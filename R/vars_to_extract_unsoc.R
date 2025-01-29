@@ -24,7 +24,7 @@ vars_to_keep <- c(
   # identifier
   "pidp",
 
-  # weights
+  # weights (wave_individual-interview-ub(waves2-5)/ui(waves6+)_cross-sectional
   "b_indinub_xw",
   "d_indinub_xw",
   "f_indinui_xw",

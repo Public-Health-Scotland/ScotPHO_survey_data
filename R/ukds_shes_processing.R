@@ -100,13 +100,17 @@ source("../scotpho-indicator-production/2.deprivation_analysis.R")
 # temporary functions:
 source(here("functions", "temp_depr_analysis_updates.R")) # 22.1.25: sources some temporary functions needed until PR #97 is merged into the indicator production repo 
 
+## C. Path to the data derived by this script
+
+derived_data <- "/conf/MHI_Data/derived data/"
+
 
 # 1. Find survey data files, extract variable names and labels (descriptions), and save this info to a spreadsheet
 # =================================================================================================================
 
 ## A. Create a new workbook in this repo (only run this the first time)
 #wb <- createWorkbook()
-#saveWorkbook(wb, file = here("data", "all_survey_var_info.xlsx"))
+#saveWorkbook(wb, file = paste0(derived_data, "all_survey_var_info.xlsx"))
 
 ## B. Get all the variable names and their descriptions from the survey data files
 # N.B. RUNNING THIS WILL TAKE ~5 MINS AND WILL MODIFY THE EXISTING SPREADSHEET:
@@ -161,21 +165,21 @@ extracted_survey_data_shes <- extracted_survey_data_shes %>%
   
 
 ## C. Save the file (do this if new variables/data have been read in)
-# saveRDS(extracted_survey_data_shes, here("data", "extracted_survey_data_shes.rds"))
+# saveRDS(extracted_survey_data_shes, paste0(derived_data, "extracted_survey_data_shes.rds"))
 
 
 # 4. What are the possible responses? (needed so we can decide how to code each variable)
 # =================================================================================================================
 
 ## A. Read the data back in if not in memory:
-# extracted_survey_data_shes <- readRDS(here("data", "extracted_survey_data_shes.rds"))
+# extracted_survey_data_shes <- readRDS(paste0(derived_data, "extracted_survey_data_shes.rds"))
 
 ## B. Get all the possible responses that have been recorded for each variable (combined over the years), and save to xlsx and rds
 # Running extract_responses() will modify existing spreadsheet and overwrite existing rds file
 
 # 1st run through to see how to identify any variables that can be excluded (e.g., weights) (and the unique characters that will identify these):
 # extract_responses(survey = "shes") 
-# responses_as_list_shes <- readRDS(here("data", paste0("responses_as_list_shes.rds")))
+# responses_as_list_shes <- readRDS(paste0(derived_data, "responses_as_list_shes.rds")))
 # responses_as_list_shes  # examine the output
 # 2nd run to exclude the numeric vars that don't need codings and/or muck up the output:
 extract_responses(survey = "shes", #survey acronym
@@ -190,7 +194,7 @@ extract_responses(survey = "shes", #survey acronym
 ## C. Read the responses back in and print out so we can work out how they should be coded
 # (also useful to see how sex/geography/simd variables have been recorded, for later standardisation)
 
-responses_as_list_shes <- readRDS(here("data", paste0("responses_as_list_shes.rds")))
+responses_as_list_shes <- readRDS(paste0(derived_data, "responses_as_list_shes.rds"))
 
 ## D. Print out this list to the console and copy into this script for reference:
 # NB. When updating with more recent data the responses need to be compared with these: are the codings still comprehensive? new coding needed?
@@ -680,7 +684,7 @@ shes_data <- shes_data %>%
                              { if (length(grep("hlth_brd|hbcode|hlthbrd|hb_code|hboard", names(.))) > 1) select(., -starts_with("hb")) else .} %>% # drop hb* when there are two hb vars (see logic above)
                              rename(any_of(hb_lookup)) %>% # apply the lookup defined above to rename all hb vars as 'hb'
                              # Standardise HB names for matching with ScotPHO geo_lookup
-                             mutate(hb = case_match(hb,
+                             mutate(spatial.unit = case_match(hb,
                                                     "1" ~ "Ayrshire and Arran",   
                                                     "2" ~ "Borders",              
                                                     "3" ~ "Dumfries and Galloway",
@@ -698,9 +702,10 @@ shes_data <- shes_data %>%
                                                     "Greater" ~ "Greater Glasgow & Clyde",
                                                     "Greater Glasgow" ~ "Greater Glasgow & Clyde",
                                                     .default = hb)) %>%
-                             mutate(hb = gsub(" and ", " & ", hb),
-                                    hb = case_when(!hb=="NA" ~ paste0("NHS ", hb),
-                                                   TRUE ~ as.character(NA)))))
+                             mutate(spatial.unit = gsub(" and ", " & ", spatial.unit),
+                                    spatial.unit = case_when(!spatial.unit=="NA" ~ paste0("NHS ", spatial.unit),
+                                                   TRUE ~ as.character(NA)),
+                                    spatial.scale = "Health board")))
 
 
 # Harmonise SIMD variable names and coding: 
@@ -765,7 +770,7 @@ shes_data <- shes_data %>%
 # Do some data checks, now unnested:
 table(shes_data$sex, useNA = "always") # Female/Male; no NA
 table(shes_data$quintile, useNA = "always") # 5 bands; no NAs
-table(shes_data$hb, useNA = "always") # 14 as expected; some NAs 
+table(shes_data$spatial.unit, useNA = "always") # 14 HBs as expected; some NAs (all in 2009-2011 file, which won't be used anyway)
 table(shes_data$age, useNA = "always") # 0 to 103y; no NAs
 
 
@@ -828,7 +833,7 @@ shes_data <- shes_data %>%
   # keep only the vars required for the analysis
   select(-c(filename, fileloc, age, #number_of_recalls, # will be required for future porftvg3intake variable processing (but not currently)
             rg15a_new)) %>%
-  select(year, ends_with("wt"), psu, strata, sex, agegp7, hb, quintile, everything())
+  select(year, ends_with("wt"), psu, strata, sex, agegp7, spatial.unit, spatial.scale, quintile, everything())
 
 
 # Add trend_axis (character) and numeric year variables 
@@ -880,9 +885,9 @@ shes_data <- shes_data %>%
   merge(y=private_pops, by = c("agegp7", "year", "sex"), all.x=TRUE) 
 
 # save intermediate df:
-#arrow::write_parquet(shes_data, here("data", "shes_data.parquet"))
+#arrow::write_parquet(shes_data, paste0(derived_data, "shes_data.parquet"))
 # read back in if not in memory:
-#shes_data <- arrow::read_parquet(here("data", "shes_data.parquet"))
+#shes_data <- arrow::read_parquet(paste0(derived_data, "shes_data.parquet"))
 
 
 
@@ -898,9 +903,9 @@ shes_adult_data <- shes_data %>%
   filter(!child) %>%
   select(-c(child, contains("serial"), starts_with("par"), cintwt))
 # save intermediate df:
-#arrow::write_parquet(shes_adult_data, here("data", "shes_adult_data.parquet"))
+#arrow::write_parquet(shes_adult_data, paste0(derived_data, "shes_adult_data.parquet"))
 # read back in if not in memory:
-#shes_adult_data <- arrow::read_parquet(here("data", "shes_adult_data.parquet"))
+#shes_adult_data <- arrow::read_parquet(paste0(derived_data, "shes_adult_data.parquet"))
 
 
 ## B. Keep a selection of the adult variables for linking to child data (will link if an individual is listed as a parent/carer of the child)
@@ -913,7 +918,7 @@ parent_data <- shes_data %>%
 shes_child_data <- shes_data %>%
   filter(child) %>% # keep 0-15
   select(year, trend_axis, contains("serial"), par1, par2, 
-         cintwt, psu, strata, sex, hb, quintile) %>%
+         cintwt, psu, strata, sex, spatial.unit, spatial.scale, quintile) %>%
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par1"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #1st parent/carer in hhd
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par2"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #2nd parent/carer in hhd
   # calculate the new child MHIs using the data for both parents (.x and .y)
@@ -928,12 +933,12 @@ shes_child_data <- shes_data %>%
 shes_child_data <- shes_child_data %>%
   mutate(sex="Total") %>%
   rbind(shes_child_data) %>%
-  select(year, trend_axis, cintwt, hb, quintile, psu, strata, sex, ch_ghq, ch_audit)
+  select(year, trend_axis, cintwt, spatial.unit, spatial.scale, quintile, psu, strata, sex, ch_ghq, ch_audit)
 
 # save intermediate df:
-#arrow::write_parquet(shes_child_data, here("data", "shes_child_data.parquet"))
+#arrow::write_parquet(shes_child_data, paste0(derived_data, "shes_child_data.parquet"))
 # read back in if not in memory:
-#shes_child_data <- arrow::read_parquet(here("data", "shes_child_data.parquet"))
+#shes_child_data <- arrow::read_parquet(paste0(derived_data, "shes_child_data.parquet"))
 
 # Data checks:
 table(shes_child_data$trend_axis, shes_child_data$ch_ghq)
@@ -948,7 +953,7 @@ table(shes_child_data$trend_axis, shes_child_data$ch_audit)
 table(shes_adult_data$trend_axis, useNA = "always") # 2008 to 2021; no NA
 table(shes_adult_data$sex, useNA = "always") # Female/Male/Total; no NA
 table(shes_adult_data$quintile, useNA = "always") # 5 groups; no NAs
-table(shes_adult_data$hb, useNA = "always") # 14 HBs; no NAs 
+table(shes_adult_data$spatial.unit, useNA = "always") # 14 HBs; some NAs (all in 2009-2011 file, which won't be used anyway)
 table(shes_adult_data$agegp7, useNA = "always") # no NAs
 
 # 18 categorical indicators:
@@ -979,7 +984,7 @@ table(shes_adult_data$life_sat, useNA = "always") # all numeric and NA, so codin
 table(shes_child_data$trend_axis, useNA = "always") # 2008 to 2021; no NA
 table(shes_child_data$sex, useNA = "always") # Female/Male/Total; no NA
 table(shes_child_data$quintile, useNA = "always") # 5 groups; no NAs
-table(shes_child_data$hb, useNA = "always") # 14 HBs; no NA
+table(shes_child_data$spatial.unit, useNA = "always") # 14 HBs; some NA (all in 2009-2011 file, which won't be used anyway)
 table(shes_child_data$agegp7, useNA = "always") # none (as expected)
 
 # 2 categorical indicators:
@@ -994,14 +999,14 @@ table(shes_child_data$ch_audit, useNA = "always") # just yes, no and NA, so codi
 # =================================================================================================================
 
 # These survey calculation functions are in the functions.R script
-# There are some warnings that appear: a deprecated bit and some 'NAs introduced by coercion'. These are OK.
+# There are some warnings that appear: a deprecated bit (I can't find where to change this) and some 'NAs introduced by coercion'. These are OK.
 
 # ADULT
 
 # percents:
 
 # 1. intwt used with main sample variables (HB possible here, so use 4-y agg data)
-svy_percent_gh_qg2 <- calc_indicator_data(shes_adult_data, "gh_qg2", "intwt", ind_id=30003, type= "percent") # ok
+svy_percent_gh_qg2 <- calc_indicator_data(df = shes_adult_data, var = "gh_qg2", wt = "intwt", ind_id = 30003, type= "percent") # ok
 svy_percent_gen_helf <- calc_indicator_data(shes_adult_data, "gen_helf", "intwt", ind_id=30017, type= "percent") # ok
 svy_percent_limitill <- calc_indicator_data(shes_adult_data, "limitill", "intwt", ind_id=30018, type= "percent") # ok
 svy_percent_adt10gp_tw <- calc_indicator_data(shes_adult_data, "adt10gp_tw", "intwt", ind_id=30012, type= "percent") # ok
@@ -1047,7 +1052,7 @@ svy_percent_ch_audit <- calc_indicator_data(shes_child_data, "ch_audit", "cintwt
 
 shes_results0 <- mget(ls(pattern = "^svy_"), .GlobalEnv) %>% # finds all the dataframes produced by the functions above
   do.call(rbind.data.frame, .)  #rbinds them all together (appending the rows)
-rownames(shes_results0) <- NULL
+rownames(shes_results0) <- NULL # drop the row names
 
 # data checks:
 table(shes_results0$trend_axis, useNA = "always") # 2008 to 2021
@@ -1110,9 +1115,9 @@ ftable(shes_results_sub$indicator, shes_results_sub$scale, shes_results_sub$year
 
 # Now restrict the data to the right year_range, based on whether they are main or sub sample
 shes_raw_data <- shes_results1 %>%
-  filter((indicator %in% sub_sample_vars & year_range==0) | 
-           (indicator %in% main_sample_vars & year_range==3) )
-ftable(shes_results1$indicator, shes_results1$scale, shes_results1$year_range)
+  filter((indicator %in% sub_sample_vars & year_range==0) | # single year
+           (indicator %in% main_sample_vars & year_range==3) ) # 4 yr aggregation
+ftable(shes_raw_data$indicator, shes_raw_data$scale, shes_raw_data$year_range)
 # Yep, that's worked
 
 # Check for suppression issues:
@@ -1174,7 +1179,7 @@ prepare_final_files <- function(ind, ind_name){
     filter(indicator == ind,
            split_value == "Total") %>% # split_value here refers to SIMD quintile
     select(-split_value) %>% #... so drop and replace with sex
-    mutate(split_name == "Sex") %>%
+    mutate(split_name = "Sex") %>%
     rename(split_value = sex) %>%
     select(code, ind_id, year, numerator, rate, upci, 
            lowci, def_period, trend_axis, split_name, split_value) 
