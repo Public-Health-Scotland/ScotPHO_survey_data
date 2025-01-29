@@ -36,6 +36,9 @@ source(here("functions", "functions.R")) # sources the file "functions/functions
 # (works if you've stored the ScotPHO repo in same location as the current repo)
 source("../scotpho-indicator-production/1.indicator_analysis.R")
 
+## C. Path to the data derived by this script
+
+derived_data <- "/conf/MHI_Data/derived data/"
 
 
 # 1. Find survey data files, extract variable names and labels (descriptions), and save this info to a spreadsheet
@@ -63,23 +66,23 @@ extracted_survey_data_aps <- extract_survey_data("aps")
 
 # For APS this is a huge file because it contains responses for all respondents in the UK.
 # So we read in the file, extract the Scottish data only, and resave:
-extracted_survey_data_aps <- readRDS(here("data", "extracted_survey_data_aps.rds")) %>%
+extracted_survey_data_aps <- readRDS(paste0(derived_data, "extracted_survey_data_aps.rds")) %>%
   mutate(survey_data = map(survey_data, ~.x %>%
                           filter(govtof=="Scotland")))  # select only Scottish respondents
-write_rds(extracted_survey_data_aps, here("data", "extracted_survey_data_aps.rds"))  
+write_rds(extracted_survey_data_aps, paste0(derived_data, "extracted_survey_data_aps.rds"))  
 
 
 # 4. What are the possible responses?
 # =================================================================================================================
 
 # Read in the data if necessary
-# extracted_survey_data_aps <- readRDS(here("data", "extracted_survey_data_aps.rds"))
+# extracted_survey_data_aps <- readRDS(paste0(derived_data, "extracted_survey_data_aps.rds"))
 
 # get the responses recorded for each variable (combined over the years), and save to xlsx and rds
 
 # 1st run through to see how to identify variables that can be excluded (and the unique characters that will identify these):
 # extract_responses(survey = "aps") 
-# responses_as_list_aps <- readRDS(here("data", paste0("responses_as_list_aps.rds")))
+# responses_as_list_aps <- readRDS(paste0(derived_data, "responses_as_list_aps.rds"))
 # responses_as_list_aps  # examine the output
 
 # 2nd run to exclude the numeric vars that don't need codings and/or muck up the output:
@@ -90,7 +93,7 @@ extract_responses(survey = "aps", #survey acronym
 # read the responses back in and print out so we can work out how they should be coded
 # (also useful to see how sex/geography/simd variables have been recorded, for later standardisation)
 
-responses_as_list_aps <- readRDS(here("data", paste0("responses_as_list_aps.rds")))
+responses_as_list_aps <- readRDS(paste0(derived_data, "responses_as_list_aps.rds"))
 responses_as_list_aps
 
 # responses_as_list_aps printed out
