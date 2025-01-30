@@ -660,7 +660,7 @@ calc_indicator_data <- function (df, var, wt, ind_id, type) {
   }
   
   # Lower geographies
-  if (wt %in% c("intwt") ) { # identify the weights (and hence variables) that can be analysed at lower geographies. Currenlty just intwt in SHeS data.
+  if (wt %in% c("intwt", "cintwt") ) { # identify the weights (and hence variables) that can be analysed at lower geographies. Currenlty just intwt and cintwt in SHeS data.
     
   # HB by sex 
     results_hb <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "sex", "spatial.unit"), type) %>%
