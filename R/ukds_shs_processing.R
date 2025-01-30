@@ -89,13 +89,17 @@ source("../scotpho-indicator-production/2.deprivation_analysis.R")
 # temporary functions:
 source(here("functions", "temp_depr_analysis_updates.R")) # 22.1.25: sources some temporary functions needed until PR #97 is merged into the indicator production repo 
 
+## C. Path to the data derived by this script (absolute path in case your repo is stored outside of the MHI_Data folder)
+
+derived_data <- "/conf/MHI_Data/derived data/"
+
 
 # 1. Find survey data files, extract variable names and labels (descriptions), and save this info to a spreadsheet
 # =================================================================================================================
 
 ## Create a new workbook (first time only. don't run this now)
 #wb <- createWorkbook()
-#saveWorkbook(wb, file = here("data", "all_survey_var_info.xlsx"))
+#saveWorkbook(wb, file = paste0(derived_data, "all_survey_var_info.xlsx"))
 
 save_var_descriptions(survey = "shs", 
                       name_pattern = "\\/shs\\D*(\\d{4}-?\\d{0,4})") # the regular expression for this survey's filenames that identifies the survey year(s)
@@ -118,21 +122,21 @@ extracted_survey_data_shs <- extracted_survey_data_shs %>%
   filter(!grepl('_td_|0708_c_and_s', filename))  # don't need the travel diary files or the 0708_c_and_s file
 
 # save the file
-saveRDS(extracted_survey_data_shs, here("data", "extracted_survey_data_shs.rds"))
+saveRDS(extracted_survey_data_shs, paste0(derived_data, "extracted_survey_data_shs.rds"))
 
 
 # 4. What are the possible responses?
 # =================================================================================================================
 
 # Read in data if not in memory:
-# extracted_survey_data_shs <- readRDS(here("data", "extracted_survey_data_shs.rds"))
+# extracted_survey_data_shs <- readRDS(paste0(derived_data, "extracted_survey_data_shs.rds"))
 
 
 # get the responses recorded for each variable (combined over the years), and save to xlsx and rds
 
 # 1st run through to see how to identify variables that can be excluded (and the unique characters that will identify these):
     # extract_responses(survey = "shs") 
-    # responses_as_list_shs <- readRDS(here("data", paste0("responses_as_list_shs.rds")))
+    # responses_as_list_shs <- readRDS(paste0(derived_data, "responses_as_list_shs.rds"))
     # responses_as_list_shs  # examine the output
 
 # 2nd run to exclude the numeric vars that don't need codings and/or muck up the output:
@@ -143,7 +147,7 @@ extract_responses(survey = "shs", #survey acronym
 # read the responses back in and print out so we can work out how they should be coded
 # (also useful to see how sex/geography/simd variables have been recorded, for later standardisation)
 
-responses_as_list_shs <- readRDS(here("data", paste0("responses_as_list_shs.rds")))
+responses_as_list_shs <- readRDS(paste0(derived_data, "responses_as_list_shs.rds"))
 responses_as_list_shs
 
 # responses_as_list_shs printed out
@@ -569,13 +573,12 @@ harass_categories <- c("harass_01", "harass_02", "harass_03", "harass_04", "hara
                        "harass_06", "harass_07", "harass_08", "harass_091015", "harass_11", 
                        "harass_12", "harass_13", "harass_14")
 
-
-# 6. Process the survey data to produce the indicator(s)
+# Create a LUT for a person's uniqid to SIMD for the SHCS processing
 # =================================================================================================================
 
-# First: make sure there's only one of each grouping variable (geog/SIMD) for each survey file and that these are coded in a standard way
+# SIMD codes
 
-# cross tabulate years and variables, to see what's available when  
+# cross tabulate years and variables, to see what's available when
 shs_years_vars <- extracted_survey_data_shs %>%
   transmute(year,
             var_label = map(survey_data, names)) %>%
@@ -583,89 +586,6 @@ shs_years_vars <- extracted_survey_data_shs %>%
   arrange(var_label) %>%
   mutate(value=1) %>%
   pivot_wider(names_from=var_label, values_from = value)
-
-# Geography codes: 
-
-# Geographies are a mess in these data (see the possible codings printed out above).
-# There should be 32 codes for LA/council, and 14 for health boards, but in reality:
-
-# council: 123 unique, mix of names, numbers and letters. Massive jumble. 
-# la = 32 unique, letters and numbers (1 to Z)
-# la_code = 32 unique (correct), all S120000xx codes, from S12000005 to S12000046 (some numbers not used) 
-
-# hlth06 = 29 unique, but all text, so could be standardised
-# hlth14 = 29 unique, mix of S08 codes and numbers, and numbers don't correspond to the codes. 
-# hlthbd2014 = 16 unique S08 codes, from S08000015 to S08000030
-# hlth19 = 14 unique numbers, 2 to 17
-# hlthbd2019 = 14 unique S080000xx codes.
-
-# Which hb and la codes are used when (and when are they used together, and which ones should be kept)?
-shs_years_vars %>% select(year, year, starts_with("hlth"), la, la_code, council) %>% arrange(year)
-
-# # A tibble: 15 × 9
-#    year      hlth06 hlth14 hlth19 hlthbd2014 hlthbd2019    la la_code council
-#    <chr>      <dbl>  <dbl>  <dbl>      <dbl>      <dbl> <dbl>   <dbl>   <dbl>
-#  1 0102          NA     NA     NA         NA         NA     1      NA      NA
-#  2 0506          NA     NA     NA         NA         NA     1      NA      NA
-#  3 0708           1     NA     NA         NA         NA     1      NA       1
-#  4 19992000      NA     NA     NA         NA         NA     1      NA      NA
-#  5 20032004      NA     NA     NA         NA         NA     1      NA      NA
-#  6 2009-2010      1     NA     NA         NA         NA     1      NA       1
-#  7 2011           1     NA     NA         NA         NA     1      NA      NA
-#  8 2012          NA     NA     NA         NA         NA     1      NA      NA
-#  9 2013          NA      1     NA         NA         NA     1      NA      NA
-# 10 2014          NA      1     NA         NA         NA     1      NA      NA
-# 11 2015          NA      1     NA         NA         NA     1      NA      NA
-# 12 2016          NA      1     NA          1         NA    NA       1       1
-# 13 2017          NA      1     NA          1         NA    NA       1       1
-# 14 2018          NA      1     NA          1         NA    NA      NA       1
-# 15 2019          NA     NA      1         NA          1    NA      NA       1
-# 16 2022          NA     NA      1         NA          1    NA      NA       1
-
-# No HB code = 19992000 to 0506, and then 2012 -> all have the la variable (1 to Z)
-# 2 HB codes = 2016 to 2022: numbers 2 to 17 as hlth14 (or hlth19 in 2019 & 2022), and HB codes as hlthbd2014 (or hlthbd2019 in 2019 & 2022)
-# The numeric hlth14 var is used in isolation in 2013-2015
-
-# All years have an alphanumeric variable called la or council which contains 1 to Z.
-# In 2009-10 though the code council is a mismash of names and numbers, and the 1 to Z la variable is also provided. 
-# 2016 and 2017 have council (1 to Z) and la_code (S12..)
-
-# Conclusion = total mess
-
-# Most straightforward approach to consolidating and standardising codes and names: (I tried a lot)
-la_code_to_council_code <- extracted_survey_data_shs %>%
-  filter(year=="2016") %>%
-  select(survey_data) %>% 
-  unnest() %>%
-  group_by(la_code, council) %>%
-  summarise() %>%
-  ungroup() 
-# 32 obs, so correct. 
-# council =  1 to Z here, 
-# la_code = S12000005 to S12000046. Corresponds to CA2011 codes (found this in the datazone lookup here:
-dz2011_lut <- read_csv("/conf/linkage/output/lookups/Unicode/Geography/DataZone2011/Datazone2011lookup.csv")
-#arrow::write_parquet(dz2011_lut, here("data", "dz2011_lut.parquet"))
-# read in from here if don't have access to the stats box lookups:
-#dz2011_lut <- arrow::read_parquet(here("data", "dz2011_lut.parquet"))
-
-# make a LUT for council and HB names, based on 2011 CA codes (S12000005 to S12000046)
-ca2011_la_name_hb2019name <- dz2011_lut %>%
-  group_by(LA_Name, CA2011, hb2019name) %>%
-  summarise() %>%
-  ungroup() %>%
-  rename(la_code = CA2011, # S12000005 to S12000046
-         la = LA_Name,
-         hb = hb2019name)
-
-# combine:
-la_hb_lut <- ca2011_la_name_hb2019name %>%
-  merge(y = la_code_to_council_code, by="la_code") %>%
-  select(-la_code)
-# Great! Can now link this LUT to la for survey files up to and including 2015, and link to council for 2016 to 2019.
-
-
-
-# SIMD codes
 
 # which simd codes used when (and when are they used together)?
 shs_years_vars %>% select(year, year, ends_with("quin")) %>% arrange(year)
@@ -718,382 +638,602 @@ table(extracted_survey_data_shs[[4]][[7]]$md06quin, extracted_survey_data_shs[[4
 
 # Conclusion: 1 is most deprived quintile in all SIMD versions used in SHS
 
-# Processing of these microdata before calculating indicator estimates:
-# Produce a flat file by unnesting the list column
-# Consolidate and standardise the relevant vars
-# Apply the variable codings
-# Add in SHS design effects
 
-# design effects from Scottish Household Survey team
-shs_design_effects <- read.xlsx("/conf/MHI_Data/big/big_mhi_data/unzipped/shs/SHoS design effects from SG.xlsx",
-                                sheet = "Design factors",
-                                colNames = TRUE) %>%
-  filter(!(Year %in% c("2021 v3s model", "2020 (televid v3 model)"))) %>% # these are for the housing data (not used here)
-  mutate(Year = case_when(Year == "1999/2000" ~ "19992000",
-                          Year == "2001/2002" ~ "0102",
-                          Year == "2003/2004" ~ "20032004",
-                          Year == "2005/2006" ~ "0506",
-                          Year == "2007/2008" ~ "0708",
-                          Year == "2009/2010" ~ "2009-2010",
-                          Year == "2021 v2 model" ~ "2021",
-                          Year == "2020 (televid v2 model)" ~ "2020",
-                          TRUE ~ Year))
-
-
-
-
-
-shs_data <- extracted_survey_data_shs %>%
+# make a uniqidnew to SIMD quintile lookup, for use in SHCS processing:
+uniqidnew_lut <- extracted_survey_data_shs %>%
   mutate(survey_data = map(survey_data, ~.x %>%
                              mutate(across(.cols = everything(), as.character)))) %>% # to deal with some incompatible formats that mucked up the unnest()
   unnest(cols = c(survey_data)) %>%
-  mutate(sex = coalesce(randsex, randgender)) %>%
-  mutate(volunteer = coalesce(volunteer, voluntee)) %>%
-  mutate(across(c(ends_with("wt")), as.numeric)) %>% 
   mutate(md06quin = ifelse(year == "2011", as.character(NA), md06quin),
          md09quin = ifelse(year == "2009-2010", as.character(NA), md09quin),
          md12quin = ifelse(year %in% c("2017", "2018"), as.character(NA), md12quin)) %>%
   mutate(simd5 = coalesce(md05quin, md06quin, md09quin, md12quin, md16quin, md20quin)) %>%
-  mutate(council = ifelse(!is.na(la), la, council)) %>%
-  select(-la) %>%
-  merge(y = la_hb_lut, by = "council") %>%
-  mutate(sex = case_when(sex %in% c("female", "Female",  "Woman/Girl") ~ "Female",
-                         sex %in% c("male", "Male", "Man/Boy") ~ "Male",
-                         is.na(sex) ~ "Total")) %>%
-  mutate(simd5 = case_when(simd5 %in% c("1", "1 - 20% most deprived", "Most deprived 20% data zones", "most deprived 20% data zones") ~ "1st - Most deprived",
-                           simd5 == "2" ~ "2nd",
-                           simd5 == "3" ~ "3rd",
-                           simd5 == "4" ~ "4th",
-                           simd5 %in% c("5", "5 - 20% least deprived", "Least deprived 20% data zones", "least deprived 20% data zones") ~ "5th - Least deprived",
-                           TRUE ~ as.character(NA))) %>%
-  # now can recode the variables
-  mutate(volunteer = recode(volunteer, !!!lookup_volunteer)) %>%
-  mutate(commbel = recode(commbel, !!!lookup_commbel)) %>%
-  mutate(greenuse13 = recode(greenuse13, !!!lookup_greenuse13)) %>%
-  mutate(rb1 = recode(rb1, !!!lookup_rb1)) %>%
-  mutate(asb2a = recode(asb2a, !!!lookup_asb2a)) %>%
-  mutate(serv1h = recode(serv1h, !!!lookup_serv1h)) %>%
-  mutate(social2 = recode(social2, !!!lookup_social2)) %>%
-  mutate(social3_02 = recode(social3_02, !!!lookup_social3_02)) %>%
-  mutate(hk2 = recode(hk2, !!!lookup_hk2)) %>%
-  # recode the credit variables used to derived the risky loans MHI:
-  mutate(credit309d = recode(credit309d, !!!lookup_loans)) %>%
-  mutate(credit309e = recode(credit309e, !!!lookup_loans)) %>%
-  mutate(credit309l = recode(credit309l, !!!lookup_loans)) %>%
-  # risky loans calc: #limit to 2015+ Q wording (i.e., variables credit309)
-  mutate(loans = case_when(if_any(starts_with("credit3"), ~ . == "yes") ~ "yes", #applied first, so not overwritten by second clause
-                           if_any(starts_with("credit3"), ~ . == "no") ~ "no",
-                           TRUE ~ as.character(NA))) %>% # for survey years with no relevant variables
-  #recode the discrim variables
-  mutate(across(starts_with("discrim"), ~ recode(., !!!lookup_discrim))) %>%
-  mutate(discrim_new = case_when(if_any(all_of(discrim_categories), ~ . == "yes") ~ "yes", #applied first, so not overwritten by second clause
-                             if_any(c(discrim_16, discrim_17), ~ . == "yes") ~ "no", # no discrim if answer yes to discrim_16 (not experienced) or discrim_17 (don't know). Excludes 'refused'.
-                             TRUE ~ as.character(NA))) %>% # for survey years with no relevant variables
-  #recode the harass variables
-  mutate(across(starts_with("harass"), ~ recode(., !!!lookup_harass))) %>%
-  mutate(harass_new = case_when(if_any(all_of(harass_categories), ~ . == "yes") ~ "yes", #applied first, so not overwritten by second clause
-                                if_any(c(harass_16, harass_17), ~ . == "yes") ~ "no", # no harass if answer yes to harass_16 (not experienced) or harass_17 (don't know). Excludes 'refused'.
-                                TRUE ~ as.character(NA))) %>% # for survey years with no relevant variables
-  select(-contains(c("hlth", "rand", "pc15", "dec", "file", "quin", "cred")), -la_code, -md04quin, -council, -voluntee, -any_of(harass_categories), -any_of(discrim_categories), -harass_16, -harass_17, -discrim_16, -discrim_17 ) %>% #drop if not needed
-  merge(y = shs_design_effects, by.x="year", by.y="Year", all.x=TRUE)
-
-# save a uniqidnew lookup for use in SHCS analysis
-uniqidnew_lut <- shs_data %>%
-  select(year, uniqidnew, la_wt, ind_wt, simd5, la, hb, Design.Factor) %>%
+  mutate(simd5 = case_when(simd5 %in% c("1 - 20% most deprived", "Most deprived 20% data zones", "most deprived 20% data zones") ~ "1",
+                           simd5 %in% c("5 - 20% least deprived", "Least deprived 20% data zones", "least deprived 20% data zones") ~ "5",
+                           TRUE ~ simd5)) %>%
+  select(year, uniqidnew, simd5) %>%
   filter(!is.na(uniqidnew)) # halves the number of rows... 
 
 # save the file
-saveRDS(uniqidnew_lut, here("data", "uniqidnew_lut.rds"))
-
-# data checks
-table(shs_data$sex, useNA = "always") # Female/Male/Total
-table(shs_data$simd5, useNA = "always") # 5 classes, plus a small number of NA
-table(shs_data$hb, useNA = "always") # standard names, no NAs
-table(shs_data$la, useNA = "always") # standard names, no NAs
-table(shs_data$volunteer, useNA = "always") # just yes, no and NA, so coding has worked
-table(shs_data$commbel, useNA = "always") # just yes, no and NA, so coding has worked
-table(shs_data$greenuse13, useNA = "always") # just yes, no and NA, so coding has worked
-table(shs_data$rb1, useNA = "always") # just yes, no and NA, so coding has worked
-table(shs_data$asb2a, useNA = "always") # just yes, no and NA, so coding has worked
-table(shs_data$serv1h, useNA = "always") # just yes, no and NA, so coding has worked
-table(shs_data$social2, useNA = "always") # just yes, no and NA, so coding has worked
-table(shs_data$social3_02, useNA = "always") # just yes, no and NA, so coding has worked
-table(shs_data$hk2, useNA = "always") # just yes, no and NA, so coding has worked
-table(shs_data$loans, useNA = "always") # just yes, no and NA, so coding has worked
-#table(shs_data$discrim1, useNA = "always") # just yes, no and NA, so coding has worked # old pre-2018 discrim var
-table(shs_data$discrim_new, useNA = "always") # just yes, no and NA, so coding has worked
-#table(shs_data$harass1, useNA = "always") # just yes, no and NA, so coding has worked # old pre-2018 harass var
-table(shs_data$harass_new, useNA = "always") # just yes, no and NA, so coding has worked
-
-# repeat the data with sex=="Total"
-shs_data2 <- shs_data %>%
-  filter(sex!="Total") %>% #remove those that were total in the first place
-  mutate(sex="Total") %>% 
-  rbind(shs_data)
-
-# make long by geographical scale, to make aggregating and analysing easier:
-shs_data3 <- shs_data2 %>%
-  mutate(new_Scotland = "Scotland") %>%
-  rename(new_LA = la,
-         new_HB = hb,
-         new_SIMD = simd5) %>%
-  pivot_longer(cols = starts_with("new"), names_to = "spatial.scale", names_prefix = "new_", values_to = "spatial.unit") # should be 4x as long as original data, as respondents now repeated
+saveRDS(uniqidnew_lut, paste0(derived_data, "uniqidnew_lut.rds"))
 
 
-# Function to aggregate the data for a single variable, with weightings and complex survey design effects applied
-shs_percent_analysis <- function (df, var, wt) {
-  
-  df2 <- df %>% 
-    rename(svy_var = var,
-           svy_wt = wt) %>% # makes later calculations easier if starting variable and weight have standard name
-    filter(!is.na(svy_wt)) %>%
-    filter(svy_var!="NA") %>%
-    filter(!is.na(svy_var)) %>%
-    group_by(year, sex, spatial.unit, spatial.scale, Design.Factor) %>%
-    summarise(yes_wted = sum(svy_wt[svy_var=="yes"]),
-              no_wted = sum(svy_wt[svy_var=="no"]),
-              yes_unwted = sum(svy_var=="yes"),
-              no_unwted = sum(svy_var=="no"),
-              Nuw = yes_unwted + no_unwted,
-              Nw = yes_wted + no_wted) %>%
-    ungroup() %>%
-    mutate(proportion = yes_wted/Nw,
-           percent = 100 * proportion,
-          # lower_bound = 100 * (((2*yes_wted) + (1.96*1.96) - 1.96*sqrt((1.96*1.96) + (4*yes_wted*(1-proportion)))) / (2 * (Nw + (1.96*1.96)))), # Wilson's score method. 
-          # upper_bound = 100 * (((2*yes_wted) + (1.96*1.96) + 1.96*sqrt((1.96*1.96) + (4*yes_wted*(1-proportion)))) / (2 * (Nw + (1.96*1.96)))),
-          # lower_ci = percent - Design.Factor * (percent - lower_bound),
-          # upper_ci = percent + Design.Factor * (upper_bound - percent),
-           shs_ci = 100 * Design.Factor * 1.96 * sqrt((proportion * (1 - proportion))/Nw),
-           lower_ci = percent - shs_ci, # produces some negative lower CIs, and upper CIs > 100, esp if Nw is small (too small for reliable estimates)
-           upper_ci = percent + shs_ci) %>%
-    select(-c(proportion, shs_ci, Design.Factor, no_wted, no_unwted)) %>%
-    rename(nw = yes_wted, # renaming the positive counts to nw (weighted) and nuw (unweighted) at this point to avoid having got muddled with the no variables earlier
-           nuw = yes_unwted) %>%
-    pivot_longer(cols = c(nw, Nw, Nuw, nuw, percent, lower_ci, upper_ci), values_to = "value", names_to = "statistic") %>%
-    mutate(var_label = var)
-  
-}
+######################################################################################################
+# Remainder of processing not required now that SHoS team are providing the indicator data for us:
+######################################################################################################
 
-# Run the function:
-aggd_volunteer <- shs_percent_analysis(shs_data3, "volunteer", "ind_wt")
-aggd_rb1 <- shs_percent_analysis(shs_data3, "rb1", "ind_wt")
-aggd_asb2a <- shs_percent_analysis(shs_data3, "asb2a", "ind_wt")
-aggd_serv1h <- shs_percent_analysis(shs_data3, "serv1h", "ind_wt")
-aggd_commbel <- shs_percent_analysis(shs_data3, "commbel", "ind_wt")
-aggd_greenuse13 <- shs_percent_analysis(shs_data3, "greenuse13", "ind_wt")
-aggd_social2 <- shs_percent_analysis(shs_data3, "social2", "ind_wt")
-aggd_social3_02 <- shs_percent_analysis(shs_data3, "social3_02", "ind_wt")
-aggd_discrim_new <- shs_percent_analysis(shs_data3, "discrim_new", "ind_wt")
-aggd_harass_new <- shs_percent_analysis(shs_data3, "harass_new", "ind_wt")
-#aggd_discrim1 <- shs_percent_analysis(shs_data3, "discrim1", "ind_wt")
-#aggd_harass1 <- shs_percent_analysis(shs_data3, "harass1", "ind_wt")
-
-aggd_loans <- shs_percent_analysis(shs_data3, "loans", "la_wt")
-aggd_hk2 <- shs_percent_analysis(shs_data3, "hk2", "la_wt")
-
-# Get all the resulting dataframes and rbind them
-shs_results <- mget(ls(pattern = "^aggd_"), .GlobalEnv) %>%
-  do.call(rbind.data.frame, .) %>%
-  mutate(dataset = 'SHoS (UKDS data)',
-         measure_type = "percent",
-         year_label = case_when(year=="19992000" ~ "1999 to 2000",
-                                year=="0102" ~ "2001 to 2002",
-                                year=="20032004" ~ "2003 to 2004",
-                                year=="0506" ~ "2005 to 2006",
-                                year=="0708" ~ "2007 to 2008",
-                                year=="2009-2010" ~ "2009 to 2010",
-                                TRUE ~ year),
-         year = as.numeric(substr(year_label, 1, 4))) %>%
-  filter(!(spatial.scale=="SIMD" & is.na(spatial.unit))) %>% # some respondents didn't have SIMD data in early years (2009-2010 and 2011)
-  # Some upper ci > 100 nd some lower_ci < 0.
-  # Constrain these to be 100 and 0
-  mutate(value = case_when(statistic=="upper_ci" & value>100 ~ 100,
-                           statistic=="lower_ci" & value<0 ~ 0,
-                           TRUE ~ value)) %>%
-  filter(!(var_label %in% c("discrim1", "harass1"))) %>%
-  filter(!(var_label %in% c("loans", "hk2") & sex %in% c("Female", "Male")))
-
-
-# Save the indicator data
-
-#arrow::write_parquet(shs_results, here("data", "shs_results.parquet"))
-shs_results <- arrow::read_parquet(here("data", "shs_results.parquet"))
-
-
-# 7. What are the smallest numbers? Any suppression issues?
-# =================================================================================================================
-
-# Unweighted bases
-# =================================================================================================================
-# SHS dashboard considerations on sample size:
-# If base on which percentages are calculated is less than 50 = Such data are judged to be insufficiently reliable for publication. 
-# Estimates with base numbers close to 50 should also be treated with caution.
-# https://scotland.shinyapps.io/sg-scottish-household-survey-data-explorer/
-# Check where bases <50
+# # 6. Process the survey data to produce the indicator(s)
+# # =================================================================================================================
 # 
-shs_unweighted_bases <- shs_results %>%
-  filter(statistic %in% c("Nuw"))
-
-# National by sex
-shs_unweighted_bases %>%
-  filter(sex != "Total", spatial.scale == "Scotland") %>%
-  ggplot(aes(year, value, group = sex, colour = sex, shape = sex)) +
-  geom_point() + geom_line() +
-  facet_wrap(~var_label, scales = "free_y")
-# none <50
-
-# SIMD by sex (male)
-shs_unweighted_bases %>%
-  filter(sex == "Male", spatial.scale == "SIMD") %>%
-  ggplot(aes(year, value, group = spatial.unit, colour = spatial.unit, shape = spatial.unit)) +
-  geom_point() + geom_line() +
-  facet_wrap(~var_label, scales = "free_y")
-# none <50
-
-# HBs
-shs_unweighted_bases %>%
-  filter(sex == "Total", spatial.scale == "HB") %>%
-  ggplot(aes(year, value, group = spatial.unit, colour = spatial.unit)) +
-  geom_point() + geom_line() +
-  facet_wrap(~var_label, scales = "free_y")
-# none <50
-
-# HBs by sex (male)
-shs_unweighted_bases %>%
-  filter(sex == "Male", spatial.scale == "HB") %>%
-  ggplot(aes(year, value, group = spatial.unit, colour = spatial.unit)) +
-  geom_point() + geom_line() +
-  facet_wrap(~var_label, scales = "free_y")
-# some HB in 2005 and 2011 have unweighted bases <50 (>=39) for the volunteer variable, males only.
-
-# LAs by sex (male)
-shs_unweighted_bases %>%
-  filter(sex == "Male", spatial.scale == "LA") %>%
-  ggplot(aes(year, value, group = spatial.unit, colour = spatial.unit)) +
-  geom_point() + geom_line() +
-  facet_wrap(~var_label, scales = "free_y")
-# some LA in 2005 and 2011 have unweighted bases <50 (>=35) for the volunteer variable, males only.
-
-
-# 8. Data amendments following data checks
-# =================================================================================================================
-
-# The data checks conducted in the script ukds_shs_checks confirmed very close agreement between the UKDS_derived indicators and data downloaded from the SHS dashboard.
-# Data could be compared for 7 indicators: "commbel", "greenuse13", "hk2", "rb1", "volunteer", "harass_new", and "discrim_new" 
-# Headline results of this QA:  
-# 89% of the unweighted bases are identical (Differences seem to be largely due to rounding for small bases)
-# 76% of the percentages are identical (and 90% are within 1%).
-# Investigated some of the largest relative differences in the estimates: 
-# again, looks like differences in the raw data (number of respondents) being processed for the SHS dashboard and that available to us through the UKDS. 
-# SHS responded to an email* on 22 March 2024 saying that the UKDS data will have fewer respondents in them because of disclosure control.
-# (*Prompted by discrim_new and harass_new indicators having 40-50 fewer respondents in the UKDS data)
-
-# The close agreement confirms the accuracy of our data processing, but some very slight differences remain.
-# We decided against replacing the UKDS data with SHS dashboard data, where available, as the dashboard only provided the % estimate and the unweighted base.
-# A note will be needed to reflect the differences between the SHS dashboard and our calculations. 
-
-# The unweighted base checks above also showed that Nuw for some breakdowns (HB/LA by sex) were below the SHS threshold of 50.
-# For this reason we opted to remove HB/LA breakdowns by sex
-
-
-# Conduct the suppression (remove HB/LA breakdowns by sex)
-shs_results2 <- shs_results %>%
-  # remove the breakdowns with sample sizes that are too small:
-  filter(!(spatial.scale %in% c("HB", "LA") & !(sex=="Total")))  %>%
-  # standardise year labels to match other data (e.g., 1999 to 2000 will become 1999-2000)
-  mutate(year_label = case_when(nchar(year_label)>4 ~ gsub(" to ", "-", year_label),
-                                TRUE ~ year_label),
-         year = case_when(nchar(year_label)>4 ~ year+0.5,
-                                TRUE ~ year))
-
-# Save the indicator data
-
-#arrow::write_parquet(shs_results2, here("data", "shs_results2.parquet"))
-shs_results2 <- arrow::read_parquet(here("data", "shs_results2.parquet"))
-
-
-# 9. Data availability
-# =================================================================================================================
-
-shs_percents <- shs_results2 %>% 
-  filter(statistic=="percent") 
-
-ftable(shs_percents$var_label, shs_percents$spatial.scale, shs_percents$sex , shs_percents$year_label)
-# check that relevant year/sex combos have single Scotland estimates, 5 SIMD estimates, 32 LA estimates, and 14 HB estimates
-
-
-# 10. Plot the indicator(s)
-# =================================================================================================================
-# Let's now see what the series and CIs look like:
-
-# total
-shs_results2 %>% 
-  pivot_wider(names_from = statistic, values_from = value) %>%
-  filter(sex == "Total", spatial.scale == "Scotland") %>% 
-  ggplot(aes(year, percent, group = sex, colour = sex, shape = sex)) + 
-  geom_point() + geom_line() +
-  facet_wrap(~var_label, scales = "free_y") +
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.1) 
-
-# sex
-shs_results2 %>% 
-  pivot_wider(names_from = statistic, values_from = value) %>%
-  filter(sex != "Total", spatial.scale == "Scotland") %>% 
-  ggplot(aes(year, percent, group = sex, colour = sex, shape = sex)) + 
-  geom_point() + geom_line() +
-  facet_wrap(~var_label, scales = "free_y") +
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.1) 
-
-# simd
-shs_results2 %>% 
-  pivot_wider(names_from = statistic, values_from = value) %>%
-  filter(sex == "Total", spatial.scale == "SIMD") %>% 
-  ggplot(aes(year, percent, group = spatial.unit, colour = spatial.unit, shape = spatial.unit)) + 
-  geom_point() + geom_line() +
-  facet_wrap(~var_label, scales = "free_y") +
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.1) 
-
-# hb, total pop
-shs_results2 %>% 
-  pivot_wider(names_from = statistic, values_from = value) %>%
-  filter(sex == "Total", spatial.scale == "HB") %>% 
-  ggplot(aes(year, percent, group = spatial.unit, colour = spatial.unit, shape = spatial.unit)) + 
-  geom_point() + geom_line() +
-  facet_wrap(~var_label, scales = "free_y") 
-#+
-#  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.1) 
-
-# la, total pop
-shs_results2 %>% 
-  pivot_wider(names_from = statistic, values_from = value) %>%
-  filter(sex == "Total", spatial.scale == "LA") %>% 
-  ggplot(aes(year, percent, group = spatial.unit, colour = spatial.unit, shape = spatial.unit)) + 
-  geom_point() + geom_line() +
-  facet_wrap(~var_label, scales = "free_y") 
-#+
-#  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.1) 
-
-
-# # CHECK THE DISCRIM AND HARASS VARS AGAINST THE SHES VERSIONS (DISCONTINUED):
-# shes_vars <- arrow::read_parquet(here('data', 'shes_results2.parquet')) %>%
-#   filter(var_label %in% c("haras_any", "disc_any"))
-# shos_vars <- shs_results2 %>%
-#   filter(var_label %in% c("discrim1", "discrim_new", "harass1", "harass_new"))
-# discrim_and_harass <- rbind(shes_vars, shos_vars) %>%
-#   pivot_wider(names_from = statistic, values_from = value)
-# discrim_and_harass %>%
-#   filter(spatial.unit == "Scotland" & sex=="Total" & var_label %in% c("discrim1", "discrim_new", "disc_any")) %>%
-#   ggplot(aes(x=year, y=percent, colour = var_label, group = var_label)) +
-#   geom_line() +
-#   theme_bw() +
-#   scale_y_continuous(limits=c(0, NA),
-#                      expand = expansion(mult = c(0, 0.1)),
-#                      labels = scales::comma)
-# discrim_and_harass %>%
-#   filter(spatial.unit == "Scotland" & sex=="Total" & var_label %in% c("harass1", "harass_new", "haras_any")) %>%
-#   ggplot(aes(x=year, y=percent, colour = var_label, group = var_label)) +
-#   geom_line() +
-#   theme_bw() +
-#   scale_y_continuous(limits=c(0, NA),
-#                      expand = expansion(mult = c(0, 0.1)),
-#                      labels = scales::comma)
+# # First: make sure there's only one of each grouping variable (geog/SIMD) for each survey file and that these are coded in a standard way
+# 
+# # cross tabulate years and variables, to see what's available when  
+# shs_years_vars <- extracted_survey_data_shs %>%
+#   transmute(year,
+#             var_label = map(survey_data, names)) %>%
+#   unnest(var_label) %>%
+#   arrange(var_label) %>%
+#   mutate(value=1) %>%
+#   pivot_wider(names_from=var_label, values_from = value)
+# 
+# # Geography codes: 
+# 
+# # Geographies are a mess in these data (see the possible codings printed out above).
+# # There should be 32 codes for LA/council, and 14 for health boards, but in reality:
+# 
+# # council: 123 unique, mix of names, numbers and letters. Massive jumble. 
+# # la = 32 unique, letters and numbers (1 to Z)
+# # la_code = 32 unique (correct), all S120000xx codes, from S12000005 to S12000046 (some numbers not used) 
+# 
+# # hlth06 = 29 unique, but all text, so could be standardised
+# # hlth14 = 29 unique, mix of S08 codes and numbers, and numbers don't correspond to the codes. 
+# # hlthbd2014 = 16 unique S08 codes, from S08000015 to S08000030
+# # hlth19 = 14 unique numbers, 2 to 17
+# # hlthbd2019 = 14 unique S080000xx codes.
+# 
+# # Which hb and la codes are used when (and when are they used together, and which ones should be kept)?
+# shs_years_vars %>% select(year, year, starts_with("hlth"), la, la_code, council) %>% arrange(year)
+# 
+# # # A tibble: 15 × 9
+# #    year      hlth06 hlth14 hlth19 hlthbd2014 hlthbd2019    la la_code council
+# #    <chr>      <dbl>  <dbl>  <dbl>      <dbl>      <dbl> <dbl>   <dbl>   <dbl>
+# #  1 0102          NA     NA     NA         NA         NA     1      NA      NA
+# #  2 0506          NA     NA     NA         NA         NA     1      NA      NA
+# #  3 0708           1     NA     NA         NA         NA     1      NA       1
+# #  4 19992000      NA     NA     NA         NA         NA     1      NA      NA
+# #  5 20032004      NA     NA     NA         NA         NA     1      NA      NA
+# #  6 2009-2010      1     NA     NA         NA         NA     1      NA       1
+# #  7 2011           1     NA     NA         NA         NA     1      NA      NA
+# #  8 2012          NA     NA     NA         NA         NA     1      NA      NA
+# #  9 2013          NA      1     NA         NA         NA     1      NA      NA
+# # 10 2014          NA      1     NA         NA         NA     1      NA      NA
+# # 11 2015          NA      1     NA         NA         NA     1      NA      NA
+# # 12 2016          NA      1     NA          1         NA    NA       1       1
+# # 13 2017          NA      1     NA          1         NA    NA       1       1
+# # 14 2018          NA      1     NA          1         NA    NA      NA       1
+# # 15 2019          NA     NA      1         NA          1    NA      NA       1
+# # 16 2022          NA     NA      1         NA          1    NA      NA       1
+# 
+# # No HB code = 19992000 to 0506, and then 2012 -> all have the la variable (1 to Z)
+# # 2 HB codes = 2016 to 2022: numbers 2 to 17 as hlth14 (or hlth19 in 2019 & 2022), and HB codes as hlthbd2014 (or hlthbd2019 in 2019 & 2022)
+# # The numeric hlth14 var is used in isolation in 2013-2015
+# 
+# # All years have an alphanumeric variable called la or council which contains 1 to Z.
+# # In 2009-10 though the code council is a mismash of names and numbers, and the 1 to Z la variable is also provided. 
+# # 2016 and 2017 have council (1 to Z) and la_code (S12..)
+# 
+# # Conclusion = total mess
+# 
+# # Most straightforward approach to consolidating and standardising codes and names: (I tried a lot)
+# la_code_to_council_code <- extracted_survey_data_shs %>%
+#   filter(year=="2016") %>%
+#   select(survey_data) %>% 
+#   unnest(cols = c(survey_data)) %>%
+#   group_by(la_code, council) %>%
+#   summarise() %>%
+#   ungroup() 
+# # 32 obs, so correct. 
+# # council =  1 to Z here, 
+# # la_code = S12000005 to S12000046. Corresponds to CA2011 codes (found this in the datazone lookup here:
+# dz2011_lut <- read_csv("/conf/linkage/output/lookups/Unicode/Geography/DataZone2011/Datazone2011lookup.csv")
+# #arrow::write_parquet(dz2011_lut, paste0(derived_data, "dz2011_lut.parquet"))
+# # read in from here if don't have access to the stats box lookups:
+# #dz2011_lut <- arrow::read_parquet(paste0(derived_data, "dz2011_lut.parquet"))
+# 
+# # make a LUT for council and HB names, based on 2011 CA codes (S12000005 to S12000046)
+# ca2011_la_name_hb2019name <- dz2011_lut %>%
+#   group_by(LA_Name, CA2011, hb2019name) %>%
+#   summarise() %>%
+#   ungroup() %>%
+#   rename(la_code = CA2011, # S12000005 to S12000046
+#          la = LA_Name,
+#          hb = hb2019name)
+# 
+# # combine:
+# la_hb_lut <- ca2011_la_name_hb2019name %>%
+#   merge(y = la_code_to_council_code, by="la_code") %>%
+#   select(-la_code)
+# # Great! Can now link this LUT to la for survey files up to and including 2015, and link to council for 2016 to 2019.
+# 
+# 
+# 
+# # Processing of these microdata before calculating indicator estimates:
+# # Produce a flat file by unnesting the list column
+# # Consolidate and standardise the relevant vars
+# # Apply the variable codings
+# # Add in SHS design effects
+# 
+# # design effects from Scottish Household Survey team
+# shs_design_effects <- read.xlsx("/conf/MHI_Data/big/big_mhi_data/unzipped/shs/SHoS design effects from SG.xlsx",
+#                                 sheet = "Design factors",
+#                                 colNames = TRUE) %>%
+#   filter(!(Year %in% c("2021 v3s model", "2020 (televid v3 model)"))) %>% # these are for the housing data (not used here)
+#   mutate(Year = case_when(Year == "1999/2000" ~ "19992000",
+#                           Year == "2001/2002" ~ "0102",
+#                           Year == "2003/2004" ~ "20032004",
+#                           Year == "2005/2006" ~ "0506",
+#                           Year == "2007/2008" ~ "0708",
+#                           Year == "2009/2010" ~ "2009-2010",
+#                           Year == "2021 v2 model" ~ "2021",
+#                           Year == "2020 (televid v2 model)" ~ "2020",
+#                           TRUE ~ Year))
+# 
+# 
+# 
+# 
+# 
+# shs_data <- extracted_survey_data_shs %>%
+#   mutate(survey_data = map(survey_data, ~.x %>%
+#                              mutate(across(.cols = everything(), as.character)))) %>% # to deal with some incompatible formats that mucked up the unnest()
+#   unnest(cols = c(survey_data)) %>%
+#   mutate(sex = coalesce(randsex, randgender)) %>%
+#   mutate(volunteer = coalesce(volunteer, voluntee)) %>%
+#   mutate(across(c(ends_with("wt")), as.numeric)) %>% 
+#   mutate(md06quin = ifelse(year == "2011", as.character(NA), md06quin),
+#          md09quin = ifelse(year == "2009-2010", as.character(NA), md09quin),
+#          md12quin = ifelse(year %in% c("2017", "2018"), as.character(NA), md12quin)) %>%
+#   mutate(simd5 = coalesce(md05quin, md06quin, md09quin, md12quin, md16quin, md20quin)) %>%
+#   mutate(council = ifelse(!is.na(la), la, council)) %>%
+#   select(-la) %>%
+#   merge(y = la_hb_lut, by = "council") %>%
+#   mutate(sex = case_when(sex %in% c("female", "Female",  "Woman/Girl") ~ "Female",
+#                          sex %in% c("male", "Male", "Man/Boy") ~ "Male",
+#                          is.na(sex) ~ "Total")) %>%
+#   mutate(simd5 = case_when(simd5 %in% c("1 - 20% most deprived", "Most deprived 20% data zones", "most deprived 20% data zones") ~ "1",
+#                            simd5 %in% c("5 - 20% least deprived", "Least deprived 20% data zones", "least deprived 20% data zones") ~ "5",
+#                            TRUE ~ simd5)) %>%
+#   # now can recode the variables
+#   mutate(volunteer = recode(volunteer, !!!lookup_volunteer)) %>%
+#   mutate(commbel = recode(commbel, !!!lookup_commbel)) %>%
+#   mutate(greenuse13 = recode(greenuse13, !!!lookup_greenuse13)) %>%
+#   mutate(rb1 = recode(rb1, !!!lookup_rb1)) %>%
+#   mutate(asb2a = recode(asb2a, !!!lookup_asb2a)) %>%
+#   mutate(serv1h = recode(serv1h, !!!lookup_serv1h)) %>%
+#   mutate(social2 = recode(social2, !!!lookup_social2)) %>%
+#   mutate(social3_02 = recode(social3_02, !!!lookup_social3_02)) %>%
+#   mutate(hk2 = recode(hk2, !!!lookup_hk2)) %>%
+#   # recode the credit variables used to derived the risky loans MHI:
+#   mutate(credit309d = recode(credit309d, !!!lookup_loans)) %>%
+#   mutate(credit309e = recode(credit309e, !!!lookup_loans)) %>%
+#   mutate(credit309l = recode(credit309l, !!!lookup_loans)) %>%
+#   # risky loans calc: #limit to 2015+ Q wording (i.e., variables credit309)
+#   mutate(loans = case_when(if_any(starts_with("credit3"), ~ . == "yes") ~ "yes", #applied first, so not overwritten by second clause
+#                            if_any(starts_with("credit3"), ~ . == "no") ~ "no",
+#                            TRUE ~ as.character(NA))) %>% # for survey years with no relevant variables
+#   #recode the discrim variables
+#   mutate(across(starts_with("discrim"), ~ recode(., !!!lookup_discrim))) %>%
+#   mutate(discrim_new = case_when(if_any(all_of(discrim_categories), ~ . == "yes") ~ "yes", #applied first, so not overwritten by second clause
+#                              if_any(c(discrim_16, discrim_17), ~ . == "yes") ~ "no", # no discrim if answer yes to discrim_16 (not experienced) or discrim_17 (don't know). Excludes 'refused'.
+#                              TRUE ~ as.character(NA))) %>% # for survey years with no relevant variables
+#   #recode the harass variables
+#   mutate(across(starts_with("harass"), ~ recode(., !!!lookup_harass))) %>%
+#   mutate(harass_new = case_when(if_any(all_of(harass_categories), ~ . == "yes") ~ "yes", #applied first, so not overwritten by second clause
+#                                 if_any(c(harass_16, harass_17), ~ . == "yes") ~ "no", # no harass if answer yes to harass_16 (not experienced) or harass_17 (don't know). Excludes 'refused'.
+#                                 TRUE ~ as.character(NA))) %>% # for survey years with no relevant variables
+#   select(-contains(c("hlth", "rand", "pc15", "dec", "file", "quin", "cred")), -la_code, -md04quin, -council, -voluntee, -any_of(harass_categories), -any_of(discrim_categories), -harass_16, -harass_17, -discrim_16, -discrim_17 ) %>% #drop if not needed
+#   merge(y = shs_design_effects, by.x="year", by.y="Year", all.x=TRUE)
+# 
+# # save a uniqidnew lookup for use in SHCS analysis
+# uniqidnew_lut <- shs_data %>%
+#   select(year, uniqidnew, #la_wt, ind_wt, 
+#          simd5#, la, hb, Design.Factor
+#          ) %>%
+#   filter(!is.na(uniqidnew)) # halves the number of rows... 
+# 
+# # save the file
+# saveRDS(uniqidnew_lut, paste0(derived_data, "uniqidnew_lut.rds"))
+# 
+# # data checks
+# table(shs_data$sex, useNA = "always") # Female/Male/Total
+# table(shs_data$simd5, useNA = "always") # 5 classes, plus a small number of NA
+# table(shs_data$hb, useNA = "always") # standard names, no NAs
+# table(shs_data$la, useNA = "always") # standard names, no NAs
+# table(shs_data$volunteer, useNA = "always") # just yes, no and NA, so coding has worked
+# table(shs_data$commbel, useNA = "always") # just yes, no and NA, so coding has worked
+# table(shs_data$greenuse13, useNA = "always") # just yes, no and NA, so coding has worked
+# table(shs_data$rb1, useNA = "always") # just yes, no and NA, so coding has worked
+# table(shs_data$asb2a, useNA = "always") # just yes, no and NA, so coding has worked
+# table(shs_data$serv1h, useNA = "always") # just yes, no and NA, so coding has worked
+# table(shs_data$social2, useNA = "always") # just yes, no and NA, so coding has worked
+# table(shs_data$social3_02, useNA = "always") # just yes, no and NA, so coding has worked
+# table(shs_data$hk2, useNA = "always") # just yes, no and NA, so coding has worked
+# table(shs_data$loans, useNA = "always") # just yes, no and NA, so coding has worked
+# #table(shs_data$discrim1, useNA = "always") # just yes, no and NA, so coding has worked # old pre-2018 discrim var
+# table(shs_data$discrim_new, useNA = "always") # just yes, no and NA, so coding has worked
+# #table(shs_data$harass1, useNA = "always") # just yes, no and NA, so coding has worked # old pre-2018 harass var
+# table(shs_data$harass_new, useNA = "always") # just yes, no and NA, so coding has worked
+# 
+# # repeat the data with sex=="Total"
+# shs_data2 <- shs_data %>%
+#   filter(sex!="Total") %>% #remove those that were total in the first place
+#   mutate(sex="Total") %>% 
+#   rbind(shs_data)
+# 
+# 
+# # make long by geographical scale, to make aggregating and analysing easier:
+# shs_data3 <- shs_data2 %>%
+#   mutate(hb = gsub(" and ", " & ", hb), # get areanames right for merging into lut
+#          hb = paste0 ("NHS ", hb)) %>%
+#   mutate(la = gsub(" and ", " & ", la)) %>%
+#   mutate(new_Scotland = "Scotland") %>%
+#   rename("new_Council area" = la,
+#          "new_Health board" = hb,
+#          "new_SIMD" = simd5) %>%
+#   pivot_longer(cols = starts_with("new"), names_to = "spatial.scale", names_prefix = "new_", values_to = "spatial.unit") %>% # should be 4x as long as original data, as respondents now repeated
+#   filter(!(spatial.scale == "SIMD" & is.na(spatial.unit))) # some respondents didn't have SIMD data in early years (2009-2010 and 2011)
+# 
+# # Function to aggregate the data for a single variable, with weightings and complex survey design effects applied
+# shs_percent_analysis <- function (df, var, wt) {
+#   
+#   df2 <- df %>% 
+#     rename(svy_var = var,
+#            svy_wt = wt) %>% # makes later calculations easier if starting variable and weight have standard name
+#     filter(!is.na(svy_wt)) %>%
+#     filter(svy_var!="NA") %>%
+#     filter(!is.na(svy_var)) %>%
+#     group_by(year, sex, spatial.unit, spatial.scale, Design.Factor) %>%
+#     summarise(yes_wted = sum(svy_wt[svy_var=="yes"]),
+#               no_wted = sum(svy_wt[svy_var=="no"]),
+#               yes_unwted = sum(svy_var=="yes"),
+#               no_unwted = sum(svy_var=="no"),
+#               denominator = yes_unwted + no_unwted,
+#               denominator_wted = yes_wted + no_wted) %>%
+#     ungroup() %>%
+#     mutate(proportion = yes_wted/denominator_wted,
+#            rate = 100 * proportion,
+#            shs_ci = 100 * Design.Factor * 1.96 * sqrt((proportion * (1 - proportion))/denominator_wted),
+#            lowci = rate - shs_ci, # produces some negative lower CIs, and upper CIs > 100, esp if denominator is small (too small for reliable estimates)
+#            upci = rate + shs_ci) %>%
+#     mutate(lowci = ifelse(lowci<0, 0, lowci), #constrain the CIs
+#            upci = ifelse(upci>100, 100, upci)) %>%
+#     select(year, sex, starts_with("spatial"), numerator = yes_unwted, denominator, rate, lowci, upci) %>%
+#     mutate(indicator = var)
+#   
+# }
+# 
+# 
+# # Run the function:
+# aggd_volunteer <- shs_percent_analysis(shs_data3, "volunteer", "ind_wt") %>% mutate(indicator = "volunteering")
+# aggd_rb1 <- shs_percent_analysis(shs_data3, "rb1", "ind_wt") %>% mutate(indicator = "nhood_good_place")
+# aggd_asb2a <- shs_percent_analysis(shs_data3, "asb2a", "ind_wt") %>% mutate(indicator = "noisy_neighbours")
+# aggd_serv1h <- shs_percent_analysis(shs_data3, "serv1h", "ind_wt") %>% mutate(indicator = "influence_local_decisions")
+# aggd_commbel <- shs_percent_analysis(shs_data3, "commbel", "ind_wt") %>% mutate(indicator = "community_belonging")
+# aggd_greenuse13 <- shs_percent_analysis(shs_data3, "greenuse13", "ind_wt") %>% mutate(indicator = "use_greenspace")
+# aggd_social2 <- shs_percent_analysis(shs_data3, "social2", "ind_wt") %>% mutate(indicator = "feel_lonely")
+# aggd_social3_02 <- shs_percent_analysis(shs_data3, "social3_02", "ind_wt") %>% mutate(indicator = "trust_most_people")
+# aggd_discrim_new <- shs_percent_analysis(shs_data3, "discrim_new", "ind_wt") %>% mutate(indicator = "discrimination_shos")
+# aggd_harass_new <- shs_percent_analysis(shs_data3, "harass_new", "ind_wt") %>% mutate(indicator = "harassment_shos")
+# #aggd_discrim1 <- shs_percent_analysis(shs_data3, "discrim1", "ind_wt")
+# #aggd_harass1 <- shs_percent_analysis(shs_data3, "harass1", "ind_wt")
+# aggd_loans <- shs_percent_analysis(shs_data3, "loans", "la_wt") %>% mutate(indicator = "risky_loans")
+# aggd_hk2 <- shs_percent_analysis(shs_data3, "hk2", "la_wt") %>% mutate(indicator = "managing_well_financially")
+# 
+# 
+# # Get all the resulting dataframes and rbind them
+# shs_results <- mget(ls(pattern = "^aggd_"), .GlobalEnv) %>%
+#   do.call(rbind.data.frame, .) %>%
+#   mutate(trend_axis = case_when(year=="19992000" ~ "1999/00",
+#                                 year=="0102" ~ "2001/02",
+#                                 year=="20032004" ~ "2003/04",
+#                                 year=="0506" ~ "2005/06",
+#                                 year=="0708" ~ "2007/08",
+#                                 year=="2009-2010" ~ "2009/10",
+#                                 TRUE ~ year),
+#          year = as.numeric(substr(trend_axis, 1, 4)),
+#          def_period = paste0("Survey year (", trend_axis, ")")) %>%
+#   mutate(split_name = case_when(spatial.scale=="SIMD" ~ "Deprivation (SIMD)",
+#                                 TRUE ~ "Sex"),
+#          split_value = case_when(split_name=="Deprivation (SIMD)" ~ spatial.unit,
+#                                  TRUE ~ sex)) %>%
+#   mutate(spatial.scale = case_when(split_name == "Deprivation (SIMD)" ~ "Scotland",
+#                                    TRUE ~ spatial.scale),
+#          spatial.unit = case_when(split_name == "Deprivation (SIMD)" ~ "Scotland",
+#                                   TRUE ~ spatial.unit)) %>%
+#   filter(!(indicator %in% c("risky_loans", "managing_well_financially") & sex %in% c("Female", "Male"))) # these are hhd level vars, so sex is not applicable
+# 
+# 
+# table(shs_results$split_name, shs_results$split_value, useNA="always") # confirms this has worked
+# table(shs_results$spatial.unit, useNA="always") # confirms this has worked
+# table(shs_results$spatial.scale, useNA="always") # confirms this has worked
+# 
+# # Read in lookup for harmonising area names
+# geo_lookup <- readRDS(paste0(lookups, "Geography/opt_geo_lookup.rds")) %>% 
+#   select(!c(parent_area, areaname_full))
+# 
+# # add the geog codes, 
+# shs_results <- shs_results %>%
+#   merge(y=geo_lookup, by.x=c("spatial.unit", "spatial.scale"), by.y=c("areaname", "areatype")) 
+#   
+# 
+# ##########################################################
+# ### 3. Prepare final files -----
+# ##########################################################
+# 
+# # Eventually we'll use the analysis functions:
+# 
+# # # main dataset analysis functions ----
+# # analyze_first(filename = "smoking_during_preg", geography = "datazone11", measure = "percent", 
+# #               yearstart = 2020, yearend = 2023, time_agg = 3)
+# # 
+# # analyze_second(filename = "smoking_during_preg", measure = "percent", time_agg = 3, 
+# #                ind_id = 30058, year_type = "calendar")
+# # 
+# # # deprivation analysis function ----
+# # analyze_deprivation(filename="smoking_during_preg_depr", measure="percent", time_agg=3, 
+# #                     yearstart= 2020, yearend=2023, year_type = "calendar", ind_id = 30058)
+# 
+# # But for now:
+# 
+# # Function to prepare final files: main_data and popgroup
+# prepare_final_files <- function(ind){
+#   
+#   # 1 - main data (ie data behind summary/trend/rank tab)
+#   
+#   main_data <- jobsec %>% 
+#     filter(indicator == ind,
+#            split_value == "Total",
+#            sex == "Total") %>% 
+#     select(code, ind_id, year, 
+#            numerator, rate, upci, lowci, 
+#            def_period, trend_axis) %>%
+#     unique() 
+#   
+#   # Save
+#   # Including both rds and csv file for now
+#   write_rds(main_data, file = paste0(data_folder, "Data to be checked/", ind, "_shiny.rds"))
+#   write_csv(main_data, file = paste0(data_folder, "Data to be checked/", ind, "_shiny.csv"))
+#   
+#   # 2 - population groups data (ie data behind population groups tab)
+#   
+#   pop_grp_data <- jobsec %>% 
+#     filter(indicator == ind,
+#            split_value == "Total") %>% # split_value here refers to SIMD quintile
+#     select(-split_value) %>% #... so drop and replace with sex
+#     mutate(split_name = "Sex") %>%
+#     rename(split_value = sex) %>%
+#     select(code, ind_id, year, numerator, rate, upci, 
+#            lowci, def_period, trend_axis, split_name, split_value) 
+#   
+#   # Save
+#   # Including both rds and csv file for now
+#   write_rds(pop_grp_data, file = paste0(data_folder, "Data to be checked/", ind, "_shiny_popgrp.rds"))
+#   write_csv(pop_grp_data, file = paste0(data_folder, "Data to be checked/", ind, "_shiny_popgrp.csv"))
+#   
+#   
+#   # 3 - SIMD data (ie data behind deprivation tab)
+#   
+#   # Process SIMD data
+#   # NATIONAL LEVEL ONLY (BY SEX)
+#   simd_data <- jobsec %>% 
+#     filter(indicator == ind) %>% 
+#     unique() %>%
+#     mutate(quint_type = "sc_quin") %>%
+#     select(code, ind_id, year, numerator, rate, upci, 
+#            lowci, def_period, trend_axis, quintile, quint_type, sex) 
+#   
+#   # Save intermediate SIMD file
+#   write_rds(simd_data, file = paste0(data_folder, "Prepared Data/", ind, "_shiny_depr_raw.rds"))
+#   write.csv(simd_data, file = paste0(data_folder, "Prepared Data/", ind, "_shiny_depr_raw.csv"), row.names = FALSE)
+#   
+#   #get ind_id argument for the analysis function 
+#   ind_id <- unique(simd_data$ind_id)
+#   
+#   # Run the deprivation analysis (saves the processed file to 'Data to be checked')
+#   analyze_deprivation_aggregated(filename = paste0(ind, "_shiny_depr"), 
+#                                  pop = "depr_pop_16+", # 16+ by sex (and age). The function aggregates over the age groups.
+#                                  ind_id, 
+#                                  ind
+#   )
+#   
+#   # Make data created available outside of function so it can be visually inspected if required
+#   main_data_result <<- main_data
+#   pop_grp_data_result <<- pop_grp_data
+#   simd_data_result <<- simd_data
+#   
+#   
+# }
+# 
+# 
+# # Run function to create final files
+# prepare_final_files(ind = "job_insecurity")   
+# 
+# 
+# # # Run QA reports 
+# # These currently use local copies of the .Rmd files.
+# # These can be deleted once PR #116 is merged into scotpho-indicator-production repo
+# 
+# # # main data: 
+# run_qa(filename = "job_insecurity")    
+# 
+# # ineq data: 
+# # get the run_ineq_qa to use full Rmd filepath so can be run from here
+# run_ineq_qa(filename = "job_insecurity")
+# 
+# ## END
+# 
+# 
+# 
+# 
+# 
+# # Save the indicator data
+# 
+# #arrow::write_parquet(shs_results, paste0(derived_data, "shs_results.parquet"))
+# shs_results <- arrow::read_parquet(paste0(derived_data, "shs_results.parquet"))
+# 
+# 
+# # 7. What are the smallest numbers? Any suppression issues?
+# # =================================================================================================================
+# 
+# # Unweighted bases
+# # =================================================================================================================
+# # SHS dashboard considerations on sample size:
+# # If base on which percentages are calculated is less than 50 = Such data are judged to be insufficiently reliable for publication. 
+# # Estimates with base numbers close to 50 should also be treated with caution.
+# # https://scotland.shinyapps.io/sg-scottish-household-survey-data-explorer/
+# # Check where bases <50
+# # 
+# shs_unweighted_bases <- shs_results %>%
+#   filter(statistic %in% c("Nuw"))
+# 
+# # National by sex
+# shs_unweighted_bases %>%
+#   filter(sex != "Total", spatial.scale == "Scotland") %>%
+#   ggplot(aes(year, value, group = sex, colour = sex, shape = sex)) +
+#   geom_point() + geom_line() +
+#   facet_wrap(~var_label, scales = "free_y")
+# # none <50
+# 
+# # SIMD by sex (male)
+# shs_unweighted_bases %>%
+#   filter(sex == "Male", spatial.scale == "SIMD") %>%
+#   ggplot(aes(year, value, group = spatial.unit, colour = spatial.unit, shape = spatial.unit)) +
+#   geom_point() + geom_line() +
+#   facet_wrap(~var_label, scales = "free_y")
+# # none <50
+# 
+# # HBs
+# shs_unweighted_bases %>%
+#   filter(sex == "Total", spatial.scale == "HB") %>%
+#   ggplot(aes(year, value, group = spatial.unit, colour = spatial.unit)) +
+#   geom_point() + geom_line() +
+#   facet_wrap(~var_label, scales = "free_y")
+# # none <50
+# 
+# # HBs by sex (male)
+# shs_unweighted_bases %>%
+#   filter(sex == "Male", spatial.scale == "HB") %>%
+#   ggplot(aes(year, value, group = spatial.unit, colour = spatial.unit)) +
+#   geom_point() + geom_line() +
+#   facet_wrap(~var_label, scales = "free_y")
+# # some HB in 2005 and 2011 have unweighted bases <50 (>=39) for the volunteer variable, males only.
+# 
+# # LAs by sex (male)
+# shs_unweighted_bases %>%
+#   filter(sex == "Male", spatial.scale == "LA") %>%
+#   ggplot(aes(year, value, group = spatial.unit, colour = spatial.unit)) +
+#   geom_point() + geom_line() +
+#   facet_wrap(~var_label, scales = "free_y")
+# # some LA in 2005 and 2011 have unweighted bases <50 (>=35) for the volunteer variable, males only.
+# 
+# 
+# # 8. Data amendments following data checks
+# # =================================================================================================================
+# 
+# # The data checks conducted in the script ukds_shs_checks confirmed very close agreement between the UKDS_derived indicators and data downloaded from the SHS dashboard.
+# # Data could be compared for 7 indicators: "commbel", "greenuse13", "hk2", "rb1", "volunteer", "harass_new", and "discrim_new" 
+# # Headline results of this QA:  
+# # 89% of the unweighted bases are identical (Differences seem to be largely due to rounding for small bases)
+# # 76% of the percentages are identical (and 90% are within 1%).
+# # Investigated some of the largest relative differences in the estimates: 
+# # again, looks like differences in the raw data (number of respondents) being processed for the SHS dashboard and that available to us through the UKDS. 
+# # SHS responded to an email* on 22 March 2024 saying that the UKDS data will have fewer respondents in them because of disclosure control.
+# # (*Prompted by discrim_new and harass_new indicators having 40-50 fewer respondents in the UKDS data)
+# 
+# # The close agreement confirms the accuracy of our data processing, but some very slight differences remain.
+# # We decided against replacing the UKDS data with SHS dashboard data, where available, as the dashboard only provided the % estimate and the unweighted base.
+# # A note will be needed to reflect the differences between the SHS dashboard and our calculations. 
+# 
+# # The unweighted base checks above also showed that Nuw for some breakdowns (HB/LA by sex) were below the SHS threshold of 50.
+# # For this reason we opted to remove HB/LA breakdowns by sex
+# 
+# 
+# # Conduct the suppression (remove HB/LA breakdowns by sex)
+# shs_results2 <- shs_results %>%
+#   # remove the breakdowns with sample sizes that are too small:
+#   filter(!(spatial.scale %in% c("HB", "LA") & !(sex=="Total")))  %>%
+#   # standardise year labels to match other data (e.g., 1999 to 2000 will become 1999-2000)
+#   mutate(year_label = case_when(nchar(year_label)>4 ~ gsub(" to ", "-", year_label),
+#                                 TRUE ~ year_label),
+#          year = case_when(nchar(year_label)>4 ~ year+0.5,
+#                                 TRUE ~ year))
+# 
+# # Save the indicator data
+# 
+# #arrow::write_parquet(shs_results2, paste0(derived_data, "shs_results2.parquet"))
+# shs_results2 <- arrow::read_parquet(paste0(derived_data, "shs_results2.parquet"))
+# 
+# 
+# # 9. Data availability
+# # =================================================================================================================
+# 
+# shs_percents <- shs_results2 %>% 
+#   filter(statistic=="percent") 
+# 
+# ftable(shs_percents$var_label, shs_percents$spatial.scale, shs_percents$sex , shs_percents$year_label)
+# # check that relevant year/sex combos have single Scotland estimates, 5 SIMD estimates, 32 LA estimates, and 14 HB estimates
+# 
+# 
+# # 10. Plot the indicator(s)
+# # =================================================================================================================
+# # Let's now see what the series and CIs look like:
+# 
+# # total
+# shs_results2 %>% 
+#   pivot_wider(names_from = statistic, values_from = value) %>%
+#   filter(sex == "Total", spatial.scale == "Scotland") %>% 
+#   ggplot(aes(year, percent, group = sex, colour = sex, shape = sex)) + 
+#   geom_point() + geom_line() +
+#   facet_wrap(~var_label, scales = "free_y") +
+#   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.1) 
+# 
+# # sex
+# shs_results2 %>% 
+#   pivot_wider(names_from = statistic, values_from = value) %>%
+#   filter(sex != "Total", spatial.scale == "Scotland") %>% 
+#   ggplot(aes(year, percent, group = sex, colour = sex, shape = sex)) + 
+#   geom_point() + geom_line() +
+#   facet_wrap(~var_label, scales = "free_y") +
+#   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.1) 
+# 
+# # simd
+# shs_results2 %>% 
+#   pivot_wider(names_from = statistic, values_from = value) %>%
+#   filter(sex == "Total", spatial.scale == "SIMD") %>% 
+#   ggplot(aes(year, percent, group = spatial.unit, colour = spatial.unit, shape = spatial.unit)) + 
+#   geom_point() + geom_line() +
+#   facet_wrap(~var_label, scales = "free_y") +
+#   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.1) 
+# 
+# # hb, total pop
+# shs_results2 %>% 
+#   pivot_wider(names_from = statistic, values_from = value) %>%
+#   filter(sex == "Total", spatial.scale == "HB") %>% 
+#   ggplot(aes(year, percent, group = spatial.unit, colour = spatial.unit, shape = spatial.unit)) + 
+#   geom_point() + geom_line() +
+#   facet_wrap(~var_label, scales = "free_y") 
+# #+
+# #  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.1) 
+# 
+# # la, total pop
+# shs_results2 %>% 
+#   pivot_wider(names_from = statistic, values_from = value) %>%
+#   filter(sex == "Total", spatial.scale == "LA") %>% 
+#   ggplot(aes(year, percent, group = spatial.unit, colour = spatial.unit, shape = spatial.unit)) + 
+#   geom_point() + geom_line() +
+#   facet_wrap(~var_label, scales = "free_y") 
+# #+
+# #  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.1) 
+# 
+# 
+# 
+# ## END
