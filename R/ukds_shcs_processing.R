@@ -14,9 +14,17 @@
 # Weights: la_wght_p (3-year paired grossing weight for LA data), ts_wght_p_n (paired sampling weight for national data). 
 # Design factors are used to account for survey design in CI calc for national (but not LA) estimates: Adjusted CI = CI x design effect (https://www.gov.scot/publications/scottish-house-condition-survey-2019-key-findings/pages/9/)
 # "When producing estimates at Local Authority level, no design effect adjustment of standard errors is necessary because simple (actually equal interval) random sampling was carried out within each Local Authority."
-# Latest release on UKDS is 2021.
 
+# Processing involves linking with the Scottish Household Survey microdata to get the SIMD quintile for each household. 
+# See script ukds_shs_processing.R for the production of the LUT for that.
 # uniqidnew is used to get SIMD info for the respondents (from SHoS data)
+
+# We calculate 3-y rolling averages for all breakdowns, national and local. This limits the latest data point to 2019, as no 2020 data, and 2021 data weren't comparable.
+# Latest release on UKDS is 2021. 2022 was released in 2024, but is not on UKDS yet (as of Jan 2025).
+# 2023 data will be required to make a 3-y average. 
+# Unclear when the indicator can next be updated. 2026?
+
+
 
 
 # Packages and functions
@@ -44,6 +52,9 @@ source("../scotpho-indicator-production/2.deprivation_analysis.R")
 # temporary functions:
 source(here("functions", "temp_depr_analysis_updates.R")) # 22.1.25: sources some temporary functions needed until PR #97 is merged into the indicator production repo 
 
+## C. Path to the data derived by this script
+
+derived_data <- "/conf/MHI_Data/derived data/"
 
 
 # 1. Find survey data files, extract variable names and labels (descriptions), and save this info to a spreadsheet
@@ -55,7 +66,7 @@ source(here("functions", "temp_depr_analysis_updates.R")) # 22.1.25: sources som
 
 save_var_descriptions(survey = "shcs", 
                       name_pattern = "shcs(\\d{4})") # the regular expression for this survey's filenames that identifies the survey year(s)
-# takes ~ 1 min
+# takes < 1 min
 
 # 2. Manual bit: Look at the vars_'survey' tab of the spreadsheet all_survey_var_info.xlsx to work out which variables are required.
 #    Manually store the relevant variables in the file vars_to_extract_'survey'
@@ -66,20 +77,20 @@ save_var_descriptions(survey = "shcs",
 # =================================================================================================================
 
 extracted_survey_data_shcs <- extract_survey_data("shcs") 
-# takes ~ 1 min 
+# takes < 1 min 
 
 
 # 4. What are the possible responses?
 # =================================================================================================================
 
 # Read in the data if necessary
-# extracted_survey_data_shcs <- readRDS(here("data", "extracted_survey_data_shcs.rds"))
+# extracted_survey_data_shcs <- readRDS(paste0(derived_data, "extracted_survey_data_shcs.rds"))
 
 # get the responses recorded for each variable (combined over the years), and save to xlsx and rds
 
 # 1st run through to see how to identify variables that can be excluded (and the unique characters that will identify these):
 # extract_responses(survey = "shcs") 
-# responses_as_list_shcs <- readRDS(here("data", paste0("responses_as_list_shcs.rds")))
+# responses_as_list_shcs <- readRDS(paste0(derived_data, "responses_as_list_shcs.rds"))
 # responses_as_list_shcs  # examine the output
 
 # 2nd run to exclude the numeric vars that don't need codings and/or muck up the output:
@@ -90,7 +101,7 @@ extract_responses(survey = "shcs", #survey acronym
 # read the responses back in and print out so we can work out how they should be coded
 # (also useful to see how sex/geography/simd variables have been recorded, for later standardisation)
 
-responses_as_list_shcs <- readRDS(here("data", paste0("responses_as_list_shcs.rds")))
+responses_as_list_shcs <- readRDS(paste0(derived_data, "responses_as_list_shcs.rds"))
 responses_as_list_shcs
 
 # responses_as_list_shcs printed out
@@ -162,17 +173,16 @@ all_shcs <- extracted_survey_data_shcs %>% unnest(cols = c(survey_data)) %>%
                                    TRUE ~ as.numeric(NA))) %>% # if no 1s or 0s (i.e., data were unobtainable). These are then dropped.
   filter(!is.na(criturgext_or))
 
-# PROCESS SHS DATA TO GET THIS:
 
 # matching to SHS using uniqidnew_lut 
-uniqidnew_lut <- readRDS(here("data", "uniqidnew_lut.rds")) %>%
-  select(year, uniqidnew, simd5, hb)
+uniqidnew_lut <- readRDS(paste0(derived_data, "uniqidnew_lut.rds")) # see script ukds_shs_processing.R for the derivation of this LUT
 
-shcs_shs <- all_shcs %>% #22747
+all_shcs <- all_shcs %>% #22747
   merge(y=uniqidnew_lut, by.x=c("uniqidnew_shs_social", "year"), by.y = c("uniqidnew", "year"), all.x=TRUE) %>%  #22,690 if all.x=F, because some SHCS households don't have id codes
-  select(year, la, hb, simd5, any_kids, criturgext_or, ts_wght_p_n, la_wght_p) # remove identifiers for saving outside the MHI folders
+  select(year, la, simd5, any_kids, criturgext_or, ts_wght_p_n, la_wght_p) %>% # remove identifiers for saving outside the MHI folders
+  mutate(year = as.numeric(year))
 
-shcs_shs_summary <- shcs_shs %>%
+shcs_shs_summary <- all_shcs %>%
   group_by(year, simd5) %>%
   summarise(count = n()) %>%
   ungroup() %>%
@@ -183,224 +193,167 @@ shcs_shs_summary <- shcs_shs %>%
   mutate(missing_pc = 100 * missing / total) # 0.04 to 0.54% each year
 
 
-#Save to folder used by ScotPHO indicator prep repo
-recvd_data_folder <- "/PHI_conf/ScotPHO/Profiles/Data/Received Data/Scottish House Condition Survey/"
-write.csv(shcs_shs, paste0(recvd_data_folder, "ukda_shcs_data.csv"), row.names=F)
+# split by geography type
+la_data <- all_shcs %>%
+  select(year, spatial.unit = la, criturgext_or, weight = la_wght_p, any_kids) %>%
+  mutate(spatial.scale = "Council area") %>%
+  mutate(spatial.unit = gsub(" and ", " & ", spatial.unit),
+         spatial.unit = ifelse(spatial.unit=="Edinburgh, City of", "City of Edinburgh", spatial.unit)) %>%
+  mutate(split_name = "None",
+         split_value = "None")
+
+scot_data <- all_shcs %>%
+  select(year, criturgext_or, weight = ts_wght_p_n, any_kids) %>%
+  mutate(spatial.unit = "Scotland",
+         spatial.scale = "Scotland") %>%
+  mutate(split_name = "None",
+         split_value = "None")
+
+simd_data <- all_shcs %>%
+  filter(!is.na(simd5)) %>%
+  select(year, criturgext_or, weight = ts_wght_p_n, simd5, any_kids) %>%
+  mutate(spatial.unit = "Scotland",
+         spatial.scale = "Scotland") %>%
+  mutate(split_name = "Deprivation (SIMD)",
+         split_value = simd5) %>%
+  select(-simd5)
+
+simd_data2 <- scot_data %>% # repeat to give Scotland totals (includes households with no SIMD given )
+  mutate(split_name = "Deprivation (SIMD)", 
+         split_value = "Total") %>%
+  rbind(simd_data)
+
+## Geography lookup -----
+
+# Read in geography lookup
+geo_lookup <- readRDS(paste0(lookups, "Geography/opt_geo_lookup.rds")) %>% 
+  select(!c(parent_area, areaname_full))
+
+
+#combine and process indicator data
+all_shcs2 <- rbind(la_data,
+                   scot_data,
+                   simd_data2) %>%
+  # add the geog codes
+  merge(y=geo_lookup, by.x=c("spatial.unit", "spatial.scale"), by.y=c("areaname", "areatype")) %>%
+  select(-starts_with("spatial"))
+  
+
+##########################################################
+### 3. Prepare final files -----
+##########################################################
+
+
+# Function to prepare final files: main_data and simd_data
+prepare_final_files <- function(ind){
+  
+  ind_name <- ifelse(ind==30166, "disrepair_cyp",
+                     ifelse(ind==30048, "disrepair_all",
+                            "ERROR"))
+  
+  
+  if(ind==30166) {
+    all_shcs2 <- all_shcs2 %>%
+      filter(any_kids=="Yes")
+  }
+  
+ df <- all_shcs2 %>%
+    group_by(year, code, split_name, split_value, criturgext_or) %>%
+    summarise(n = n(), # calculate counts
+              wt = sum(weight)) %>% # sum the weights
+    ungroup() %>%
+    pivot_wider(names_from = criturgext_or, values_from = c(n, wt)) %>%
+    mutate(n_0 = if_else(is.na(n_0), 0, n_0),
+           wt_0 = if_else(is.na(wt_0), 0, wt_0)) %>%
+    group_by(code, split_name, split_value) %>%
+    dplyr::mutate(across(c(starts_with("n"), starts_with("wt")), # rolling sum of counts and weights over 3 year windows (centred)
+                         ~ RcppRoll::roll_sum(., 3,  align = "center", fill = NA), .names = '{col}_rolling')) %>% 
+    ungroup() %>%
+    filter(!is.na(n_0_rolling)) %>% # drops ends of the series
+    mutate(trend_axis = paste0(year-1, "-", year+1),
+           Nuw = n_0_rolling + n_1_rolling, # unweighted total (denominator)
+           Nw = wt_0_rolling + wt_1_rolling) %>% # grossed up total
+    rename(nuw = n_1_rolling, # unweighted numerator
+           nw = wt_1_rolling) %>% # grossed up numerator
+    mutate(rate = 100 * nw / Nw) %>% 
+    mutate(proportion = nw/Nw,
+           rate = 100 * proportion,
+           ci_wald = 100 * (1.96*sqrt((proportion*(1-proportion))/Nuw)), # Wald method 
+           lowci = rate - ci_wald,
+           upci = rate + ci_wald) %>%
+    select(-proportion, -starts_with("n_"), -starts_with("wt_"), -ci_wald) %>%
+    # add def_period
+    mutate(def_period = paste0("Aggregated survey years (", trend_axis, ")"),
+           ind_id = ind) %>%
+    rename(numerator = nuw) %>%
+    select(-c(nw, Nw, Nuw)) 
+  
+  # 1 - main data (ie data behind summary/trend/rank tab)
+  main_data <- df %>% 
+    filter(split_name == "None") %>% 
+    select(code, ind_id, year, 
+           numerator, rate, upci, lowci, 
+           def_period, trend_axis) %>%
+    unique() 
+  
+  # Save the indicator data
+  # Including both rds and csv file for now
+  write_rds(main_data, file = paste0(data_folder, "Data to be checked/", ind_name, "_shiny.rds"))
+  write_csv(main_data, file = paste0(data_folder, "Data to be checked/", ind_name, "_shiny.csv"))
+  
+  # 2 - no popgroup data (data are household rather than individual level) 
+  
+  # 3 - SIMD data (ie data behind deprivation tab)
+  
+  # Process SIMD data
+  simd_data <- df %>% 
+    filter(split_name == "Deprivation (SIMD)") %>% 
+    unique() %>%
+    select(-split_name) %>%
+    rename(quintile = split_value) %>%
+    mutate(quint_type = "sc_quin")
+  
+  # Save intermediate SIMD file
+  write_rds(simd_data, file = paste0(data_folder, "Prepared Data/", ind_name, "_shiny_depr_raw.rds"))
+  write.csv(simd_data, file = paste0(data_folder, "Prepared Data/", ind_name, "_shiny_depr_raw.csv"), row.names = FALSE)
+  
+  # Run the deprivation analysis (saves the processed file to 'Data to be checked')
+  analyze_deprivation_aggregated(filename = paste0(ind_name, "_shiny_depr"), 
+                                 pop = "depr_pop_16+", # these are adult (16+) indicators, with no sex split for SIMD
+                                 ind, 
+                                 ind_name
+  )
+  
+  # Make data created available outside of function so it can be visually inspected if required
+  main_data_result <<- main_data
+  simd_data_result <<- simd_data
+  
+  
+}
+
+
+# Run function to create final files
+
+# CYP indicator:
+prepare_final_files(ind = 30166)
+
+# Adult indicator:
+prepare_final_files(ind = 30048)
+
+
+
+# Run QA reports
+
+# main data:
+run_qa(filename = "disrepair_cyp")
+run_qa(filename = "disrepair_all")
+
+# ineq data:
+run_ineq_qa(filename = "disrepair_cyp")
+run_ineq_qa(filename = "disrepair_all")
 
 
 
 
-# OLD CODE (FROM WHEN INDICATORS WERE FULLY PREPARED IN THIS SCRIPT):
+#END
 
-# # Single-year data for Scotland not presented in ScotPHO app: only use the same time periods as for the lower level data
-# # # Aggregate for Scotland (annual)
-# # criturgext_1y <- all_shcs %>%
-# #   group_by(criturgext_or, year) %>%
-# #   summarise(n = n(),
-# #             wt = sum(ts_wght_p_n)) %>%
-# #   ungroup() %>%
-# #   group_by(year) %>%
-# #   summarise(Nuw = sum(n),
-# #             Nw = sum(wt),
-# #             nuw = n[criturgext_or==1],
-# #             nw = wt[criturgext_or==1]) %>%
-# #   ungroup() %>%
-# #   merge(y=design, by="year") %>% # add design effects (for national analysis only, not LA)
-# #   mutate(proportion = nw/Nw,
-# #          percent = 100 * proportion,
-# #          ci_wald = 100 * (1.96*sqrt((proportion*(1-proportion))/Nuw)), # Wald method (the method used by SHCS team).
-# #          lower_ci = percent - design_effect * ci_wald,
-# #          upper_ci = percent + design_effect * ci_wald,
-# #          spatial.unit = "Scotland",
-# #          spatial.scale = "Scotland") %>%
-# #   select(-proportion, -design_effect, -ci_wald)
-# 
-# 
-# 
-# # Aggregate for LAs and Scot (3-year pooled)
-# 
-# # ADULT MHI
-# # 30048 - Households in dwellings with critical, extensive and/or urgent disrepair 
-# la_data <- all_shcs %>%
-#   select(year, spatial.unit = la, criturgext_or, weight = la_wght_p) %>%
-#   mutate(spatial.scale = "LA")
-# scot_data <- all_shcs %>%
-#   select(year, criturgext_or, weight = ts_wght_p_n) %>%
-#   mutate(spatial.unit = "Scotland",
-#          spatial.scale = "Scotland")
-# criturgext_3y <- rbind(la_data, scot_data) %>%
-#   group_by(year, spatial.unit, spatial.scale, criturgext_or) %>%
-#   summarise(n = n(),
-#             wt = sum(weight)) %>%
-#   ungroup() %>%
-#   pivot_wider(names_from = criturgext_or, values_from = c(n, wt)) %>%
-#   group_by(spatial.unit, spatial.scale) %>%
-#   dplyr::mutate(across(c(starts_with("n"), starts_with("wt")), 
-#                           ~ RcppRoll::roll_sumr(., 3, fill = NA), .names = '{col}_rolling')) %>% # rolling sum over 3 year windows
-#   ungroup() %>%
-#   filter(!year %in% c("2012", "2013")) %>% # no data, because rolling sum is given for the last year of the 3
-#   mutate(year = paste0(as.numeric(year)-2, "-", year),
-#          Nuw = n_0_rolling + n_1_rolling,
-#          Nw = wt_0_rolling + wt_1_rolling) %>% # grossed up
-#   rename(nuw = n_1_rolling,
-#          nw = wt_1_rolling) %>% # grossed up
-#   mutate(percent = 100 * nw / Nw) %>% # 30 to 85%
-#   mutate(proportion = nw/Nw,
-#          percent = 100 * proportion,
-#          ci_wald = 100 * (1.96*sqrt((proportion*(1-proportion))/Nuw)), # Wald method (doesn't need the weighted counts so can be used for the LA data). 
-#          lower_ci = percent - ci_wald,
-#          upper_ci = percent + ci_wald,
-#          var_label = "criturgext") %>%
-#   select(-proportion, -starts_with("n_"), -starts_with("wt_"), -ci_wald) %>%
-#   pivot_longer(cols=-c(year, spatial.scale, spatial.unit, var_label), values_to = "value", names_to = "statistic") %>%
-#   mutate(dataset = "SHCS (UKDS data)", 
-#          measure_type = "percent",
-#          sex= "Total",
-#          year_label = year,
-#          year = case_when(nchar(year)==9 ~ as.numeric(substr(year, 1, 4)) + 1, # mid year of the 3 year range (for plotting purposes)
-#                           TRUE ~ as.numeric(NA)), 
-#          spatial.unit = as.character(spatial.unit)) %>%
-#   filter(!is.na(statistic))
-# 
-# # Save the indicator data (adult data stays in this repo to be combined with other data for now, as already published)
-# #arrow::write_parquet(criturgext_3y, here("data", "criturgext.parquet"))
-# 
-# 
-# ###### Full processing for CYP indicator, to load straight into ScotPHO data folders
-# 
-# ### paths -----
-# data_folder <- "/PHI_conf/ScotPHO/Profiles/Data/"
-# lookups <- "/PHI_conf/ScotPHO/Profiles/Data/Lookups/"
-# # Read in geography lookup
-# geo_lookup <- readRDS(paste0(lookups, "Geography/opt_geo_lookup.rds")) %>% 
-#   select(!c(parent_area, areaname_full))
-# 
-# 
-# # CYP MHI
-# # 30166 - Children in dwellings with critical, extensive and/or urgent disrepair
-# la_data2 <- all_shcs %>%
-#   filter(any_kids=="Yes") %>%
-#   select(year, spatial.unit = la, criturgext_or, weight = la_wght_p) %>%
-#   mutate(spatial.scale = "Council area") %>%
-#   mutate(spatial.unit = gsub(" and ", " & ", spatial.unit),
-#          spatial.unit = ifelse(spatial.unit=="Edinburgh, City of", "City of Edinburgh", spatial.unit))
-# scot_data2 <- all_shcs %>%
-#   filter(any_kids=="Yes") %>%
-#   select(year, criturgext_or, weight = ts_wght_p_n) %>%
-#   mutate(spatial.unit = "Scotland",
-#          spatial.scale = "Scotland")
-# criturgext_cyp_3y <- rbind(la_data2, scot_data2) %>%
-#   group_by(year, spatial.unit, spatial.scale, criturgext_or) %>%
-#   summarise(n = n(),
-#             wt = sum(weight)) %>%
-#   ungroup() %>%
-#   pivot_wider(names_from = criturgext_or, values_from = c(n, wt)) %>%
-#   mutate(n_0 = if_else(is.na(n_0), 0, n_0),
-#          wt_0 = if_else(is.na(wt_0), 0, wt_0)) %>%
-#   group_by(spatial.unit, spatial.scale) %>%
-#   dplyr::mutate(across(c(starts_with("n"), starts_with("wt")), # rolling sum of counts and weights over 3 year windows
-#                        ~ RcppRoll::roll_sumr(., 3, fill = NA), .names = '{col}_rolling')) %>% 
-#   ungroup() %>%
-#   filter(!is.na(n_0_rolling)) %>% # no data in the first 2 years, because rolling sum is given for the last year of the 3
-#   mutate(trend_axis = paste0(as.numeric(year)-2, "-", year),
-#          Nuw = n_0_rolling + n_1_rolling,
-#          Nw = wt_0_rolling + wt_1_rolling) %>% # grossed up
-#   rename(nuw = n_1_rolling,
-#          nw = wt_1_rolling) %>% # grossed up
-#   mutate(rate = 100 * nw / Nw) %>% # 30 to 85%
-#   mutate(proportion = nw/Nw,
-#          rate = 100 * proportion,
-#          ci_wald = 100 * (1.96*sqrt((proportion*(1-proportion))/Nuw)), # Wald method (doesn't need the weighted counts so can be used for the LA data). 
-#          lowci = rate - ci_wald,
-#          upci = rate + ci_wald) %>%
-#   select(-proportion, -starts_with("n_"), -starts_with("wt_"), -ci_wald) %>%
-#   mutate(measure_type = "percent",
-#          ind_id = 30166,
-#          year = as.numeric(year)-1, # string year was last of the 3 year window, we want the middle year for plotting purposes
-#          spatial.unit = as.character(spatial.unit)) %>%
-#   # add the geog codes
-#   merge(y=geo_lookup, by.x=c("spatial.unit", "spatial.scale"), by.y=c("areaname", "areatype")) %>% # still n=1380
-#   # add def_period
-#   mutate(def_period = paste0("Aggregated survey years (", trend_axis, ")")) %>%
-#   rename(numerator = nuw) %>%
-#   select(-c(starts_with("spatial"), nw, Nuw, Nw)) 
-# 
-# # Save the indicator data
-# write.csv(criturgext_cyp_3y, paste0(data_folder, "Test Shiny Data/criturgext_cyp_shiny.csv"), row.names = FALSE)
-# write_rds(criturgext_cyp_3y, paste0(data_folder, "Test Shiny Data/criturgext_cyp_shiny.rds"))
-# # save to folder that QA script accesses:
-# write_rds(criturgext_cyp_3y, paste0(data_folder, "Data to be checked/criturgext_cyp_shiny.rds"))
-# 
-# # # Run QA reports (not in this repo, so not run here)
-# # # main data: failing because the data aren't available at HB level (fix the .rmd later) "Warning: Error in eval: object 'S08' not found"
-# # run_qa(filename = "criturgext_cyp")
-# 
-# 
-# # 7. What are the smallest numbers?
-# # =================================================================================================================
-# 
-# # SHCS does not report estimates if the base sample is below 30 cases: 
-# # smallest bases will be for individual LAs in the CYP indicator calculation (any_kids=="Yes") so restrict to these here:
-# unwtedbases <- all_shcs %>%
-#   filter(any_kids=="Yes") %>%
-#   group_by(year, la) %>%
-#   summarise(n = n()) %>% # sum the unweighted bases
-#   ungroup() %>%
-#   group_by(la) %>%
-#   dplyr::mutate(across(c(starts_with("n")), # rolling sum of counts over 3 year windows
-#                        ~ RcppRoll::roll_sumr(., 3, fill = NA), .names = '{col}_rolling')) %>% 
-#   ungroup() 
-# # smallest unweighted N is 36 for LAs (CYP: Na h-Eileanan Siar, 2014-16)
-# 
-# 
-# # 8. Data amendments following data checks
-# # =================================================================================================================
-# 
-# # None required
-# 
-# 
-# # 9. Data availability
-# # =================================================================================================================
-# 
-# shcs_percents <- criturgext_3y %>% 
-#   filter(statistic=="percent") 
-# 
-# ftable(shcs_percents$var_label, shcs_percents$spatial.scale, shcs_percents$sex , shcs_percents$year_label)
-# 
-# #                                2012-2014 2013-2015 2014-2016 2015-2017 2016-2018 2017-2019
-# # criturgext     LA       Total         32        32        32        32        32        32
-# #                Scotland Total          1         1         1         1         1         1
-# 
-# # cyp:
-# table(criturgext_cyp_3y$measure_type, criturgext_cyp_3y$trend_axis)
-# 
-# #         2012-2014 2013-2015 2014-2016 2015-2017 2016-2018 2017-2019
-# # percent        33        33        33        33        33        33
-# 
-# # 10. Plot the indicator(s)
-# # =================================================================================================================
-# # Let's now see what the series look like: 
-# # Need work to reflect new data formats
-# 
-# # # Scotland
-# # criturgext %>% 
-# #   pivot_wider(names_from = statistic, values_from = value) %>%
-# #   filter(spatial.unit=="Scotland") %>% 
-# #   ggplot(aes(year, percent, group = spatial.unit)) + 
-# #   geom_point() + geom_line() +
-# #   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.1) +
-# #   facet_wrap(~var_label)
-# # #~55 to 65% each year
-# # 
-# # 
-# # # Local Authority
-# # criturgext %>% 
-# #   pivot_wider(names_from = statistic, values_from = value) %>%
-# #   filter(spatial.scale=="LA") %>% 
-# #   ggplot(aes(year, percent, group = spatial.unit, colour=spatial.unit)) + 
-# #   geom_point() + geom_line() +
-# #   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.1) +
-# #   facet_grid(~var_label) 
-# # 
-
-## END
