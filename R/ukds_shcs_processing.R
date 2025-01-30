@@ -21,7 +21,7 @@
 
 # We calculate 3-y rolling averages for all breakdowns, national and local. This limits the latest data point to 2019, as no 2020 data, and 2021 data weren't comparable.
 # Latest release on UKDS is 2021. 2022 was released in 2024, but is not on UKDS yet (as of Jan 2025).
-# 2023 data will be required to make a 3-y average. 
+# 2023 and 2024 data will be required to make a 3-y average. 
 # Unclear when the indicator can next be updated. 2026?
 
 
@@ -287,7 +287,8 @@ prepare_final_files <- function(ind){
            ind_id = ind) %>%
     rename(numerator = nuw) %>%
     select(-c(nw, Nw, Nuw)) 
-  
+ # smallest unweighted base (denominator) was 165 for adult indicator, 36 for CYP indicator  
+ 
   # 1 - main data (ie data behind summary/trend/rank tab)
   main_data <- df %>% 
     filter(split_name == "None") %>% 
