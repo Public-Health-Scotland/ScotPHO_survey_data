@@ -3,6 +3,8 @@
 # ===== Processing UKDS survey data files: SCOTTISH HEALTH SURVEY (shes) =====
 # ============================================================================
 
+## NB. THE PROCESSING CAN TAKE A LOT OF MEMORY. IF THE SCRIPT FAILS, OPEN IT IN A SESSION WITH MORE MEMORY.
+
 # Notes on SHeS
 
 # 18 adult indicators: 
