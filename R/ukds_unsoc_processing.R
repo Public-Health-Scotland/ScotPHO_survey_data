@@ -14,9 +14,9 @@
 # The question (jbsec) is asked every two years.
 # Responses are in *indresp files and SIMD quintiles are in *indall files: these are merged using pidp identifier (and year)
 # Denominator = Employees 16+ who responded to question (including don't knows)
-# Survey weights = <wave letter b or d>_indinui_xw or <wave letter f to l>_indinub_xw
+# Survey weights = <wave letter b or d>_indinui_xw or <wave letter f to n>_indinub_xw
 # Survey design = psu and strata variables are used to adjust for the clustered survey design
-# Availability = Every other FY from 2010/11 to 2020/21, national and SIMD2020 quintile, M/F/Total
+# Availability = Every other FY from 2010/11 (wave B) to 2022/23 (wave N), national and SIMD2020 quintile, M/F/Total
 
 
 # Packages and functions
@@ -69,14 +69,14 @@ save_var_descriptions(survey = "unsoc",
 # =================================================================================================================
 
 extracted_survey_data_unsoc <- extract_survey_data("unsoc") 
-# takes ~ 6 mins 
+# takes ~ 8 mins 
 
 # keep only the survey files we are interested in
 # filenames: 
-# a_ to l_ are UKHLS (Understanding Society): job security question asked every other year
+# a_ to n_ are UKHLS (Understanding Society): job security question asked every other year (ADD THE NEXT WAVE LETTER WHEN UPDATED DATA AVAILABLE: CURRENTLY (IN 2025) 2022/23 IS LATEST)
 # ba_ to br_ are BHPS: job security question not asked
 extracted_survey_data_unsoc <- extracted_survey_data_unsoc %>%
-  filter(substr(filename, 1, 2) %in% c("b_", "d_", "f_", "h_", "j_", "l_")) %>% # jobsecurity variable only asked in these waves (last one = l = 2020/21)
+  filter(substr(filename, 1, 2) %in% c("b_", "d_", "f_", "h_", "j_", "l_", "n_")) %>% # jobsecurity variable only asked in these waves (last one = N = 2022/23)
   mutate(year = substr(year, 1, 1)) %>%
   mutate(year = case_when(substr(year, 1, 1) == "b" ~ "2010/11", # wave 2
                           substr(year, 1, 1) == "d" ~ "2012/13", # wave 4
@@ -84,6 +84,7 @@ extracted_survey_data_unsoc <- extracted_survey_data_unsoc %>%
                           substr(year, 1, 1) == "h" ~ "2016/17", # wave 8
                           substr(year, 1, 1) == "j" ~ "2018/19", # wave 10
                           substr(year, 1, 1) == "l" ~ "2020/21", # wave 12
+                          substr(year, 1, 1) == "n" ~ "2022/23", # wave 12
                           TRUE ~ as.character(NA)))
 
 # save the file
@@ -130,6 +131,9 @@ responses_as_list_unsoc
 # $imd2020qs_dv
 # [1] NA
 # 
+# $inding2_xw
+# [1] NA
+#
 # $indinub_xw
 # [1] NA
 # 
@@ -172,7 +176,7 @@ unsoc_indresp_df <- extracted_survey_data_unsoc %>%
   filter(grepl("indresp", filename)) %>% #the jbsec responses are in the indresp files, so just keep them here
   # this mutate standardises variable names in the list column, so can be unnested
   mutate(survey_data = map(survey_data, ~ .x %>% 
-                            setNames(gsub("i_xw|b_xw", "wt", names(.))) %>% #rename the weights the same 
+                            setNames(gsub("ui_xw|ub_xw|g2_xw", "wt", names(.))) %>% #rename the weights the same 
                             setNames(gsub("^[a-z]_", "", names(.))) #remove wave prefix
   )
   ) %>%
@@ -182,6 +186,7 @@ unsoc_indresp_df <- extracted_survey_data_unsoc %>%
   mutate(job_insecurity = case_when(jbsec %in% insecure ~ "yes",
                                     jbsec %in% notinsecure ~ "no",
                                     jbsec %in% na ~ "NA")) 
+
 
 # data checks
 table(unsoc_indresp_df$age_dv, useNA = "always") # all are 16+
@@ -217,7 +222,7 @@ unsoc_sex <- unsoc_indresp_df %>%
   rbind(unsoc_total) %>%
   merge(unsoc_simd_df, by=c("year", "pidp")) %>%
   filter(job_insecurity != "NA") %>% # n = 10142
-  select(year, strata, psu, sex=sex_dv, indinuwt, job_insecurity, quintile = imd2020qs_dv) %>%
+  select(year, strata, psu, sex=sex_dv, indinwt, job_insecurity, quintile = imd2020qs_dv) %>%
   rename(trend_axis = year) %>%
   mutate(year = as.numeric(substr(trend_axis, 1, 4)),
          quintile = as.character(quintile))
@@ -232,7 +237,7 @@ table(unsoc_sex$quintile, useNA = "always")
 
 # The survey calculation functions are in the functions.R script
 
-jobsec <- calc_indicator_data(unsoc_sex, "job_insecurity", "indinuwt", ind_id=30055, type= "percent") %>% # ok
+jobsec <- calc_indicator_data(unsoc_sex, "job_insecurity", "indinwt", ind_id=30055, type= "percent") %>% # ok
   mutate(code = as.character(code))
 
 # There are some warnings that appear: a deprecated bit (I can't find where to change this) and some cases where wt=0 (16 in total). 
