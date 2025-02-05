@@ -227,17 +227,17 @@ saveRDS(workless, file = paste0(data_folder, 'Prepared Data/workless_raw.rds'))
 
 main_workless <- workless %>%
   filter(split_value == "Total") 
-saveRDS(main_workless, file = paste0(data_folder, 'Prepared Data/main_workless_raw.rds'))
+saveRDS(main_workless, file = paste0(data_folder, 'Prepared Data/workless_raw.rds'))
 
 
-analyze_first(filename = "main_workless", 
+analyze_first(filename = "workless", 
               geography = "all", 
               measure = "percent", 
               time_agg = 1,
               yearstart = 2005, 
               yearend = 2023, 
               source_suppressed=F)
-analyze_second(filename = "main_workless", 
+analyze_second(filename = "workless", 
                measure = "percent", 
                time_agg = 1, 
                ind_id = 30032, 
