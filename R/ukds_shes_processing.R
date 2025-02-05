@@ -1056,6 +1056,12 @@ shes_results0 <- mget(ls(pattern = "^svy_"), .GlobalEnv) %>% # finds all the dat
   do.call(rbind.data.frame, .)  #rbinds them all together (appending the rows)
 rownames(shes_results0) <- NULL # drop the row names
 
+# save intermediate df:
+#arrow::write_parquet(shes_results0, paste0(derived_data, "shes_results0.parquet"))
+# read back in if not in memory:
+#shes_results0 <- arrow::read_parquet(paste0(derived_data, "shes_results0.parquet"))
+
+
 # data checks:
 table(shes_results0$trend_axis, useNA = "always") # 2008 to 2021
 table(shes_results0$sex, useNA = "always") # Male, Female, Total
