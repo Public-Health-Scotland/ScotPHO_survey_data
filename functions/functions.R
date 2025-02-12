@@ -691,10 +691,10 @@ calc_indicator_data <- function (df, var, wt, ind_id, type) {
                                   substr(trend_axis, 5, 5)=="/" ~ paste0("Survey year (", trend_axis, ")"),
                                   nchar(trend_axis) > 7 ~ paste0("Aggregated survey years (", trend_axis, ")"))) %>%
     # add split info
-    mutate(split_name = case_when(is.na(quintile) ~ "Sex", # not used, as there's always an entry in quintile (number or 'Total')
+    mutate(split_name = case_when(#is.na(quintile) ~ "Sex", # not used, as there's always an entry in quintile (number or 'Total')
                                   !is.na(quintile) ~ "Deprivation (SIMD)",
                                   TRUE ~ as.character(NA))) %>%
-    mutate(split_value = case_when(is.na(quintile) ~ sex, # not used, as there's always an entry in quintile (number or 'Total')
+    mutate(split_value = case_when(#is.na(quintile) ~ sex, # not used, as there's always an entry in quintile (number or 'Total')
                                    !is.na(quintile) ~ quintile,
                                    TRUE ~ as.character(NA))) %>%
     # Result: All split names are called Deprivation: can fix this in the final processing 
