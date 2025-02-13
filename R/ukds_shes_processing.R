@@ -1,4 +1,3 @@
-
 # ============================================================================
 # ===== Processing UKDS survey data files: SCOTTISH HEALTH SURVEY (shes) =====
 # ============================================================================
@@ -1119,15 +1118,47 @@ table(shes_results1$year, useNA = "always") # 2008 to 2021
 table(shes_results1$def_period, useNA = "always") # Aggregated years () and Survey year (), no NA
 table(shes_results1$split_name, useNA = "always") # Deprivation or Sex, no NA
 table(shes_results1$split_value, useNA = "always") # 1 to 5, M/F/Total, no NA
-
+# all good
 
 # Suppress values where necessary:
 # SHeS suppress values where denominator (unweighted base) is <30
-shes_raw_data <- shes_results1 %>%
+shes_results1 <- shes_results1 %>%
   mutate(across(.cols = c(numerator, rate, lowci, upci),
                 .fns = ~case_when(denominator < 30 ~ as.numeric(NA),
                                   TRUE ~ as.numeric(.x)))) 
+  
 # 2 rows have been suppressed
+
+# Final prep:
+
+# get indicator names into more informative names for using as filenames
+shes_raw_data <- shes_results1 %>%
+  mutate(indicator = case_when( indicator == "gh_qg2" ~ "common_mh_probs",    
+                                indicator == "gen_helf" ~ "self_assessed_health",  
+                                indicator == "limitill" ~ "limiting_long_term_condition",  
+                                indicator == "adt10gp_tw" ~ "physical_activity",
+                                indicator == "porftvg3" ~ "fruit_veg_consumption",  
+                                indicator == "rg17a_new" ~ "unpaid_caring", 
+                                indicator == "wemwbs" ~ "mental_wellbeing",    
+                                indicator == "life_sat" ~ "life_satisfaction",  
+                                indicator == "ch_ghq" ~ "cyp_parent_w_ghq4",    
+                                indicator == "ch_audit" ~ "cyp_parent_w_harmful_alc",
+                                indicator == "involve" ~ "involved_locally",  
+                                indicator == "p_crisis" ~ "support_network", 
+                                indicator == "str_work2" ~ "stress_at_work",
+                                indicator == "contrl" ~ "choice_at_work",   
+                                indicator == "support1" ~ "line_manager", 
+                                indicator == "depsymp" ~ "depression_symptoms",  
+                                indicator == "anxsymp" ~ "anxiety_symptoms",  
+                                indicator == "dsh5sc" ~ "deliberate_selfharm",   
+                                indicator == "suicide2" ~ "attempted_suicide",
+                                indicator == "work_bal" ~ "work-life_balance",
+                                TRUE ~ as.character(NA)  )) %>%
+  select(-denominator) 
+
+
+
+
 
 # save data ----
 saveRDS(shes_raw_data, file = paste0(data_folder, 'Prepared Data/shes_raw.rds'))
