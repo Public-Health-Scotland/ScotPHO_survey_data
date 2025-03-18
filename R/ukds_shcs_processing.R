@@ -47,8 +47,13 @@ source(here("functions", "functions.R")) # sources the file "functions/functions
 
 # Source functions/packages from ScotPHO's scotpho-indicator-production repo 
 # (works if you've stored the ScotPHO repo in same location as the current repo)
-source("../scotpho-indicator-production/1.indicator_analysis.R")
-source("../scotpho-indicator-production/2.deprivation_analysis.R")
+# change wd first
+setwd("../scotpho-indicator-production/")
+source("functions/main_analysis.R") # for packages and QA function 
+source("functions/deprivation_analysis.R") # for packages and QA function (and path to lookups)
+
+# move back to the ScotPHO_survey_data repo
+setwd("/conf/MHI_Data/Liz/repos/ScotPHO_survey_data")
 # temporary functions:
 source(here("functions", "temp_depr_analysis_updates.R")) # 22.1.25: sources some temporary functions needed until PR #97 is merged into the indicator production repo 
 
@@ -226,9 +231,13 @@ simd_data2 <- scot_data %>% # repeat to give Scotland totals (includes household
 ## Geography lookup -----
 
 # Read in geography lookup
-geo_lookup <- readRDS(paste0(lookups, "Geography/opt_geo_lookup.rds")) %>% 
+geo_lookup <- readRDS(paste0(profiles_lookups, "/Geography/opt_geo_lookup.rds")) %>% 
   select(!c(parent_area, areaname_full))
 
+# LAs to HBs lookup
+hb <- readRDS(paste0(profiles_lookups, "/Geography/DataZone11_All_Geographies_Lookup.rds")) %>%
+  select(ca2019, hb2019) %>%
+  distinct(.)
 
 #combine and process indicator data
 all_shcs2 <- rbind(la_data,
@@ -238,6 +247,14 @@ all_shcs2 <- rbind(la_data,
   merge(y=geo_lookup, by.x=c("spatial.unit", "spatial.scale"), by.y=c("areaname", "areatype")) %>%
   select(-starts_with("spatial"))
   
+# repeat data replacing CA with HB codes so can be aggregated to HBs too
+shcs_hb <- all_shcs2 %>%
+  merge(y=hb, by.x="code", by.y= "ca2019") %>% # just keeps the LA-level rows
+  select(-code) 
+
+# Combine
+all_shcs3 <- rbind(all_shcs2, shcs_hb)
+
 
 ##########################################################
 ### 3. Prepare final files -----
@@ -253,11 +270,11 @@ prepare_final_files <- function(ind){
   
   
   if(ind==30166) {
-    all_shcs2 <- all_shcs2 %>%
+    all_shcs3 <- all_shcs3 %>%
       filter(any_kids=="Yes")
   }
   
- df <- all_shcs2 %>%
+ df <- all_shcs3 %>%
     group_by(year, code, split_name, split_value, criturgext_or) %>%
     summarise(n = n(), # calculate counts
               wt = sum(weight)) %>% # sum the weights
@@ -295,7 +312,8 @@ prepare_final_files <- function(ind){
     select(code, ind_id, year, 
            numerator, rate, upci, lowci, 
            def_period, trend_axis) %>%
-    unique() 
+    unique() %>%
+    arrange(code, year)
   
   # Save the indicator data
   # Including both rds and csv file for now
@@ -307,24 +325,40 @@ prepare_final_files <- function(ind){
   # 3 - SIMD data (ie data behind deprivation tab)
   
   # Process SIMD data
-  simd_data <- df %>% 
-    filter(split_name == "Deprivation (SIMD)") %>% 
+  simd_data <- df %>%
+    filter(split_name == "Deprivation (SIMD)") %>%
     unique() %>%
     select(-split_name) %>%
     rename(quintile = split_value) %>%
-    mutate(quint_type = "sc_quin")
+    mutate(quint_type = "sc_quin") %>%
+    arrange(code, year, quintile)
   
-  # Save intermediate SIMD file
-  write_rds(simd_data, file = paste0(data_folder, "Prepared Data/", ind_name, "_shiny_depr_raw.rds"))
-  write.csv(simd_data, file = paste0(data_folder, "Prepared Data/", ind_name, "_shiny_depr_raw.csv"), row.names = FALSE)
+  # get arguments for the add_population_to_quintile_level_data() function: (done because the ind argument to the current function is not the same as the ind argument required by the next function)
+  ind_name <- ind # dataset will already be filtered to a single indicator based on the parameter supplied to 'prepare final files' function
+  ind_id <- unique(simd_data$ind_id) # identify the indicator number 
   
-  # Run the deprivation analysis (saves the processed file to 'Data to be checked')
-  analyze_deprivation_aggregated(filename = paste0(ind_name, "_shiny_depr"), 
-                                 pop = "depr_pop_16+", # these are adult (16+) indicators, with no sex split for SIMD
-                                 ind, 
-                                 ind_name
-  )
   
+  # add population data (quintile level) so that inequalities can be calculated
+  if(ind==30166) {
+      simdpop = "depr_pop_under16"
+    } else {
+      simdpop = "depr_pop_16+"
+    }
+  
+  simd_data <-  simd_data|>
+    add_population_to_quintile_level_data(pop = simdpop, 
+                                          ind = ind_id, ind_name = ind_name) |>
+    filter(!is.na(rate)) # not all years have data
+  
+  # calculate the inequality measures
+  simd_data <- simd_data |>
+    calculate_inequality_measures() |> # call helper function that will calculate sii/rii/paf
+    select(-c(overall_rate, total_pop, proportion_pop, most_rate,least_rate, par_rr, count)) #delete unwanted fields
+  
+  # save the data as RDS file
+  saveRDS(simd_data, paste0(profiles_data_folder, "/Data to be checked/", ind, "_ineq.rds"))
+  
+
   # Make data created available outside of function so it can be visually inspected if required
   main_data_result <<- main_data
   simd_data_result <<- simd_data
@@ -345,15 +379,13 @@ prepare_final_files(ind = 30048)
 
 # Run QA reports
 
-# main data:
-run_qa(filename = "disrepair_cyp")
-run_qa(filename = "disrepair_all")
+# main data
+run_qa(type = "main", filename="disrepair_cyp", test_file=FALSE)
+run_qa(type = "main", filename="disrepair_all", test_file=FALSE)
 
-# ineq data:
-run_ineq_qa(filename = "disrepair_cyp")
-run_ineq_qa(filename = "disrepair_all")
-
-
+# ineq data: (can't open the connection?)
+run_qa(type = "deprivation", filename="disrepair_cyp", test_file=FALSE)
+run_qa(type = "deprivation", filename="disrepair_all", test_file=FALSE)
 
 
 #END
