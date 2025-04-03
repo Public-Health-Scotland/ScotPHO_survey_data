@@ -35,6 +35,7 @@
 pacman::p_load(
   here, # for file paths within project/repo folders
   haven, # importing .dta files from Stata
+  readxl,
   openxlsx, # reading and creating spreadsheets
   arrow, # work with parquet files
   reactable, # required for the QA .Rmd file
@@ -54,8 +55,8 @@ source("functions/deprivation_analysis.R") # for packages and QA function (and p
 
 # move back to the ScotPHO_survey_data repo
 setwd("/conf/MHI_Data/Liz/repos/ScotPHO_survey_data")
-# temporary functions:
-source(here("functions", "temp_depr_analysis_updates.R")) # 22.1.25: sources some temporary functions needed until PR #97 is merged into the indicator production repo 
+# # temporary functions:
+# source(here("functions", "temp_depr_analysis_updates.R")) # 22.1.25: sources some temporary functions needed until PR #97 is merged into the indicator production repo 
 
 ## C. Path to the data derived by this script
 
@@ -250,7 +251,8 @@ all_shcs2 <- rbind(la_data,
 # repeat data replacing CA with HB codes so can be aggregated to HBs too
 shcs_hb <- all_shcs2 %>%
   merge(y=hb, by.x="code", by.y= "ca2019") %>% # just keeps the LA-level rows
-  select(-code) 
+  select(-code) %>%
+  rename(code = hb2019)
 
 # Combine
 all_shcs3 <- rbind(all_shcs2, shcs_hb)
@@ -262,10 +264,10 @@ all_shcs3 <- rbind(all_shcs2, shcs_hb)
 
 
 # Function to prepare final files: main_data and simd_data
-prepare_final_files <- function(ind){
+prepare_final_files <- function(ind_name){
   
-  ind_name <- ifelse(ind==30166, "disrepair_cyp",
-                     ifelse(ind==30048, "disrepair_all",
+  ind <- ifelse(ind_name=="disrepair_cyp", 30166,
+                     ifelse(ind_name=="disrepair_all", 30048,
                             "ERROR"))
   
   
@@ -317,8 +319,8 @@ prepare_final_files <- function(ind){
   
   # Save the indicator data
   # Including both rds and csv file for now
-  write_rds(main_data, file = paste0(data_folder, "Data to be checked/", ind_name, "_shiny.rds"))
-  write_csv(main_data, file = paste0(data_folder, "Data to be checked/", ind_name, "_shiny.csv"))
+  write_rds(main_data, file = paste0(profiles_data_folder, "/Data to be checked/", ind_name, "_shiny.rds"))
+  write_csv(main_data, file = paste0(profiles_data_folder, "/Data to be checked/", ind_name, "_shiny.csv"))
   
   # 2 - no popgroup data (data are household rather than individual level) 
   
@@ -333,11 +335,6 @@ prepare_final_files <- function(ind){
     mutate(quint_type = "sc_quin") %>%
     arrange(code, year, quintile)
   
-  # get arguments for the add_population_to_quintile_level_data() function: (done because the ind argument to the current function is not the same as the ind argument required by the next function)
-  ind_name <- ind # dataset will already be filtered to a single indicator based on the parameter supplied to 'prepare final files' function
-  ind_id <- unique(simd_data$ind_id) # identify the indicator number 
-  
-  
   # add population data (quintile level) so that inequalities can be calculated
   if(ind==30166) {
       simdpop = "depr_pop_under16"
@@ -347,7 +344,8 @@ prepare_final_files <- function(ind){
   
   simd_data <-  simd_data|>
     add_population_to_quintile_level_data(pop = simdpop, 
-                                          ind = ind_id, ind_name = ind_name) |>
+                                          ind_id = ind, 
+                                          ind_name = ind_name) |>
     filter(!is.na(rate)) # not all years have data
   
   # calculate the inequality measures
@@ -356,7 +354,7 @@ prepare_final_files <- function(ind){
     select(-c(overall_rate, total_pop, proportion_pop, most_rate,least_rate, par_rr, count)) #delete unwanted fields
   
   # save the data as RDS file
-  saveRDS(simd_data, paste0(profiles_data_folder, "/Data to be checked/", ind, "_ineq.rds"))
+  saveRDS(simd_data, paste0(profiles_data_folder, "/Data to be checked/", ind_name, "_ineq.rds"))
   
 
   # Make data created available outside of function so it can be visually inspected if required
@@ -370,20 +368,20 @@ prepare_final_files <- function(ind){
 # Run function to create final files
 
 # CYP indicator:
-prepare_final_files(ind = 30166)
+prepare_final_files(ind_name = "disrepair_cyp")
 
 # Adult indicator:
-prepare_final_files(ind = 30048)
+prepare_final_files(ind_name = "disrepair_all")
 
 
-
+       
 # Run QA reports
 
 # main data
 run_qa(type = "main", filename="disrepair_cyp", test_file=FALSE)
 run_qa(type = "main", filename="disrepair_all", test_file=FALSE)
 
-# ineq data: (can't open the connection?)
+# ineq data: 
 run_qa(type = "deprivation", filename="disrepair_cyp", test_file=FALSE)
 run_qa(type = "deprivation", filename="disrepair_all", test_file=FALSE)
 
