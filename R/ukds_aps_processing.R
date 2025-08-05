@@ -34,7 +34,14 @@ source(here("functions", "functions.R")) # sources the file "functions/functions
 
 # Source functions/packages from ScotPHO's scotpho-indicator-production repo 
 # (works if you've stored the ScotPHO repo in same location as the current repo)
-source("../scotpho-indicator-production/1.indicator_analysis.R")
+#source("../scotpho-indicator-production/1.indicator_analysis.R")
+#source("../scotpho-indicator-production/2.deprivation_analysis.R")
+# change wd first
+setwd("../scotpho-indicator-production/")
+source("functions/main_analysis.R") # for packages and QA function 
+source("functions/deprivation_analysis.R") # for packages and QA function (and path to lookups)
+# move back to the ScotPHO_survey_data repo
+setwd("/conf/MHI_Data/Liz/repos/ScotPHO_survey_data")
 
 ## C. Path to the data derived by this script
 
@@ -176,6 +183,7 @@ aps_data <- extracted_survey_data_aps %>%
   
 
 # data checks
+table(aps_data$year, useNA = "always") # 05 to 24
 table(aps_data$age, useNA = "always") # all are 16-64
 table(aps_data$sex, useNA = "always") # all are Male or Female
 table(aps_data$inecac05, useNA = "always")
@@ -200,23 +208,20 @@ workless <- aps_data %>%
          upci = 100 * (((2*numerator) + (1.96*1.96) + 1.96*sqrt((1.96*1.96) + (4*numerator*(1-proportion)))) / (2 * (denominator + (1.96*1.96)))),
          year = 2000 + as.numeric(year),
          trend_axis = as.character(year),
-         def_period = paste0(year, "survey year"),
+         def_period = paste0(year, " survey year"),
          code = "S00000001",
          ind_id = 30032,
          split_name = "Sex") %>%
   rename(split_value = sex) %>%
-  select(-c(proportion, no_unwted, yes_unwted, yes_grossed, no_grossed)) %>%
+  select(-c(proportion, no_unwted, yes_unwted, yes_grossed, no_grossed, denominator)) %>%
   arrange(ind_id, split_name, split_value, code, year)
 
 # data checks:
-table(workless$year, useNA = "always") # 2005 to 2023, no NA
+table(workless$year, useNA = "always") # 2005 to 2024, no NA
 table(workless$split_value, useNA = "always") # Female/Male/Total, no NA
 
-# save data ----
-saveRDS(workless, file = paste0(data_folder, 'Prepared Data/workless_raw.rds'))
-#workless <- readRDS(file = paste0(data_folder, 'Prepared Data/workless_raw.rds'))
 
-# Suppression required?
+# Suppression required? No.
 # denominator check: smallest is over 3000
 # numerator check: smallest is 192
 
@@ -226,32 +231,27 @@ saveRDS(workless, file = paste0(data_folder, 'Prepared Data/workless_raw.rds'))
 # Prepare the main dataset
 
 main_workless <- workless %>%
-  filter(split_value == "Total") 
-saveRDS(main_workless, file = paste0(data_folder, 'Prepared Data/workless_raw.rds'))
+  filter(split_value == "Total") %>%
+  select(-starts_with("split"))
+
+saveRDS(main_workless, file = file.path(profiles_data_folder, "Data to be checked", "workless_shiny.rds"))
+write.csv(main_workless, file.path(profiles_data_folder, "Data to be checked", "workless_shiny.csv"), row.names = FALSE)
 
 
-analyze_first(filename = "workless", 
-              geography = "all", 
-              measure = "percent", 
-              time_agg = 1,
-              yearstart = 2005, 
-              yearend = 2023, 
-              source_suppressed=F)
-analyze_second(filename = "workless", 
-               measure = "percent", 
-               time_agg = 1, 
-               ind_id = 30032, 
-               year_type = "survey")
 
-# Prepare the popgroup dataset
+# Save the popgroup dataset
 
-popgrp_workless <- workless %>%
-  select(-denominator)
-
-# Save
-# Including both rds and csv file for now
-write_rds(popgrp_workless, file = paste0(data_folder, "Data to be checked/workless_shiny_popgrp.rds"))
-write_csv(popgrp_workless, file = paste0(data_folder, "Data to be checked/workless_shiny_popgrp.csv"))
+saveRDS(workless, file = file.path(profiles_data_folder, "Data to be checked", "workless_shiny_popgrp.rds"))
+write.csv(workless, file.path(profiles_data_folder, "Data to be checked", "workless_shiny_popgrp.csv"), row.names = FALSE)
 
 
+# Run QA
+
+run_qa("workless", type = "main")
+#run_qa("workless", type = "popgrp")
+
+# QA looks good
+  
+  
 ## END
+
