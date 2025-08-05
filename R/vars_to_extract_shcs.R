@@ -15,7 +15,6 @@ vars_to_keep <- c(
 
   # weights
   "la_wght_p", # 3-year paired grossing weight
-  "ts_wght_p", # paired grossing weight
   "ts_wght_p_n", # paired sampling weight
 
   # spatial units
