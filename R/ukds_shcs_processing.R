@@ -5,13 +5,14 @@
 # NOTES ON SHCS
 
 # 2 indicators:
-# 30048 - Households in dwellings with critical, extensive and/or urgent disrepair = 
-#         Percentage of households with any disrepair to critical elements, considered urgent disrepair, or extensive disrepair to their dwelling. The variables used were critany, extanyVP, and urgany. 
-# 30166 - Children in dwellings with critical, extensive and/or urgent disrepair	=	
-#         Proportion of households with children aged under 16 years old with any disrepair to critical elements, considered urgent disrepair, or extensive disrepair to their dwelling. The variables used were critany, extanyVP, urgany, and any_kids. 
+# NB. Change in definition in August 2025, to reflect a change in interpretation of the original MHI wording: this will result in lower estimates.
+# 30048 - Households in dwellings with extensive and/or urgent disrepair to critical elements
+#         Percentage of households with any disrepair to their dwelling's critical elements that is considered urgent or extensive. The variables used were critany, extanyVP, and urgany.  
+# 30166 - Children in dwellings with extensive and/or urgent disrepair to critical elements	
+#         Proportion of households with children aged under 16 years with any disrepair to their dwelling's critical elements that is considered urgent or extensive. The variables used were critany, extanyVP, urgany, and any_kids.
 
 # Denominator: all surveyed houses (or all with children)
-# Weights: la_wght_p (3-year paired grossing weight for LA data), ts_wght_p_n (paired sampling weight for national data). 
+# Weights: la_wght_p (3-year paired grossing weight for LA data), ts_wght_p_n (paired sampling weight for national data). SHCS team advised us to use these.
 # Design factors are used to account for survey design in CI calc for national (but not LA) estimates: Adjusted CI = CI x design effect (https://www.gov.scot/publications/scottish-house-condition-survey-2019-key-findings/pages/9/)
 # "When producing estimates at Local Authority level, no design effect adjustment of standard errors is necessary because simple (actually equal interval) random sampling was carried out within each Local Authority."
 
@@ -23,6 +24,8 @@
 # Latest release on UKDS is 2021. 2022 was released in 2024, but is not on UKDS yet (as of Jan 2025).
 # 2023 and 2024 data will be required to make a 3-y average. 
 # Unclear when the indicator can next be updated. 2026?
+
+# Suppression: SHCS suppress if base sample is <30
 
 
 
@@ -55,8 +58,6 @@ source("functions/deprivation_analysis.R") # for packages and QA function (and p
 
 # move back to the ScotPHO_survey_data repo
 setwd("/conf/MHI_Data/Liz/repos/ScotPHO_survey_data")
-# # temporary functions:
-# source(here("functions", "temp_depr_analysis_updates.R")) # 22.1.25: sources some temporary functions needed until PR #97 is merged into the indicator production repo 
 
 ## C. Path to the data derived by this script
 
@@ -174,18 +175,19 @@ all_shcs <- extracted_survey_data_shcs %>% unnest(cols = c(survey_data)) %>%
          urgany = case_when(urgany == "some" ~ 1, # any urgent disrepair
                             urgany == "none" ~ 0,
                             urgany %in% c("unobtainable", "not applicable") ~ as.numeric(NA)),
-         criturgext_or = case_when(critany==1 | extany_vp==1 | urgany==1 ~ 1, # any 1s gives a criturgext_or==1
-                                   critany==0 | extany_vp==0 | urgany==0 ~ 0, # then if no 1s, but there's at least one 0, criturgext_or==0
-                                   TRUE ~ as.numeric(NA))) %>% # if no 1s or 0s (i.e., data were unobtainable). These are then dropped.
-  filter(!is.na(criturgext_or))
+         urg_or_ext = case_when(critany==1  &  (extany_vp==1 | urgany==1) ~ 1, # critical disrepair that is extensive and/or urgent
+                                critany==1  &  extany_vp==0  &  urgany==0 ~ 0, # critical disrepair that neither extensive or urgent
+                                critany==0 ~ 0, # no critical disrepair
+                                TRUE ~ as.numeric(NA))) %>% # if no 1s or 0s (i.e., data were unobtainable). These are then dropped.
+  filter(!is.na(urg_or_ext))
 
 
 # matching to SHS using uniqidnew_lut 
 uniqidnew_lut <- readRDS(paste0(derived_data, "uniqidnew_lut.rds")) # see script ukds_shs_processing.R for the derivation of this LUT
 
-all_shcs <- all_shcs %>% #22747
+all_shcs <- all_shcs %>% 
   merge(y=uniqidnew_lut, by.x=c("uniqidnew_shs_social", "year"), by.y = c("uniqidnew", "year"), all.x=TRUE) %>%  #22,690 if all.x=F, because some SHCS households don't have id codes
-  select(year, la, simd5, any_kids, criturgext_or, ts_wght_p_n, la_wght_p) %>% # remove identifiers for saving outside the MHI folders
+  select(year, la, simd5, any_kids, urg_or_ext, ts_wght_p_n, la_wght_p) %>% # remove identifiers for saving outside the MHI folders
   mutate(year = as.numeric(year))
 
 shcs_shs_summary <- all_shcs %>%
@@ -196,12 +198,12 @@ shcs_shs_summary <- all_shcs %>%
   summarise(total = sum(count),
             missing = count[is.na(simd5)]) %>%
   ungroup() %>%
-  mutate(missing_pc = 100 * missing / total) # 0.04 to 0.54% each year
+  mutate(missing_pc = 100 * missing / total) # 0.04 to 0.52% each year
 
 
 # split by geography type
 la_data <- all_shcs %>%
-  select(year, spatial.unit = la, criturgext_or, weight = la_wght_p, any_kids) %>%
+  select(year, spatial.unit = la, urg_or_ext, weight = la_wght_p, any_kids) %>%
   mutate(spatial.scale = "Council area") %>%
   mutate(spatial.unit = gsub(" and ", " & ", spatial.unit),
          spatial.unit = ifelse(spatial.unit=="Edinburgh, City of", "City of Edinburgh", spatial.unit)) %>%
@@ -209,7 +211,7 @@ la_data <- all_shcs %>%
          split_value = "None")
 
 scot_data <- all_shcs %>%
-  select(year, criturgext_or, weight = ts_wght_p_n, any_kids) %>%
+  select(year, urg_or_ext, weight = ts_wght_p_n, any_kids) %>%
   mutate(spatial.unit = "Scotland",
          spatial.scale = "Scotland") %>%
   mutate(split_name = "None",
@@ -217,7 +219,7 @@ scot_data <- all_shcs %>%
 
 simd_data <- all_shcs %>%
   filter(!is.na(simd5)) %>%
-  select(year, criturgext_or, weight = ts_wght_p_n, simd5, any_kids) %>%
+  select(year, urg_or_ext, weight = ts_wght_p_n, simd5, any_kids) %>%
   mutate(spatial.unit = "Scotland",
          spatial.scale = "Scotland") %>%
   mutate(split_name = "Deprivation (SIMD)",
@@ -235,9 +237,9 @@ simd_data2 <- scot_data %>% # repeat to give Scotland totals (includes household
 geo_lookup <- readRDS(paste0(profiles_lookups, "/Geography/opt_geo_lookup.rds")) %>% 
   select(!c(parent_area, areaname_full))
 
-# LAs to HBs lookup
-hb <- readRDS(paste0(profiles_lookups, "/Geography/DataZone11_All_Geographies_Lookup.rds")) %>%
-  select(ca2019, hb2019) %>%
+# LAs to higher geog lookup
+higher_lookup <- readRDS(paste0(profiles_lookups, "/Geography/DataZone11_All_Geographies_Lookup.rds")) %>%
+  select(ca2019, hb2019, hscp2019, adp, pd) %>%
   distinct(.)
 
 #combine and process indicator data
@@ -247,15 +249,39 @@ all_shcs2 <- rbind(la_data,
   # add the geog codes
   merge(y=geo_lookup, by.x=c("spatial.unit", "spatial.scale"), by.y=c("areaname", "areatype")) %>%
   select(-starts_with("spatial"))
-  
+
 # repeat data replacing CA with HB codes so can be aggregated to HBs too
 shcs_hb <- all_shcs2 %>%
-  merge(y=hb, by.x="code", by.y= "ca2019") %>% # just keeps the LA-level rows
-  select(-code) %>%
+  merge(y=higher_lookup, by.x="code", by.y= "ca2019") %>% # just keeps the LA-level rows
+  select(-code, -hscp2019, -adp, -pd) %>%
   rename(code = hb2019)
 
+# repeat data replacing CA with HSCP codes so can be aggregated to HSCPs too
+shcs_hscp <- all_shcs2 %>%
+  merge(y=higher_lookup, by.x="code", by.y= "ca2019") %>% # just keeps the LA-level rows
+  select(-code, -hb2019, -adp, -pd) %>%
+  rename(code = hscp2019)
+
+# repeat data replacing CA with ADP codes so can be aggregated to ADPs too
+shcs_adp <- all_shcs2 %>%
+  merge(y=higher_lookup, by.x="code", by.y= "ca2019") %>% # just keeps the LA-level rows
+  select(-code, -hb2019, -hscp2019, -pd) %>%
+  rename(code = adp)
+
+# repeat data replacing CA with PD codes so can be aggregated to PDs too
+shcs_pd <- all_shcs2 %>%
+  merge(y=higher_lookup, by.x="code", by.y= "ca2019") %>% # just keeps the LA-level rows
+  select(-code, -hb2019, -hscp2019, -adp) %>%
+  rename(code = pd)
+
 # Combine
-all_shcs3 <- rbind(all_shcs2, shcs_hb)
+all_shcs3 <- rbind(all_shcs2, 
+                   shcs_hb,
+                   shcs_hscp,
+                   shcs_adp,
+                   shcs_pd) %>%
+  merge(y = design, by="year")
+
 
 
 ##########################################################
@@ -269,45 +295,39 @@ prepare_final_files <- function(ind_name){
   ind <- ifelse(ind_name=="disrepair_cyp", 30166,
                      ifelse(ind_name=="disrepair_all", 30048,
                             "ERROR"))
-  
-  
+
   if(ind==30166) {
     all_shcs3 <- all_shcs3 %>%
       filter(any_kids=="Yes")
   }
   
- df <- all_shcs3 %>%
-    group_by(year, code, split_name, split_value, criturgext_or) %>%
-    summarise(n = n(), # calculate counts
-              wt = sum(weight)) %>% # sum the weights
+  # Final processing
+  df <- all_shcs3 %>%
+    group_by(year, code, split_name, split_value, design_effect) %>%
+    summarise(denom_wted = sum(weight),
+              num_wted = sum(weight[urg_or_ext==1]),
+              numerator = sum(urg_or_ext==1),
+              denominator = n()) %>%
     ungroup() %>%
-    pivot_wider(names_from = criturgext_or, values_from = c(n, wt)) %>%
-    mutate(n_0 = if_else(is.na(n_0), 0, n_0),
-           wt_0 = if_else(is.na(wt_0), 0, wt_0)) %>%
     group_by(code, split_name, split_value) %>%
-    dplyr::mutate(across(c(starts_with("n"), starts_with("wt")), # rolling sum of counts and weights over 3 year windows (centred)
+    dplyr::mutate(across(c(denom_wted, num_wted, numerator, denominator), # rolling sum over 3 year windows (centred)
                          ~ RcppRoll::roll_sum(., 3,  align = "center", fill = NA), .names = '{col}_rolling')) %>% 
     ungroup() %>%
-    filter(!is.na(n_0_rolling)) %>% # drops ends of the series
-    mutate(trend_axis = paste0(year-1, "-", year+1),
-           Nuw = n_0_rolling + n_1_rolling, # unweighted total (denominator)
-           Nw = wt_0_rolling + wt_1_rolling) %>% # grossed up total
-    rename(nuw = n_1_rolling, # unweighted numerator
-           nw = wt_1_rolling) %>% # grossed up numerator
-    mutate(rate = 100 * nw / Nw) %>% 
-    mutate(proportion = nw/Nw,
+    filter(!is.na(numerator_rolling)) %>% # drops ends of the series
+    filter(denominator_rolling>29) %>% # suppress those with unweighted base <30
+    mutate(trend_axis = paste0(year-1, "-", year+1)) %>% 
+    mutate(proportion = num_wted_rolling / denom_wted_rolling,
            rate = 100 * proportion,
-           ci_wald = 100 * (1.96*sqrt((proportion*(1-proportion))/Nuw)), # Wald method 
+           ci_wald = 100 * (1.96*sqrt((proportion*(1-proportion))/denominator_rolling)), # Wald method
+           ci_wald = case_when(code=="S00000001" ~ ci_wald * design_effect, # adjust national CIs by design effect, as advised
+                               TRUE ~ ci_wald),
            lowci = rate - ci_wald,
            upci = rate + ci_wald) %>%
-    select(-proportion, -starts_with("n_"), -starts_with("wt_"), -ci_wald) %>%
+    select(year, code, starts_with("split"), trend_axis, numerator=numerator_rolling, rate, lowci, upci) %>%
     # add def_period
     mutate(def_period = paste0("Aggregated survey years (", trend_axis, ")"),
-           ind_id = ind) %>%
-    rename(numerator = nuw) %>%
-    select(-c(nw, Nw, Nuw)) 
- # smallest unweighted base (denominator) was 165 for adult indicator, 36 for CYP indicator  
- 
+           ind_id = ind) 
+
   # 1 - main data (ie data behind summary/trend/rank tab)
   main_data <- df %>% 
     filter(split_name == "None") %>% 
@@ -377,11 +397,11 @@ prepare_final_files(ind_name = "disrepair_all")
        
 # Run QA reports
 
-# main data
+# main data (all the areas are represented and data looks ok)
 run_qa(type = "main", filename="disrepair_cyp", test_file=FALSE)
 run_qa(type = "main", filename="disrepair_all", test_file=FALSE)
 
-# ineq data: 
+# ineq data: (only national SIMD data)
 run_qa(type = "deprivation", filename="disrepair_cyp", test_file=FALSE)
 run_qa(type = "deprivation", filename="disrepair_all", test_file=FALSE)
 
