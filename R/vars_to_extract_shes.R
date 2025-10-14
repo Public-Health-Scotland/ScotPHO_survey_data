@@ -14,7 +14,7 @@ vars_to_keep <- c(
   "hb_code", "hbcode", "hlth_brd", "hlthbrd",   
   "hboard", #98 and 03
   
-  "sex", "respsex",
+  "sex", "respsex", "final_sex22",
   
   # identifiers needed to work out who are the legal parents of the interviewed child
   "par1", # person number of 1st legal parent
@@ -42,6 +42,7 @@ vars_to_keep <- c(
   "simd16_s_ga", #SIMD2016 used 13 to 18 * (* both used in 15161718 file, keep simd16)
   "simd20_s_ga", #SIMD2020 used 16 to 20
   "simd20_sga", #SIMD2020 used 19 to 21
+  "simd20_r_pa", #needed for 2022 data, no SGA available
 
   "wemwbs", "wemwbs_t20", # mean score variable (FROM 2008)
   "gh_qg2", "gh_qg2_t20", "ghqg2", "ghq2", #(last 2 in 95, 98 and 03)
@@ -62,6 +63,7 @@ vars_to_keep <- c(
   "dsh5", "dsh5sc", 
   "adt10gp_tw",  
   "life_sat", # mean score variable
+  "sdq_totg2",
 
  # needed for CYP MHIs:
   "auditg", # banded AUDIT score (for CYP indicator)
@@ -103,12 +105,14 @@ vars_to_keep <- c(
   "int1718wt", 
   "int1719wt", 
   "int17wt", 
+  "int18192122wt",
   "int1819wt", 
   "int18wt", 
   "int1921wt", 
   "int19wt", 
   "int20wt", 
   "int21wt", 
+  "int22wt",
   # version a (vera) weights (22 files have vera weights: annual and ~3yr)
   "vera08wt", 
   "vera0810wt", 
@@ -129,10 +133,12 @@ vars_to_keep <- c(
   "vera16wt", 
   "vera1719wt", 
   "vera17wt", 
+  "vera18192122wt",
   "vera18wt", 
   "vera1921wt", 
   "vera19wt", 
   "vera21wt",
+  "vera22wt",
   # version b (verb) biol module weights (22 files have bio weights: annual, ~3yr and ~4yr, from 1213)
   "bio12131415wt",
   "bio121314wt",
@@ -151,11 +157,13 @@ vars_to_keep <- c(
   "bio17181921wt",
   "bio1718wt",
   "bio17wt",
+  "bio18192122wt",
   "bio1819wt",
   "bio18wt",
   "bio1921wt",
   "bio19wt",
   "bio21wt",
+  "bio22wt",
   #nurse weights: (pre-dated introduction of bioweights, 2008-11, and are used for self-harm/suicide/anxiety/depression questions)
   "nurs08wt",
   "nurs0809_wt",
@@ -197,11 +205,13 @@ vars_to_keep <- c(
  "cint1718wt",
  "cint1719wt",
  "cint17wt",
+ "cint18192122wt",
  "cint1819wt",
  "cint18wt",
  "cint1921wt",
  "cint19wt",
- "cint21wt"
+ "cint21wt",
+ "cint22wt"
  
  
  
