@@ -673,7 +673,7 @@ calc_indicator_data <- function (df, var, wt, ind_id, type) {
   }
   
   # Read in lookup for harmonising area names
-  geo_lookup <- readRDS(paste0(lookups, "Geography/opt_geo_lookup.rds")) %>% 
+  geo_lookup <- readRDS(paste0(profiles_lookups, "/Geography/opt_geo_lookup.rds")) %>% 
     select(!c(parent_area, areaname_full))
   
   results <- results %>%
