@@ -1,10 +1,12 @@
 # ScotPHO_survey_data
 Code for extracting survey data from UK Data Service/Archive microdata files and processing for the ScotPHO online profiles app. The script functions.R contains all the required functions. 
 
-STEP 1
+## STEP 1
+
 Download and unzip the required data from https://ukdataservice.ac.uk/ to the MHI_data folder for that survey (choose the Stata format, .dta). Requires setting up an account and project and agreeing to conditions for the End User Licence versions of the data. There are already folders for Annual Population Survey (APS), Scottish Health Survey (SHeS), Scottish Household Survey (SHoS), Scottish House Condition Survey (SHCS) and Understanding Society (UnSoc) that we have been keeping up to date as the data are published on UKDS (usually quite a lag though).
 
-STEP 2
+## STEP 2
+
 Work through the relevant script for that survey ([survey acronym]_processing.R), or start a new one based on the existing code. 
 
 2a. Run save_var_descriptions() to extract the variable names and descriptions from the survey data (without extracting the actual data)
