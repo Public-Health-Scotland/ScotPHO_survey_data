@@ -659,8 +659,15 @@ calc_indicator_data <- function (df, var, wt, ind_id, type) {
   
   }
   
+  # Scotland by age (child indicators only) 
+  if ("age" %in% names(df)) {
+
+    results_age <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "age"), type)
+    results <- bind_rows(results, results_age)
+    
+  }
   # Lower geographies
-  if (wt %in% c("intwt", "cintwt") ) { # identify the weights (and hence variables) that can be analysed at lower geographies. Currenlty just intwt and cintwt in SHeS data.
+  if (wt %in% c("intwt", "cintwt") ) { # identify the weights (and hence variables) that can be analysed at lower geographies. Currently just intwt and cintwt in SHeS data.
     
   # HB by sex 
     results_hb <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "sex", "spatial.unit"), type) %>%
@@ -691,13 +698,13 @@ calc_indicator_data <- function (df, var, wt, ind_id, type) {
                                   substr(trend_axis, 5, 5)=="/" ~ paste0("Survey year (", trend_axis, ")"),
                                   nchar(trend_axis) > 7 ~ paste0("Aggregated survey years (", trend_axis, ")"))) %>%
     # add split info
-    mutate(split_name = case_when(#is.na(quintile) ~ "Sex", # not used, as there's always an entry in quintile (number or 'Total')
+    mutate(split_name = case_when(!is.na(age) ~ "Age", 
                                   !is.na(quintile) ~ "Deprivation (SIMD)",
                                   TRUE ~ as.character(NA))) %>%
-    mutate(split_value = case_when(#is.na(quintile) ~ sex, # not used, as there's always an entry in quintile (number or 'Total')
+    mutate(split_value = case_when(!is.na(age) ~ paste0(age, " years"), 
                                    !is.na(quintile) ~ quintile,
                                    TRUE ~ as.character(NA))) %>%
-    # Result: All split names are called Deprivation: can fix this in the final processing 
+    # Result: All sex/deprivation split names are called Deprivation: can fix this in the final processing 
     
     # required columns
     select(-starts_with("spatial")) %>%
