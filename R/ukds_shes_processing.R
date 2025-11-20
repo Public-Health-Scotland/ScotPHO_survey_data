@@ -1108,19 +1108,32 @@ svy_score_life_sat <- calc_indicator_data(shes_adult_data, "life_sat", "intwt", 
 # 2. verawt used for vera vars: National and SIMD only (samples too small for HB) 
 svy_score_work_bal <- calc_indicator_data(shes_adult_data, "work_bal", "verawt", ind_id=30052, type= "score") # ok
 
+
 # CHILDREN
 
 # 1. cintwt used with main sample variables 
-svy_percent_ch_ghq <- calc_indicator_data(shes_child_data, "ch_ghq", "cintwt", ind_id=30130, type= "percent") # ok
-svy_percent_ch_audit <- calc_indicator_data(shes_child_data, "ch_audit", "cintwt", ind_id=30129, type= "percent") # ok
-svy_percent_sdq <- calc_indicator_data(shes_child_data, "sdq", "cintwt", ind_id=99117, type= "percent") # ok
-svy_percent_childpa1hr <- calc_indicator_data(shes_child_data, "childpa1hr", "cintwt", ind_id=30111, type= "percent") # ok
+svy_percent_ch_ghq <- calc_indicator_data(shes_child_data, "ch_ghq", "cintwt", ind_id=30130, type= "percent")  # ok
+svy_percent_ch_audit <- calc_indicator_data(shes_child_data, "ch_audit", "cintwt", ind_id=30129, type= "percent")  # ok
+svy_percent_sdq <- calc_indicator_data(shes_child_data, "sdq", "cintwt", ind_id=99117, type= "percent")  # ok
+svy_percent_childpa1hr <- calc_indicator_data(shes_child_data, "childpa1hr", "cintwt", ind_id=30111, type= "percent")  # ok
 
-# what ages are available here? sum the denominators by split_value
-table(svy_percent_ch_ghq$trend_axis, svy_percent_ch_ghq$split_value, useNA = "always")
-table(svy_percent_ch_audit$trend_axis, svy_percent_ch_audit$split_value, useNA = "always")
-table(svy_percent_sdq$trend_axis, svy_percent_sdq$split_value, useNA = "always")
-table(svy_percent_childpa1hr$trend_axis, svy_percent_childpa1hr$split_value, useNA = "always")
+# Let's check that all ages are available when split_name="Age", and that there are sufficient denominators (>30 for SHeS)
+make_denom_table <- function(df) {
+  
+  df %>% 
+    filter(split_name == "Age") %>%
+    select(trend_axis, split_value, denominator) %>%
+    pivot_wider(names_from = split_value, values_from = denominator) %>%
+    print(n = 30) 
+  
+}
+
+make_denom_table(svy_percent_ch_ghq) # 0 to 15y
+make_denom_table(svy_percent_ch_audit) # 0 to 15y
+make_denom_table(svy_percent_sdq) # 4 to 12 years
+make_denom_table(svy_percent_childpa1hr) # 0 to 15y
+# Yep, all denoms >30 and most >100
+
 
 # 9. Combine all the resulting indicator data into a single file
 ###############################################################################
