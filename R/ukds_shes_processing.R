@@ -1147,10 +1147,11 @@ rownames(shes_results0) <- NULL # drop the row names
 # read back in if not in memory:
 #shes_results0 <- arrow::read_parquet(paste0(derived_data, "shes_results0.parquet"))
 
-# Get the split names sorted, and add totals for SIMD:
 
-# Data split by sex for main and popgroup files
-data_totals <- shes_results0 %>%
+# Currently the only split_names are Age (which doesn't include a total) and Deprivation (SIMD) (which does include a Total)
+
+# Sex data: Extract data split by sex only (i.e., split_value == Total) and get split_name and split_value sorted:
+sex_data <- shes_results0 %>%
   filter(split_value == "Total") %>% #10631
   select(-quintile) %>%
   mutate(split_name = "Sex",
@@ -1162,18 +1163,29 @@ dep_data <- shes_results0 %>%
   mutate(count = n()) %>%
   ungroup() %>%
   filter(count>2) %>% # 1 if only a total provided, 2 if only one quintile could be calculated in addition to the total.
-  select(-count, -quintile) #6330
- 
+  select(-count, -quintile) #7295
+
+# Age data: add Age = Total to the age splits for CYP indicators
+age_totals <- shes_results0 %>%
+  filter(split_value == "Total" & sex == "Total" & indicator %in% c("ch_ghq", "ch_audit", "cintwt", "childpa1hr")) %>% #781 (most are sub-national geogs that will be dropped subsequently)
+  select(-quintile) %>%
+  mutate(split_name = "Age")
+
+age_data <- shes_results0 %>%
+  filter(split_name=="Age" & indicator %in% c("ch_ghq", "ch_audit", "cintwt", "childpa1hr")) %>%
+  select(-quintile) %>%
+  rbind(age_totals)
+  
 # Combine 
-shes_results1 <- data_totals %>%
-  rbind(dep_data) # n=16961
+shes_results1 <- sex_data %>%
+  rbind(dep_data, age_data) # n=19519
 
 
 # Drop some data 
 
 # CYP indicators only have sufficient denominators (>30) at Scotland level: remove HB data
 shes_results1 <- shes_results1 %>%
-  filter(!(indicator %in% c("ch_ghq","ch_audit", "sdq", "childpa1hr") & substr(code, 1, 3)=="S08")) #14145
+  filter(!(indicator %in% c("ch_ghq","ch_audit", "sdq", "childpa1hr") & substr(code, 1, 3)=="S08")) #15975
 
 # 6 adult vars from SHeS main sample are available from the published data (statistics.gov.scot, see SHeS script in the ScotPHO-indicator-production repo).
 # The UKDS data can supplement those published data with SIMD x sex data (Scotland). Just keep that breakdown here:
@@ -1188,23 +1200,23 @@ published_to_keep <- shes_results1 %>%
 
 shes_results1 <- shes_results1 %>%
   filter(!indicator %in% published_vars) %>% 
-  rbind(published_to_keep) #7803
+  rbind(published_to_keep) #9633
 
 # keep only trend_axis values that are single year or 4-year aggregates (shorter aggregate periods are sometimes available but confuse matters)
 shes_results1 <- shes_results1 %>%
   filter(nchar(trend_axis)==4 | #single year
            (as.numeric(substr(trend_axis, 6, 9)) - as.numeric(substr(trend_axis, 1, 4)) > 2)) # aggregations like 2017-2021
-# 7803 rows left
+# 9633 rows still
 
 
 # data checks:
 table(shes_results1$trend_axis, useNA = "always") # 2008 to 2022, na NA
-table(shes_results1$sex, useNA = "always") # Male, Female, Total, no NA
+table(shes_results1$sex, useNA = "always") # Male, Female, Total, (NAs for CYP indicators)
 table(shes_results1$indicator, useNA = "always") # 22 vars (18 adult, 4 child), no NA
 table(shes_results1$year, useNA = "always") # 2008 to 2022
 table(shes_results1$def_period, useNA = "always") # Aggregated years () and Survey year (), no NA
-table(shes_results1$split_name, useNA = "always") # Deprivation or Sex, no NA
-table(shes_results1$split_value, useNA = "always") # 1 to 5, M/F/Total, no NA
+table(shes_results1$split_name, useNA = "always") # Deprivation, Age, or Sex, no NA
+table(shes_results1$split_value, useNA = "always") # 1 to 5, M/F/Total, 0y to 15y, no NA
 # all good
 
 # Suppress values where necessary:
@@ -1212,8 +1224,7 @@ table(shes_results1$split_value, useNA = "always") # 1 to 5, M/F/Total, no NA
 shes_results1 <- shes_results1 %>%
   mutate(across(.cols = c(numerator, rate, lowci, upci),
                 .fns = ~case_when(denominator < 30 ~ as.numeric(NA),
-                                  TRUE ~ as.numeric(.x)))) 
-# 2 rows have been suppressed
+                                  TRUE ~ as.numeric(.x)))) #9633 still
 
 # get indicator names into more informative names for using as filenames
 shes_raw_data <- shes_results1 %>%
