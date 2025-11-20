@@ -6,6 +6,7 @@
 # Scottish Health Survey
 
 # SELECTION OF VARS IS A KEY ERROR PRONE STAGE THAT NEEDS FULL QA
+# ENSURE MOST RECENT YEAR'S WEIGHTS ARE ADDED WHEN READING IN NEW DATA
 
 vars_to_keep <- c(
 
@@ -64,6 +65,9 @@ vars_to_keep <- c(
   "adt10gp_tw",  
   "life_sat", # mean score variable
   "sdq_totg2",
+  
+  # child physical activity
+  "c00sum7s", # Summary classification activity levels - All activities, INCLUDING SCHOOL no lower limits
 
  # needed for CYP MHIs:
   "auditg", # banded AUDIT score (for CYP indicator)
