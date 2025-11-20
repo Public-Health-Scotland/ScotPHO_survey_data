@@ -67,7 +67,7 @@ vars_to_keep <- c(
   "sdq_totg2",
   
   # child physical activity
-  "ch15sumg", "c00sum7s", "ch00sum7",
+  "c00sum7s", 
 
  # needed for CYP MHIs:
   "auditg", # banded AUDIT score (for CYP indicator)
