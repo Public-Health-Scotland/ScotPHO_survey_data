@@ -67,7 +67,7 @@ vars_to_keep <- c(
   "sdq_totg2",
   
   # child physical activity
-  "c00sum7s", 
+  "c00sum7s", # Summary classification activity levels - All activities, INCLUDING SCHOOL no lower limits
 
  # needed for CYP MHIs:
   "auditg", # banded AUDIT score (for CYP indicator)
