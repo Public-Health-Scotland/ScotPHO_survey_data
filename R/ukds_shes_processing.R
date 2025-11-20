@@ -964,7 +964,7 @@ shes_adult_data <- shes_data %>%
   mutate(sex="Total") %>%
   rbind(shes_data) %>%
   filter(!child) %>%
-  select(-c(child, contains("serial"), starts_with("par"), cintwt))
+  select(-c(child, contains("serial"), starts_with("par"), cintwt, age))
 # save intermediate df:
 #arrow::write_parquet(shes_adult_data, paste0(derived_data, "shes_adult_data.parquet"))
 # read back in if not in memory:
@@ -1116,7 +1116,11 @@ svy_percent_ch_audit <- calc_indicator_data(shes_child_data, "ch_audit", "cintwt
 svy_percent_sdq <- calc_indicator_data(shes_child_data, "sdq", "cintwt", ind_id=99117, type= "percent") # ok
 svy_percent_childpa1hr <- calc_indicator_data(shes_child_data, "childpa1hr", "cintwt", ind_id=30111, type= "percent") # ok
 
-
+# what ages are available here? sum the denominators by split_value
+table(svy_percent_ch_ghq$trend_axis, svy_percent_ch_ghq$split_value, useNA = "always")
+table(svy_percent_ch_audit$trend_axis, svy_percent_ch_audit$split_value, useNA = "always")
+table(svy_percent_sdq$trend_axis, svy_percent_sdq$split_value, useNA = "always")
+table(svy_percent_childpa1hr$trend_axis, svy_percent_childpa1hr$split_value, useNA = "always")
 
 # 9. Combine all the resulting indicator data into a single file
 ###############################################################################
