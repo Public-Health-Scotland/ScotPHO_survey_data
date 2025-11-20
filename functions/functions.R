@@ -707,7 +707,7 @@ calc_indicator_data <- function (df, var, wt, ind_id, type) {
     # Result: All sex/deprivation split names are called Deprivation: can fix this in the final processing 
     
     # required columns
-    select(-starts_with("spatial")) %>%
+    select(indicator, ind_id, code, split_name, split_value, year, trend_axis, def_period, sex, quintile, numerator, denominator, rate, lowci, upci) %>%
     # arrange so the points plot in right order in QA stage
     arrange(ind_id, code, split_name, split_value, year, trend_axis)
   
