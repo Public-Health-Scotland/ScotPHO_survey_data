@@ -890,9 +890,9 @@ shes_data <- shes_data %>%
                               TRUE ~ as.character(NA))) %>%
   
   # keep only the vars required for the analysis
-  select(-c(filename, fileloc, age, #number_of_recalls, # will be required for future porftvg3intake variable processing (but not currently)
+  select(-c(filename, fileloc, #number_of_recalls, # will be required for future porftvg3intake variable processing (but not currently)
             rg15a_new)) %>%
-  select(year, ends_with("wt"), psu, strata, sex, agegp7, spatial.unit, spatial.scale, quintile, everything())
+  select(year, ends_with("wt"), psu, strata, sex, agegp7, age, spatial.unit, spatial.scale, quintile, everything())
 
 
 # Add trend_axis (character) and numeric year variables 
@@ -981,7 +981,7 @@ parent_data <- shes_data %>%
 shes_child_data <- shes_data %>%
   filter(child) %>% # keep 0-15
   select(year, trend_axis, contains("serial"), par1, par2, 
-         cintwt, psu, strata, sex, spatial.unit, spatial.scale, quintile, sdq, childpa1hr) %>%
+         cintwt, psu, strata, sex, age, spatial.unit, spatial.scale, quintile, sdq, childpa1hr) %>%
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par1"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #1st parent/carer in hhd
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par2"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #2nd parent/carer in hhd
   # calculate the new child MHIs using the data for both parents (.x and .y)
@@ -996,7 +996,7 @@ shes_child_data <- shes_data %>%
 shes_child_data <- shes_child_data %>%
   mutate(sex="Total") %>%
   rbind(shes_child_data) %>%
-  select(year, trend_axis, cintwt, spatial.unit, spatial.scale, quintile, psu, strata, sex, ch_ghq, ch_audit, sdq, childpa1hr)
+  select(year, trend_axis, cintwt, spatial.unit, spatial.scale, quintile, psu, strata, sex, age, ch_ghq, ch_audit, sdq, childpa1hr)
 
 # save intermediate df:
 #arrow::write_parquet(shes_child_data, paste0(derived_data, "shes_child_data.parquet"))
@@ -1074,7 +1074,7 @@ table(shes_child_data$childpa1hr, useNA = "always") # just yes, no and NA, so co
 
 # percents:
 
-# 1. intwt used with main sample variables (HB possible here, so use 4-y agg data)
+# 1. intwt used with main sample variables 
 svy_percent_gh_qg2 <- calc_indicator_data(df = shes_adult_data, var = "gh_qg2", wt = "intwt", ind_id = 30003, type= "percent") # ok
 svy_percent_gen_helf <- calc_indicator_data(shes_adult_data, "gen_helf", "intwt", ind_id=99108, type= "percent") # ok
 svy_percent_limitill <- calc_indicator_data(shes_adult_data, "limitill", "intwt", ind_id=99109, type= "percent") # ok 
@@ -1082,7 +1082,7 @@ svy_percent_adt10gp_tw <- calc_indicator_data(shes_adult_data, "adt10gp_tw", "in
 svy_percent_porftvg3 <- calc_indicator_data(shes_adult_data, "porftvg3", "intwt", ind_id=30013, type= "percent") # ok
 svy_percent_rg17a_new <- calc_indicator_data(shes_adult_data, "rg17a_new", "intwt", ind_id=30026, type= "percent") # ok
 
-# 2. verawt used for vera vars: National and SIMD only (samples too small for HB) (use single or 2y agg data?)
+# 2. verawt used for vera vars: National and SIMD only (samples too small for HB) 
 svy_percent_involve <- calc_indicator_data(shes_adult_data, "involve", "verawt", ind_id=30021, type= "percent") # ok
 svy_percent_p_crisis <- calc_indicator_data(shes_adult_data, "p_crisis", "verawt", ind_id=30023, type= "percent") # ok
 svy_percent_str_work2 <- calc_indicator_data(shes_adult_data, "str_work2", "verawt", ind_id=30051, type= "percent") # ok
@@ -1101,16 +1101,16 @@ svy_percent_suicide2 <- calc_indicator_data(shes_adult_data, "suicide2", "bio_wt
 
 # scores:
 
-# 1. intwts used with main sample variables (HB possible here, so use 4-y agg data)
+# 1. intwts used with main sample variables 
 svy_score_wemwbs <- calc_indicator_data(shes_adult_data, "wemwbs", "intwt", ind_id=30001, type= "score") # ok
 svy_score_life_sat <- calc_indicator_data(shes_adult_data, "life_sat", "intwt", ind_id=30002, type= "score") # ok
 
-# 2. verawt used for vera vars: National and SIMD only (samples too small for HB) (use single or 2y agg data?)
+# 2. verawt used for vera vars: National and SIMD only (samples too small for HB) 
 svy_score_work_bal <- calc_indicator_data(shes_adult_data, "work_bal", "verawt", ind_id=30052, type= "score") # ok
 
 # CHILDREN
 
-# 1. cintwt used with main sample variables (HB possible here, so use 4-y agg data)
+# 1. cintwt used with main sample variables 
 svy_percent_ch_ghq <- calc_indicator_data(shes_child_data, "ch_ghq", "cintwt", ind_id=30130, type= "percent") # ok
 svy_percent_ch_audit <- calc_indicator_data(shes_child_data, "ch_audit", "cintwt", ind_id=30129, type= "percent") # ok
 svy_percent_sdq <- calc_indicator_data(shes_child_data, "sdq", "cintwt", ind_id=99117, type= "percent") # ok
