@@ -113,6 +113,7 @@ derived_data <- "/conf/MHI_Data/derived data/"
 
 # 1. Find survey data files, extract variable names and labels (descriptions), and save this info to a spreadsheet
 # =================================================================================================================
+# THIS STEP IS ONLY NEEDED WHEN NEW DATA ARE AVAILABLE (AND HAVE BEEN ADDED TO THE MHI_DATA FOLDERS). OTHERWISE MOVE TO STEP 2.
 
 ## A. Create a new workbook in this repo (only run this the first time)
 #wb <- createWorkbook()
