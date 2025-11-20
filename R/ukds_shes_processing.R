@@ -824,7 +824,7 @@ shes_data <- shes_data %>%
 
 
 # Do some data checks, now unnested:
-table(shes_data$sex, useNA = "always") # Female/Male; some NA from 2022 (include in Totals)
+table(shes_data$sex, shes_data$year, useNA = "always") # Female/Male; some NA from 2022 (include in Totals)
 table(shes_data$quintile, shes_data$year, useNA = "always") # 5 bands; no NAs
 table(shes_data$spatial.unit, useNA = "always") # 14 HBs as expected, no NA
 table(shes_data$age, useNA = "always") # 0 to 103y; no NAs
@@ -848,7 +848,8 @@ shes_data <- shes_data %>%
 # Convert some variables to numeric where appropriate
 shes_data <- shes_data %>%
   mutate(across(c(life_sat, work_bal), ~ substr(., 1, 2))) %>% # 0 and 10 have text in them, so this command just selects the numeric part
-  mutate(across(c(p_crisis, wemwbs, life_sat, work_bal), as.numeric))  #gives warning for non-numeric data in each (e.g., refused, not applicable...)
+  mutate(across(c(p_crisis, wemwbs, life_sat, work_bal), as.numeric))  
+#gives warning for non-numeric data in each (e.g., refused, not applicable...)
   
 
 # Recode the variables
@@ -980,7 +981,7 @@ parent_data <- shes_data %>%
 shes_child_data <- shes_data %>%
   filter(child) %>% # keep 0-15
   select(year, trend_axis, contains("serial"), par1, par2, 
-         cintwt, psu, strata, sex, spatial.unit, spatial.scale, quintile, sdq) %>%
+         cintwt, psu, strata, sex, spatial.unit, spatial.scale, quintile, sdq, childpa1hr) %>%
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par1"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #1st parent/carer in hhd
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par2"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #2nd parent/carer in hhd
   # calculate the new child MHIs using the data for both parents (.x and .y)
@@ -995,7 +996,7 @@ shes_child_data <- shes_data %>%
 shes_child_data <- shes_child_data %>%
   mutate(sex="Total") %>%
   rbind(shes_child_data) %>%
-  select(year, trend_axis, cintwt, spatial.unit, spatial.scale, quintile, psu, strata, sex, ch_ghq, ch_audit, sdq)
+  select(year, trend_axis, cintwt, spatial.unit, spatial.scale, quintile, psu, strata, sex, ch_ghq, ch_audit, sdq, childpa1hr)
 
 # save intermediate df:
 #arrow::write_parquet(shes_child_data, paste0(derived_data, "shes_child_data.parquet"))
