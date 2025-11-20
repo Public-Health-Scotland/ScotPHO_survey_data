@@ -1010,6 +1010,8 @@ table(shes_child_data$trend_axis, shes_child_data$ch_audit)
 # AUDIT data for parents of children from 2012, but some missings (related to 2018 and 2022)
 table(shes_child_data$trend_axis, shes_child_data$sdq)
 # not available single year 2008-2012
+table(shes_child_data$trend_axis, shes_child_data$childpa1hr)
+# From SHeS dashboard notes: Data is not available for 2017 and 2018 (and hence 2015-18 and 2017-21) due to differences in the way the data was collected for these years which means that the estimates for these years are not comparable with the other SHeS surveys.
 
 # Do some more data checks:
 
@@ -1052,10 +1054,11 @@ table(shes_child_data$quintile, useNA = "always") # 5 groups; no NAs
 table(shes_child_data$spatial.unit, useNA = "always") # 14 HBs; no NA 
 table(shes_child_data$agegp7, useNA = "always") # none (as expected)
 
-# 2 categorical indicators:
+# 4 categorical indicators:
 table(shes_child_data$ch_ghq, useNA = "always") # just yes, no and NA, so coding has worked
 table(shes_child_data$ch_audit, useNA = "always") # just yes, no and NA, so coding has worked
 table(shes_child_data$sdq, useNA = "always") # just yes, no and NA, so coding has worked
+table(shes_child_data$childpa1hr, useNA = "always") # just yes, no and NA, so coding has worked
 
 
 
@@ -1111,6 +1114,7 @@ svy_score_work_bal <- calc_indicator_data(shes_adult_data, "work_bal", "verawt",
 svy_percent_ch_ghq <- calc_indicator_data(shes_child_data, "ch_ghq", "cintwt", ind_id=30130, type= "percent") # ok
 svy_percent_ch_audit <- calc_indicator_data(shes_child_data, "ch_audit", "cintwt", ind_id=30129, type= "percent") # ok
 svy_percent_sdq <- calc_indicator_data(shes_child_data, "sdq", "cintwt", ind_id=99117, type= "percent") # ok
+svy_percent_childpa1hr <- calc_indicator_data(shes_child_data, "childpa1hr", "cintwt", ind_id=30111, type= "percent") # ok
 
 
 
@@ -1130,7 +1134,7 @@ rownames(shes_results0) <- NULL # drop the row names
 
 # Data split by sex for main and popgroup files
 data_totals <- shes_results0 %>%
-  filter(split_value == "Total") %>% #9827
+  filter(split_value == "Total") %>% #10631
   select(-quintile) %>%
   mutate(split_name = "Sex",
          split_value = sex)
@@ -1141,18 +1145,18 @@ dep_data <- shes_results0 %>%
   mutate(count = n()) %>%
   ungroup() %>%
   filter(count>2) %>% # 1 if only a total provided, 2 if only one quintile could be calculated in addition to the total.
-  select(-count, -quintile) #6006
+  select(-count, -quintile) #6330
  
 # Combine 
 shes_results1 <- data_totals %>%
-  rbind(dep_data) # n=15833
+  rbind(dep_data) # n=16961
 
 
 # Drop some data 
 
 # CYP indicators only have sufficient denominators (>30) at Scotland level: remove HB data
 shes_results1 <- shes_results1 %>%
-  filter(!(indicator %in% c("ch_ghq","ch_audit", "sdq") & substr(code, 1, 3)=="S08")) #13767
+  filter(!(indicator %in% c("ch_ghq","ch_audit", "sdq", "childpa1hr") & substr(code, 1, 3)=="S08")) #14145
 
 # 6 adult vars from SHeS main sample are available from the published data (statistics.gov.scot, see SHeS script in the ScotPHO-indicator-production repo).
 # The UKDS data can supplement those published data with SIMD x sex data (Scotland). Just keep that breakdown here:
@@ -1167,19 +1171,19 @@ published_to_keep <- shes_results1 %>%
 
 shes_results1 <- shes_results1 %>%
   filter(!indicator %in% published_vars) %>% 
-  rbind(published_to_keep) #7425
+  rbind(published_to_keep) #7803
 
 # keep only trend_axis values that are single year or 4-year aggregates (shorter aggregate periods are sometimes available but confuse matters)
 shes_results1 <- shes_results1 %>%
   filter(nchar(trend_axis)==4 | #single year
            (as.numeric(substr(trend_axis, 6, 9)) - as.numeric(substr(trend_axis, 1, 4)) > 2)) # aggregations like 2017-2021
-# 7425 rows left
+# 7803 rows left
 
 
 # data checks:
 table(shes_results1$trend_axis, useNA = "always") # 2008 to 2022, na NA
 table(shes_results1$sex, useNA = "always") # Male, Female, Total, no NA
-table(shes_results1$indicator, useNA = "always") # 20 vars (18 adult, 3 child), no NA
+table(shes_results1$indicator, useNA = "always") # 22 vars (18 adult, 4 child), no NA
 table(shes_results1$year, useNA = "always") # 2008 to 2022
 table(shes_results1$def_period, useNA = "always") # Aggregated years () and Survey year (), no NA
 table(shes_results1$split_name, useNA = "always") # Deprivation or Sex, no NA
@@ -1217,6 +1221,7 @@ shes_raw_data <- shes_results1 %>%
                                 indicator == "suicide2" ~ "attempted_suicide",
                                 indicator == "work_bal" ~ "work-life_balance",
                                 indicator == "sdq" ~ "cyp_sdq_totaldiffs",
+                                indicator == "childpa1hr" ~ "cyp_pa_over_1h_per_day",
                                 TRUE ~ as.character(NA)  )) %>%
   select(-denominator) 
 
