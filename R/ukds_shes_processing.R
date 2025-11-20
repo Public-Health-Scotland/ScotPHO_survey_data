@@ -226,6 +226,13 @@ responses_as_list_shes
 # [4] "Refused"                                  "Schedule not obtained"                    "Refusal"                                 
 # [7] "Refused/not answered"                     "8 or more (hazardous / harmful drinking)" "Not applicable"                          
 # 
+# $c00sum7s
+# [1] "Schedule not applicable"          "Group 1:60+min on all 7 days"     "Group 2:30-59min on all 7 days"   "Group 3:Lower level of activity" 
+# [5] "Don't know"                       "Item not applicable"              "schedule not applicable"          "item not applicable"             
+# [9] "don't know"                       "Dont know"                        NA                                 "Age 16+"                         
+# [13] "Age 0-1"                          "Not applicable"                   "Group 1: 60+min on all 7 days"    "Group 2: 30-59min on all 7 days" 
+# [17] "Group 3: Lower level of activity"
+# 
 # $contrl
 # [1] "schedule not applicable" "Sometimes"               "Often"                   "Always"                  "Never"                   "don't know"             
 # [7] "Seldom"                  "refused"                 NA                        "Item not applicable"     "Schedule not applicable" "Dont know"              
@@ -495,6 +502,16 @@ lookup_anxsymp<- list(
   "4"="yes",
   "0"="no", 
   "1"="no" 
+)
+
+# For recoding child PA (c00sum7s)
+lookup_childpa1hr <- list(
+  "Group 1:60+min on all 7 days" ="yes",    
+  "Group 1: 60+min on all 7 days" ="yes",   
+  "Group 2:30-59min on all 7 days" ="no",  
+  "Group 3:Lower level of activity" ="no",
+  "Group 2: 30-59min on all 7 days" ="no",
+  "Group 3: Lower level of activity" ="no"
 )
 
 # choice at work
@@ -852,6 +869,7 @@ shes_data <- shes_data %>%
   mutate(anxsymp = recode(anxsymp, !!!lookup_anxsymp, .default = as.character(NA))) %>%
   mutate(auditg = recode(auditg, !!!lookup_auditg, .default = as.character(NA))) %>%
   mutate(sdq = recode(sdq_totg2, !!!lookup_sdq, .default = as.character(NA))) %>%
+  mutate(childpa1hr = recode(c00sum7s, !!!lookup_childpa1hr, .default = as.character(NA))) %>%
   
   # Portions of fruit and veg: variable changed in 2021
   mutate(porftvg3 = recode(porftvg3, !!!lookup_porftvg3, .default = as.character(NA))) %>%
