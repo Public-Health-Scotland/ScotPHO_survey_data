@@ -676,27 +676,27 @@ calc_indicator_data <- function (df, var, wt, ind_id, type) {
   }
   
   # Scotland by age (child indicators only) (only run if the df has an age column, i.e., is a child indicator)
-  if ("age" %in% names(df)) {
+  if ("agegp" %in% names(df)) {
 
-    results_age <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "age"), type) %>%
-      mutate(split_name = "Age",
-             split_value = paste0(age, " years"), # doesn't include age totals: need to add from the results derived above
+    results_agegp <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "agegp"), type) %>%
+      mutate(split_name = "Age group",
+             split_value = agegp, # doesn't include age totals: need to add from the results derived above
              sex = "Total") %>%
-      select(-age)
-    age_totals <- results %>%
+      select(-agegp)
+    agegp_totals <- results %>%
       select(-starts_with("split")) %>%
       filter(sex=="Total" & quintile=="Total") %>% # all the totals
       unique() 
-    results_age_totals <- results_age %>%
+    results_agegp_totals <- results_agegp %>%
       select(-c(numerator, denominator, rate, lowci, upci, starts_with("split"), quintile)) %>% 
       unique() %>% #the rows that need totals adding
-      merge(y=age_totals, by=c("trend_axis", "sex", "indicator", "spatial.scale", "spatial.unit"), all.x=TRUE) %>% # only keeps those groups that already existed in results_simd
-      mutate(split_name = "Age",
+      merge(y=agegp_totals, by=c("trend_axis", "sex", "indicator", "spatial.scale", "spatial.unit"), all.x=TRUE) %>% # only keeps those groups that already existed in results_simd
+      mutate(split_name = "Age group",
              split_value = "Total") %>% # ensures the totals get the right split info
-      rbind(results_age)  # add the quintile data back in
+      rbind(results_agegp)  # add the quintile data back in
     
     # add to the results df
-    results <- bind_rows(results, results_age_totals) 
+    results <- bind_rows(results, results_agegp_totals) 
   
   }
   # Lower geographies
@@ -731,27 +731,7 @@ calc_indicator_data <- function (df, var, wt, ind_id, type) {
     mutate(def_period = case_when(nchar(trend_axis) == 4 ~ paste0("Survey year (", trend_axis, ")"),
                                   substr(trend_axis, 5, 5)=="/" ~ paste0("Survey year (", trend_axis, ")"),
                                   nchar(trend_axis) > 7 ~ paste0("Aggregated survey years (", trend_axis, ")"))) 
-  
-    # # add split info
-    # 
-    # if ("age" %in% names(df)) {
-    #   results <- results %>%
-    #     mutate(split_name = case_when(!is.na(age) ~ "Age", 
-    #                                 !is.na(quintile) ~ "Deprivation (SIMD)",
-    #                                 TRUE ~ as.character(NA))) %>%
-    #     mutate(split_value = case_when(!is.na(age) ~ paste0(age, " years"), 
-    #                                    !is.na(quintile) ~ quintile,
-    #                                    TRUE ~ as.character(NA)))       
-    # } else {
-    #   results <- results %>%
-    #     mutate(split_name = case_when(!is.na(quintile) ~ "Deprivation (SIMD)",
-    #                                   TRUE ~ as.character(NA))) %>%
-    #     mutate(split_value = case_when(!is.na(quintile) ~ quintile,
-    #                                    TRUE ~ as.character(NA))) 
-    # }
-    # 
-    # Result: All sex/deprivation split names are called Deprivation: will fix this in the final processing 
-    
+
   # required columns
   results <- results %>%
     select(indicator, ind_id, code, split_name, split_value, year, trend_axis, def_period, sex, quintile, numerator, denominator, rate, lowci, upci) %>%
