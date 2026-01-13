@@ -1069,7 +1069,13 @@ shes_child_data <- shes_data %>%
 shes_child_data <- shes_child_data %>%
   mutate(sex="Total") %>%
   rbind(shes_child_data) %>%
-  select(year, trend_axis, cintwt, spatial.unit, spatial.scale, quintile, psu, strata, sex, age, 
+  mutate(agegp = case_when(age %in% c(0:3) ~ "0-3 years",
+                           age %in% c(4:6) ~ "4-6 years",
+                           age %in% c(7:9) ~ "7-9 years",
+                           age %in% c(10:12) ~ "10-12 years",
+                           age %in% c(13:15) ~ "13-15 years",
+                           TRUE ~ as.character(NA))) %>%
+  select(year, trend_axis, cintwt, spatial.unit, spatial.scale, quintile, psu, strata, sex, agegp, 
          ch_ghq, ch_audit, starts_with("sdq"), childpa1hr)
 
 # save intermediate df:
@@ -1136,12 +1142,12 @@ table(shes_child_data$agegp7, useNA = "always") # none (as expected)
 table(shes_child_data$ch_ghq, useNA = "always") # just yes, no and NA, so coding has worked
 table(shes_child_data$ch_audit, useNA = "always") # just yes, no and NA, so coding has worked
 table(shes_child_data$childpa1hr, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_child_data$sdq_totg, shes_child_data$age, useNA = "always") # just yes, no and NA, so coding has worked. All are 4-12years.
-table(shes_child_data$sdq_peeg, shes_child_data$age, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_child_data$sdq_cong, shes_child_data$age, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_child_data$sdq_hypg, shes_child_data$age, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_child_data$sdq_emog, shes_child_data$age, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_child_data$sdq_pro, shes_child_data$age, useNA = "always") # just yes, no and NA, so coding has worked
+table(shes_child_data$sdq_totg, useNA = "always") # just yes, no and NA, so coding has worked. All are 4-12years.
+table(shes_child_data$sdq_peeg, useNA = "always") # just yes, no and NA, so coding has worked
+table(shes_child_data$sdq_cong, useNA = "always") # just yes, no and NA, so coding has worked
+table(shes_child_data$sdq_hypg, useNA = "always") # just yes, no and NA, so coding has worked
+table(shes_child_data$sdq_emog, useNA = "always") # just yes, no and NA, so coding has worked
+table(shes_child_data$sdq_pro, useNA = "always") # just yes, no and NA, so coding has worked
 
 
 
@@ -1211,7 +1217,8 @@ svy_score_work_bal <- calc_indicator_data(shes_adult_data, "work_bal", "verawt",
 # 1. cintwt used with main sample variables 
 svy_percent_ch_ghq <- calc_indicator_data(shes_child_data, "ch_ghq", "cintwt", ind_id=30130, type= "percent")  # ok
 svy_percent_ch_audit <- calc_indicator_data(shes_child_data, "ch_audit", "cintwt", ind_id=30129, type= "percent")  # ok
-svy_percent_childpa1hr <- calc_indicator_data(shes_child_data, "childpa1hr", "cintwt", ind_id=30111, type= "percent")  # ok
+svy_percent_childpa1hr <- calc_indicator_data(shes_child_data, "childpa1hr", "cintwt", ind_id=30111, type= "percent")  %>% # ok
+  mutate(split_value = ifelse(split_value=="0-3 years", "2-3 years", split_value))
 svy_percent_sdq <- calc_indicator_data(shes_child_data, "sdq_totg", "cintwt", ind_id=99117, type= "percent")  # ok
 svy_percent_sdq_peer <- calc_indicator_data(shes_child_data, "sdq_peeg", "cintwt", ind_id=30170, type= "percent")  # ok
 svy_percent_sdq_emo <- calc_indicator_data(shes_child_data, "sdq_emog", "cintwt", ind_id=30172, type= "percent")  # ok
@@ -1223,7 +1230,7 @@ svy_percent_sdq_pro <- calc_indicator_data(shes_child_data, "sdq_pro", "cintwt",
 make_denom_table <- function(df) {
   
   df %>% 
-    filter(split_name == "Age") %>%
+    filter(split_name == "Age group") %>%
     select(trend_axis, split_value, denominator) %>%
     pivot_wider(names_from = split_value, values_from = denominator) %>%
     print(n = 30) 
@@ -1232,7 +1239,7 @@ make_denom_table <- function(df) {
 
 make_denom_table(svy_percent_ch_ghq) # 0 to 15y
 make_denom_table(svy_percent_ch_audit) # 0 to 15y
-make_denom_table(svy_percent_childpa1hr) # 0 to 15y
+make_denom_table(svy_percent_childpa1hr) # 2 to 15y
 make_denom_table(svy_percent_sdq) # 4 to 12 years
 make_denom_table(svy_percent_sdq_peer) # 4 to 12 years
 make_denom_table(svy_percent_sdq_emo) # 4 to 12 years
@@ -1276,13 +1283,7 @@ shes_results1 <- shes_results0 %>% # from 26267 to 26063
 hb_data <- shes_results1 %>%
   filter(substr(code, 1, 3)=="S08" & nchar(trend_axis)>4)  # all HB data
 ftable(hb_data$indicator, hb_data$split_value, hb_data$sex, hb_data$year)  
-
-# Full HB coverage for some indicators
-# Insufficient coverage by sex for ch_audit, ch_ghq, childpa and the sdq indicators: keep only sex==Total for these at HB level
-shes_results1 <- shes_results1 %>%
-  filter(!(indicator %in% c("ch_ghq","ch_audit", "childpa1hr", 
-                            "sdq_totg", "sdq_emog", "sdq_peeg", 
-                            "sdq_cong", "sdq_hypg", "sdq_pro") & sex!="Total" & substr(code, 1, 3)=="S08")) 
+# Full HB coverage for all indicators
 
 # 6 adult vars from SHeS main sample are available from the published data (statistics.gov.scot, see SHeS script in the ScotPHO-indicator-production repo).
 # The UKDS data can supplement those published data with SIMD x sex data (Scotland). Just keep that breakdown here:
