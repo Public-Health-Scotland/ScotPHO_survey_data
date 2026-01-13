@@ -27,9 +27,17 @@
 # 30054 = support1	Percentage of adults who "strongly agree" or "tend to agree" that their line manager encourages them at work. The five options ranged from "strongly agree" to "strongly disagree". The variables used were Support1 and Support1_19. 
 # 30026 = rg17a_new	Percentage of adults who provide 20 or more hours of care per week to a member of their household or to someone not living with them, excluding help provided in the course of employment. Participants were asked whether they look after, or give any regular help or support to, family members, friends, neighbours or others because of a long-term physical condition, mental ill-health or disability; or problems related to old age. Caring which is done as part of any paid employment is not asked about. From 2014 onwards, this question explicitly instructed respondents to exclude caring as part of paid employment. The variables used to construc this indicator were RG15aNew (Do you provide any regular help or care for any sick, disabled, or frail people?) and RG17aNew (How many hours do you spend each week providing help or unpaid care for him/her/them?). 
 
-# 2 child indicators:
+# 9 child indicators:
 # 30130 = ch_ghq  Percentage of children aged 15 years or under who have a parent/carer who scores 4 or more on the General Health Questionnaire-12 (GHQ-12)
 # 30129 = ch_audit  Percentage of children aged 15 years or under with a parent/carer who reports consuming alcohol at hazardous or harmful levels (AUDIT questionnaire score 8+)
+# 30170	Peer relationship problems - Percentage of children with a 'slightly raised', 'high' or 'very high' score (a score of 3-10) on the peer relationship problems scale of the Strengths and Difficulties Questionnaire (SDQ)
+# 99117	Total difficulties - Percentage of children with a 'slightly raised', 'high' or 'very high' total difficulties score (a score of 14-40) on the Strengths and Difficulties Questionnaire (SDQ). A total difficulties score of 14 or over is also referred to as borderline (14-16) or abnormal (17-40).
+# 30172	Emotional symptoms - Percentage of children with a 'slightly raised', 'high' or 'very high' score (a score of 4-10) on the emotional symptoms scale of the Strengths and Difficulties Questionnaire (SDQ)
+# 30173	Conduct problems - Percentage of children with a 'slightly raised', 'high' or 'very high' score (a score of 3-10) on the conduct problems scale of the Strengths and Difficulties Questionnaire (SDQ)
+# 30174	Hyperactivity/inattention - Percentage of children with a 'slightly raised', 'high' or 'very high' score (a score of 6-10) on the hyperactivity/inattention scale of the Strengths and Difficulties Questionnaire (SDQ)
+# 30175	Prosocial behaviour - Percentage of children with a 'close to average' score (a score of 8-10) on the prosocial scale of the Strengths and Difficulties Questionnaire (SDQ)
+# 30111 % children meeting 1 hour PA per day
+
 
 # Denominators = Total number of respondents answering the question. 'Don't know' is omitted, except for in the case of the caring hours indicator rg17a_new (where it is included in the denominator, on the assumption that people giving this response probably don't give more than 20 hours of care a week) 
 
@@ -154,6 +162,7 @@ save_var_descriptions(survey = "shes", # looks in this folder
 
 ## A. Extract the data we want:
 # N.B. RUNNING THIS WILL OVERWRITE EXISTING DATA AND WILL TAKE ~5 MINS.
+# LAST RUN 12 JAN 2026 (ADDITION OF CHILD SDQ VARS)
 extracted_survey_data_shes <- extract_survey_data("shes") 
 # What this function is doing:
 #   Uses the file locations saved in the spreadsheet, and opens each file in turn.
@@ -389,10 +398,37 @@ responses_as_list_shes
 # [5] "50 or more hours a week"                "20 - 34 hours a week"                   "Varies (spontaneous - not on showcard)" "35 - 49 hours a week"                  
 # [9] "Not applicable"                         "Don't Know"                             "Varies"                                 "Don't know"                            
 # 
-# $sdq_totg2
-# [1] "Schedule not applicable"       "0-13 (normal)"                 "14-40 (borderline/abnormal"    "Schedule not obtained"         "14-40 (borderline / abnormal)"
-# [6] "14-40 (borderline / abnormal"  "Not applicable"                "14-40 (borderline/abnormal)"  # 
-#
+# $sdq_cong
+# [1] "Schedule not applicable" "0-2"                     "4-10"                    "3"                       "No answer/refused"       "Schedule not obtained"  
+# [7] "Refused"                 "schedule not applicable" "schedule not obtained"   "Refusal"                 "Refused/not answered"    NA                       
+# [13] "Not applicable"         
+# 
+# $sdq_emog
+# [1] "Schedule not applicable" "0-3"                     "5-10"                    "4"                       "No answer/refused"       "Schedule not obtained"  
+# [7] "Refused"                 "schedule not applicable" "schedule not obtained"   "Refusal"                 "Refused/not answered"    NA                       
+# [13] "Not applicable"         
+# 
+# $sdq_hypg
+# [1] "Schedule not applicable" "0-5"                     "7-10"                    "6"                       "No answer/refused"       "Schedule not obtained"  
+# [7] "Refused"                 "schedule not applicable" "schedule not obtained"   "Refusal"                 "Refused/not answered"    NA                       
+# [13] "Not applicable"         
+# 
+# $sdq_peeg
+# [1] "Schedule not applicable" "0-2"                     "4-10"                    "3"                       "No answer/refused"       "Schedule not obtained"  
+# [7] "Refused"                 "schedule not applicable" "schedule not obtained"   "Refusal"                 "Refused/not answered"    NA                       
+# [13] "Not applicable"         
+# 
+# $sdq_pro
+# [1] "Schedule not applicable" "10"                      "9"                       "2"                       "4"                       "8"                      
+# [7] "5"                       "7"                       "6"                       "8.75"                    "1"                       "6.25"                   
+# [13] "No answer/refused"       "7.5"                     "3"                       "1.25"                    "8.33333333333333"        "Schedule not obtained"  
+# [19] "0"                       "Refused"                 "3.75"                    "1.66666666666667"        "schedule not applicable" "schedule not obtained"  
+# [25] "2.5"                     "Refusal"                 "Refused/not answered"    NA                        "6.66666666666667"        "Not applicable"         
+# 
+# $sdq_totg
+# [1] "Schedule not applicable" "0-13"                    "17-40"                   "14-16"                   "No answer/refused"       "Schedule not obtained"  
+# [7] "Refused"                 "schedule not applicable" "schedule not obtained"   NA                        "Not applicable"         
+# 
 # $sex
 # [1] "Female" "Male"  NA      
 # 
@@ -608,13 +644,39 @@ lookup_rg17a_new <- list(
   "Don't Know"= "no"
 )
 
-# For recoding sdq_totg2
-lookup_sdq <- list(
-  "14-40 (borderline/abnormal"="yes", 
-  "14-40 (borderline / abnormal)"="yes",
-  "14-40 (borderline / abnormal"="yes",
-  "14-40 (borderline/abnormal)"="yes",
-  "0-13 (normal)"="no"
+# For recoding sdq_totg
+lookup_sdq_totg <- list(
+  "14-16"="yes", 
+  "17-40"="yes",
+  "0-13"="no"
+)
+
+# For recoding sdq_cong
+lookup_sdq_cong <- list(
+  "4-10"="yes",                     
+  "3"="yes",
+  "0-2"="no" 
+)
+
+# For recoding sdq_emog
+lookup_sdq_emog <- list(
+  "5-10"="yes",                     
+  "4"="yes",
+  "0-3"="no" 
+)
+
+# For recoding sdq_hypg
+lookup_sdq_hypg <- list(
+  "7-10"="yes",                     
+  "6"="yes",
+  "0-5"="no" 
+)
+
+# For recoding sdq_peeg
+lookup_sdq_peeg <- list(
+  "4-10"="yes",                     
+  "3"="yes",
+  "0-2"="no" 
 )
 
 # Stress at work
@@ -753,6 +815,7 @@ shes_data <- shes_data %>%
                                                     "14" ~ "Western Isles",
                                                     "Greater" ~ "Greater Glasgow & Clyde",
                                                     "Greater Glasgow" ~ "Greater Glasgow & Clyde",
+                                                    "Greater Glascow and Clyde" ~ "Greater Glasgow & Clyde",
                                                     .default = hb)) %>%
                              mutate(spatial.unit = gsub(" and ", " & ", spatial.unit),
                                     spatial.unit = case_when(!spatial.unit=="NA" ~ paste0("NHS ", spatial.unit),
@@ -848,7 +911,7 @@ shes_data <- shes_data %>%
 # Convert some variables to numeric where appropriate
 shes_data <- shes_data %>%
   mutate(across(c(life_sat, work_bal), ~ substr(., 1, 2))) %>% # 0 and 10 have text in them, so this command just selects the numeric part
-  mutate(across(c(p_crisis, wemwbs, life_sat, work_bal), as.numeric))  
+  mutate(across(c(p_crisis, wemwbs, life_sat, work_bal, sdq_pro), as.numeric))  
 #gives warning for non-numeric data in each (e.g., refused, not applicable...)
   
 
@@ -869,7 +932,11 @@ shes_data <- shes_data %>%
   mutate(depsymp = recode(depsymp, !!!lookup_depsymp, .default = as.character(NA))) %>%
   mutate(anxsymp = recode(anxsymp, !!!lookup_anxsymp, .default = as.character(NA))) %>%
   mutate(auditg = recode(auditg, !!!lookup_auditg, .default = as.character(NA))) %>%
-  mutate(sdq = recode(sdq_totg2, !!!lookup_sdq, .default = as.character(NA))) %>%
+  mutate(sdq_totg = recode(sdq_totg, !!!lookup_sdq_totg, .default = as.character(NA))) %>%
+  mutate(sdq_peeg = recode(sdq_peeg, !!!lookup_sdq_peeg, .default = as.character(NA))) %>%
+  mutate(sdq_cong = recode(sdq_cong, !!!lookup_sdq_cong, .default = as.character(NA))) %>%
+  mutate(sdq_hypg = recode(sdq_hypg, !!!lookup_sdq_hypg, .default = as.character(NA))) %>%
+  mutate(sdq_emog = recode(sdq_emog, !!!lookup_sdq_emog, .default = as.character(NA))) %>%
   mutate(childpa1hr = recode(c00sum7s, !!!lookup_childpa1hr, .default = as.character(NA))) %>%
   
   # Portions of fruit and veg: variable changed in 2021
@@ -885,10 +952,15 @@ shes_data <- shes_data %>%
                                TRUE ~ rg17a_new)) %>% # makes sure those who don't give care are also counted
   
   # People you can turn to in a crisis:
-  mutate(p_crisis = case_when(p_crisis >= 3 ~ "yes", # no lookup as easier to work with this pair of vars as numeric
+  mutate(p_crisis = case_when(p_crisis >= 3 ~ "yes", # no lookup as easier to work with this var as numeric
                               p_crisis < 3 ~ "no", 
                               TRUE ~ as.character(NA))) %>%
   
+  # SDQ prosocial score 8-10:
+  mutate(sdq_pro = case_when(sdq_pro >= 8 ~ "yes", # no lookup as easier to work with this var as numeric
+                             sdq_pro < 8 ~ "no", 
+                              TRUE ~ as.character(NA))) %>%
+
   # keep only the vars required for the analysis
   select(-c(filename, fileloc, #number_of_recalls, # will be required for future porftvg3intake variable processing (but not currently)
             rg15a_new)) %>%
@@ -981,7 +1053,8 @@ parent_data <- shes_data %>%
 shes_child_data <- shes_data %>%
   filter(child) %>% # keep 0-15
   select(year, trend_axis, contains("serial"), par1, par2, 
-         cintwt, psu, strata, sex, age, spatial.unit, spatial.scale, quintile, sdq, childpa1hr) %>%
+         cintwt, psu, strata, sex, age, spatial.unit, spatial.scale, quintile, 
+         starts_with("sdq"), childpa1hr) %>%
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par1"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #1st parent/carer in hhd
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par2"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #2nd parent/carer in hhd
   # calculate the new child MHIs using the data for both parents (.x and .y)
@@ -996,7 +1069,8 @@ shes_child_data <- shes_data %>%
 shes_child_data <- shes_child_data %>%
   mutate(sex="Total") %>%
   rbind(shes_child_data) %>%
-  select(year, trend_axis, cintwt, spatial.unit, spatial.scale, quintile, psu, strata, sex, age, ch_ghq, ch_audit, sdq, childpa1hr)
+  select(year, trend_axis, cintwt, spatial.unit, spatial.scale, quintile, psu, strata, sex, age, 
+         ch_ghq, ch_audit, starts_with("sdq"), childpa1hr)
 
 # save intermediate df:
 #arrow::write_parquet(shes_child_data, paste0(derived_data, "shes_child_data.parquet"))
@@ -1008,10 +1082,14 @@ table(shes_child_data$trend_axis, shes_child_data$ch_ghq)
 # GHQ data for parents of children all years and aggregated years since 2008
 table(shes_child_data$trend_axis, shes_child_data$ch_audit)
 # AUDIT data for parents of children from 2012, but some missings (related to 2018 and 2022)
-table(shes_child_data$trend_axis, shes_child_data$sdq)
-# not available single year 2008-2012
 table(shes_child_data$trend_axis, shes_child_data$childpa1hr)
 # From SHeS dashboard notes: Data is not available for 2017 and 2018 (and hence 2015-18 and 2017-21) due to differences in the way the data was collected for these years which means that the estimates for these years are not comparable with the other SHeS surveys.
+table(shes_child_data$trend_axis, shes_child_data$sdq_peeg)
+table(shes_child_data$trend_axis, shes_child_data$sdq_cong)
+table(shes_child_data$trend_axis, shes_child_data$sdq_hypg)
+table(shes_child_data$trend_axis, shes_child_data$sdq_emog)
+table(shes_child_data$trend_axis, shes_child_data$sdq_totg)
+table(shes_child_data$trend_axis, shes_child_data$sdq_pro)
 
 # Do some more data checks:
 
@@ -1054,11 +1132,16 @@ table(shes_child_data$quintile, useNA = "always") # 5 groups; no NAs
 table(shes_child_data$spatial.unit, useNA = "always") # 14 HBs; no NA 
 table(shes_child_data$agegp7, useNA = "always") # none (as expected)
 
-# 4 categorical indicators:
+# 9 categorical indicators:
 table(shes_child_data$ch_ghq, useNA = "always") # just yes, no and NA, so coding has worked
 table(shes_child_data$ch_audit, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_child_data$sdq, useNA = "always") # just yes, no and NA, so coding has worked
 table(shes_child_data$childpa1hr, useNA = "always") # just yes, no and NA, so coding has worked
+table(shes_child_data$sdq_totg, shes_child_data$age, useNA = "always") # just yes, no and NA, so coding has worked. All are 4-12years.
+table(shes_child_data$sdq_peeg, shes_child_data$age, useNA = "always") # just yes, no and NA, so coding has worked
+table(shes_child_data$sdq_cong, shes_child_data$age, useNA = "always") # just yes, no and NA, so coding has worked
+table(shes_child_data$sdq_hypg, shes_child_data$age, useNA = "always") # just yes, no and NA, so coding has worked
+table(shes_child_data$sdq_emog, shes_child_data$age, useNA = "always") # just yes, no and NA, so coding has worked
+table(shes_child_data$sdq_pro, shes_child_data$age, useNA = "always") # just yes, no and NA, so coding has worked
 
 
 
@@ -1069,6 +1152,20 @@ table(shes_child_data$childpa1hr, useNA = "always") # just yes, no and NA, so co
 
 # These survey calculation functions are in the functions.R script
 # There are some warnings that appear: a deprecated bit (I can't find where to change this) and some 'NAs introduced by coercion'. These are OK.
+
+# #test runs:
+# df = shes_adult_data
+# var = "gh_qg2"
+# wt = "intwt"
+# ind_id = 30003
+# type= "percent"
+
+# df=shes_child_data
+# var="ch_ghq"
+# wt="cintwt"
+# ind_id=30130
+# type= "percent"
+
 
 # ADULT
 
@@ -1114,8 +1211,13 @@ svy_score_work_bal <- calc_indicator_data(shes_adult_data, "work_bal", "verawt",
 # 1. cintwt used with main sample variables 
 svy_percent_ch_ghq <- calc_indicator_data(shes_child_data, "ch_ghq", "cintwt", ind_id=30130, type= "percent")  # ok
 svy_percent_ch_audit <- calc_indicator_data(shes_child_data, "ch_audit", "cintwt", ind_id=30129, type= "percent")  # ok
-svy_percent_sdq <- calc_indicator_data(shes_child_data, "sdq", "cintwt", ind_id=99117, type= "percent")  # ok
 svy_percent_childpa1hr <- calc_indicator_data(shes_child_data, "childpa1hr", "cintwt", ind_id=30111, type= "percent")  # ok
+svy_percent_sdq <- calc_indicator_data(shes_child_data, "sdq_totg", "cintwt", ind_id=99117, type= "percent")  # ok
+svy_percent_sdq_peer <- calc_indicator_data(shes_child_data, "sdq_peeg", "cintwt", ind_id=30170, type= "percent")  # ok
+svy_percent_sdq_emo <- calc_indicator_data(shes_child_data, "sdq_emog", "cintwt", ind_id=30172, type= "percent")  # ok
+svy_percent_sdq_cond <- calc_indicator_data(shes_child_data, "sdq_cong", "cintwt", ind_id=30173, type= "percent")  # ok
+svy_percent_sdq_hyp <- calc_indicator_data(shes_child_data, "sdq_hypg", "cintwt", ind_id=30174, type= "percent")  # ok
+svy_percent_sdq_pro <- calc_indicator_data(shes_child_data, "sdq_pro", "cintwt", ind_id=30175, type= "percent")  # ok
 
 # Let's check that all ages are available when split_name="Age", and that there are sufficient denominators (>30 for SHeS)
 make_denom_table <- function(df) {
@@ -1130,8 +1232,13 @@ make_denom_table <- function(df) {
 
 make_denom_table(svy_percent_ch_ghq) # 0 to 15y
 make_denom_table(svy_percent_ch_audit) # 0 to 15y
-make_denom_table(svy_percent_sdq) # 4 to 12 years
 make_denom_table(svy_percent_childpa1hr) # 0 to 15y
+make_denom_table(svy_percent_sdq) # 4 to 12 years
+make_denom_table(svy_percent_sdq_peer) # 4 to 12 years
+make_denom_table(svy_percent_sdq_emo) # 4 to 12 years
+make_denom_table(svy_percent_sdq_cond) # 4 to 12 years
+make_denom_table(svy_percent_sdq_hyp) # 4 to 12 years
+make_denom_table(svy_percent_sdq_pro) # 4 to 12 years
 # Yep, all denoms >30 and most >100
 
 
@@ -1140,52 +1247,42 @@ make_denom_table(svy_percent_childpa1hr) # 0 to 15y
 
 shes_results0 <- mget(ls(pattern = "^svy_"), .GlobalEnv) %>% # finds all the dataframes produced by the functions above
   do.call(rbind.data.frame, .)  #rbinds them all together (appending the rows)
-rownames(shes_results0) <- NULL # drop the row names
+
+# drop the row names
+rownames(shes_results0) <- NULL 
 
 # save intermediate df:
 #arrow::write_parquet(shes_results0, paste0(derived_data, "shes_results0.parquet"))
 # read back in if not in memory:
 #shes_results0 <- arrow::read_parquet(paste0(derived_data, "shes_results0.parquet"))
 
+# Check the splits are ok:
+table(shes_results0$split_name, shes_results0$split_value, useNA="always")
+# Three splits (age, SIMD, and sex) available
+# No split_names or split_values are blank.
+# Each split_name has a Total category.
+# This is correct
 
-# Currently the only split_names are Age (which doesn't include a total) and Deprivation (SIMD) (which does include a Total)
-
-# Sex data: Extract data split by sex only (i.e., split_value == Total) and get split_name and split_value sorted:
-sex_data <- shes_results0 %>%
-  filter(split_value == "Total") %>% #10631
-  select(-quintile) %>%
-  mutate(split_name = "Sex",
-         split_value = sex)
-
+# Check the deprivation splits have 6 rows each (5 quintiles + 1 total)
 # Deprivation data, keep all the totals that match each breakdown (Scotland x indicator x sex x trend_axis)
-dep_data <- shes_results0 %>%
+shes_results1 <- shes_results0 %>% # from 26267 to 26063
   group_by(trend_axis, sex, indicator, ind_id, code, year, def_period, split_name) %>%
   mutate(count = n()) %>%
   ungroup() %>%
-  filter(count>2) %>% # 1 if only a total provided, 2 if only one quintile could be calculated in addition to the total.
-  select(-count, -quintile) #7295
+  filter(!(split_name=="Deprivation (SIMD)" & count<6)) %>% # 1 if only a total provided, 2 if only one quintile could be calculated in addition to the total.
+  select(-count, -quintile) 
 
-# Age data: add Age = Total to the age splits for CYP indicators
-age_totals <- shes_results0 %>%
-  filter(split_value == "Total" & sex == "Total" & indicator %in% c("ch_ghq", "ch_audit", "cintwt", "childpa1hr")) %>% #781 (most are sub-national geogs that will be dropped subsequently)
-  select(-quintile) %>%
-  mutate(split_name = "Age")
+# Availability by HB
+hb_data <- shes_results1 %>%
+  filter(substr(code, 1, 3)=="S08" & nchar(trend_axis)>4)  # all HB data
+ftable(hb_data$indicator, hb_data$split_value, hb_data$sex, hb_data$year)  
 
-age_data <- shes_results0 %>%
-  filter(split_name=="Age" & indicator %in% c("ch_ghq", "ch_audit", "cintwt", "childpa1hr")) %>%
-  select(-quintile) %>%
-  rbind(age_totals)
-  
-# Combine 
-shes_results1 <- sex_data %>%
-  rbind(dep_data, age_data) # n=19519
-
-
-# Drop some data 
-
-# CYP indicators only have sufficient denominators (>30) at Scotland level: remove HB data
+# Full HB coverage for some indicators
+# Insufficient coverage by sex for ch_audit, ch_ghq, childpa and the sdq indicators: keep only sex==Total for these at HB level
 shes_results1 <- shes_results1 %>%
-  filter(!(indicator %in% c("ch_ghq","ch_audit", "sdq", "childpa1hr") & substr(code, 1, 3)=="S08")) #15975
+  filter(!(indicator %in% c("ch_ghq","ch_audit", "childpa1hr", 
+                            "sdq_totg", "sdq_emog", "sdq_peeg", 
+                            "sdq_cong", "sdq_hypg", "sdq_pro") & sex!="Total" & substr(code, 1, 3)=="S08")) 
 
 # 6 adult vars from SHeS main sample are available from the published data (statistics.gov.scot, see SHeS script in the ScotPHO-indicator-production repo).
 # The UKDS data can supplement those published data with SIMD x sex data (Scotland). Just keep that breakdown here:
@@ -1196,23 +1293,17 @@ published_to_keep <- shes_results1 %>%
   filter(indicator %in% published_vars & 
            substr(code, 1, 3)=="S00" & 
            split_name=="Deprivation (SIMD)" & 
-           sex %in% c("Male", "Female")) #1500
+           sex %in% c("Male", "Female")) 
 
 shes_results1 <- shes_results1 %>%
   filter(!indicator %in% published_vars) %>% 
-  rbind(published_to_keep) #9633
-
-# keep only trend_axis values that are single year or 4-year aggregates (shorter aggregate periods are sometimes available but confuse matters)
-shes_results1 <- shes_results1 %>%
-  filter(nchar(trend_axis)==4 | #single year
-           (as.numeric(substr(trend_axis, 6, 9)) - as.numeric(substr(trend_axis, 1, 4)) > 2)) # aggregations like 2017-2021
-# 9633 rows still
+  rbind(published_to_keep) 
 
 
 # data checks:
 table(shes_results1$trend_axis, useNA = "always") # 2008 to 2022, na NA
-table(shes_results1$sex, useNA = "always") # Male, Female, Total, (NAs for CYP indicators)
-table(shes_results1$indicator, useNA = "always") # 22 vars (18 adult, 4 child), no NA
+table(shes_results1$sex, useNA = "always") # Male, Female, Total 
+table(shes_results1$indicator, useNA = "always") # 27 vars (18 adult, 9 child), no NA
 table(shes_results1$year, useNA = "always") # 2008 to 2022
 table(shes_results1$def_period, useNA = "always") # Aggregated years () and Survey year (), no NA
 table(shes_results1$split_name, useNA = "always") # Deprivation, Age, or Sex, no NA
@@ -1224,7 +1315,7 @@ table(shes_results1$split_value, useNA = "always") # 1 to 5, M/F/Total, 0y to 15
 shes_results1 <- shes_results1 %>%
   mutate(across(.cols = c(numerator, rate, lowci, upci),
                 .fns = ~case_when(denominator < 30 ~ as.numeric(NA),
-                                  TRUE ~ as.numeric(.x)))) #9633 still
+                                  TRUE ~ as.numeric(.x)))) 
 
 # get indicator names into more informative names for using as filenames
 shes_raw_data <- shes_results1 %>%
@@ -1248,8 +1339,14 @@ shes_raw_data <- shes_results1 %>%
                                 indicator == "dsh5sc" ~ "deliberate_selfharm",   
                                 indicator == "suicide2" ~ "attempted_suicide",
                                 indicator == "work_bal" ~ "work-life_balance",
-                                indicator == "sdq" ~ "cyp_sdq_totaldiffs",
+                                indicator == "sdq_totg" ~ "cyp_sdq_totaldiffs",
                                 indicator == "childpa1hr" ~ "cyp_pa_over_1h_per_day",
+                                indicator == "sdq_totg" ~ "cyp_sdq_totaldiffs",
+                                indicator == "sdq_peeg" ~ "cyp_sdq_peer",
+                                indicator == "sdq_cong" ~ "cyp_sdq_conduct",
+                                indicator == "sdq_hypg" ~ "cyp_sdq_hyperactivity",
+                                indicator == "sdq_emog" ~ "cyp_sdq_emotional",
+                                indicator == "sdq_pro" ~ "cyp_sdq_prosocial",
                                 TRUE ~ as.character(NA)  )) %>%
   select(-denominator) 
 
