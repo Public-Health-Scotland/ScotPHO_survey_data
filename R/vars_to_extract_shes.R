@@ -64,7 +64,7 @@ vars_to_keep <- c(
   "dsh5", "dsh5sc", 
   "adt10gp_tw",  
   "life_sat", # mean score variable
-  "sdq_totg2",
+  "sdq_totg", "sdq_pro", "sdq_emog", "sdq_cong", "sdq_hypg", "sdq_peeg", #child sdq variables 
   
   # child physical activity
   "c00sum7s", # Summary classification activity levels - All activities, INCLUDING SCHOOL no lower limits
