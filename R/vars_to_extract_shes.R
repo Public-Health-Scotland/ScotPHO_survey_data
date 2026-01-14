@@ -20,7 +20,7 @@ vars_to_keep <- c(
   # identifiers needed to work out who are the legal parents of the interviewed child
   "par1", # person number of 1st legal parent
   "par2", # person number of 2nd legal parent
-  "person", # that individual's person number
+ # "person", # that individual's person number # now derived from cpserial (as not provided in 2023)
   
   "cpseriala", # serial number of individual (looks to be hhd serial number + 2 digit person number)
   "pserial",
