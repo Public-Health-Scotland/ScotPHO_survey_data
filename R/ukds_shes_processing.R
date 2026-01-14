@@ -162,7 +162,9 @@ save_var_descriptions(survey = "shes", # looks in this folder
 
 ## A. Extract the data we want:
 # N.B. RUNNING THIS WILL OVERWRITE EXISTING DATA AND WILL TAKE ~5 MINS.
-# LAST RUN 12 JAN 2026 (ADDITION OF CHILD SDQ VARS)
+# RECENT RUNS:
+# 14 JAN 2026: ADDING 2023 DATA
+# 12 JAN 2026: ADDITION OF CHILD SDQ VARS
 extracted_survey_data_shes <- extract_survey_data("shes") 
 # What this function is doing:
 #   Uses the file locations saved in the spreadsheet, and opens each file in turn.
@@ -221,6 +223,10 @@ responses_as_list_shes
 # $adt10gp_tw
 # [1] "Meets recommendations"   "Schedule not applicable" "Very low activity"       "Some activity"           "Low activity"            "Don't know"             
 # [7] "Refused"                 "Not answered"            "Refused/ not answered"   "Refused\\ not answered"  "Refused/not answered"   
+#
+# $adt10gptw
+# [1] "Meets recommendations"   "Schedule not applicable" "Very low activity"       "Some activity"           "Low activity"            "Don't know"             
+# [7] "Refused"
 # 
 # $anxsymp
 # [1] "0"                       "Schedule not applicable" "Item not applicable"     "1"                       "4"                       "2"                      
@@ -277,7 +283,7 @@ responses_as_list_shes
 # 
 # $gen_helf
 # [1] "Very good"     "Good"          "Bad"           "Fair"          "Very bad"      "Don't know"    "Refused"       "Don't Know"    "Refusal"       "refused"      
-# [11] "don't know"    NA              "Dont know"     "...very good," "good,"         "bad, or"       "fair,"         "very bad?"    
+# [11] "don't know"    NA              "Dont know"     "...very good," "good,"         "bad, or"       "fair,"         "very bad?"   "No answer/refused" 
 # 
 # $genhelf
 # [1] "Very good"     "Fair"          "Good"          "Bad"           "Very bad"      "good,"         "...very good," "fair,"         "bad, or"       "very bad?"    
@@ -295,7 +301,7 @@ responses_as_list_shes
 # 
 # $ghqg2
 # [1] "Score 0"                 "Score 1-3"               "not applicable"          "Score 4+"                "schedule not obtained"   "Schedule not applicable"
-# [7] "No answer/refused"      
+# [7] "No answer/refused"     "Schedule not obtained"   "Refused"                 "Don't know"              "Item not applicable" 
 # 
 # $hb_code
 # [1] NA                            "Forth Valley"                "Fife"                        "Western Isles"               "Greater Glasgow and Clyde"  
@@ -352,7 +358,7 @@ responses_as_list_shes
 # 
 # $limitill
 # [1] "No LI"           "Non limiting LI" "Limiting LI"     "Don't know"      "Refused"         "refused"         "don't know"      "Refusal"         "Don't Know"     
-# [10] "-9"              NA                "Dont know"       "Not answered"   "No answer/refused"
+# [10] "-9"              NA                "Dont know"       "Not answered"   "No answer/refused" NA
 # 
 # $number_of_recalls
 # [1] "2"              "Not applicable" "1"             
@@ -372,7 +378,7 @@ responses_as_list_shes
 # [25] "40"                      "32"                      "18"                      "25"                      "415"                     "50"                     
 # [31] "70"                      "100"                     "23"                      "28"                      "410"                     "24"                     
 # [37] "19"                      "22"                      "Don't know"              "200"                     "17"                      "29"                     
-# [43] "49"                      "73"                      "37"                     
+# [43] "49"                      "73"                      "37"                      "Item not applicable"     "21"                      "36"                             
 # 
 # $person
 # [1] "2"  "1"  "3"  "4"  "5"  "6"  "7"  "10" "11" "12" "8"  "9"  NA  
@@ -401,22 +407,22 @@ responses_as_list_shes
 # $sdq_cong
 # [1] "Schedule not applicable" "0-2"                     "4-10"                    "3"                       "No answer/refused"       "Schedule not obtained"  
 # [7] "Refused"                 "schedule not applicable" "schedule not obtained"   "Refusal"                 "Refused/not answered"    NA                       
-# [13] "Not applicable"         
+# [13] "Not applicable"          "4-5"                     "Item not applicable"     "6-10"                   
 # 
 # $sdq_emog
 # [1] "Schedule not applicable" "0-3"                     "5-10"                    "4"                       "No answer/refused"       "Schedule not obtained"  
 # [7] "Refused"                 "schedule not applicable" "schedule not obtained"   "Refusal"                 "Refused/not answered"    NA                       
-# [13] "Not applicable"         
+# [13] "Not applicable"          "5-6"                     "7-10"                    "Item not applicable"    
 # 
 # $sdq_hypg
 # [1] "Schedule not applicable" "0-5"                     "7-10"                    "6"                       "No answer/refused"       "Schedule not obtained"  
 # [7] "Refused"                 "schedule not applicable" "schedule not obtained"   "Refusal"                 "Refused/not answered"    NA                       
-# [13] "Not applicable"         
+# [13] "Not applicable"          "6-7"                     "8"                       "Item not applicable"     "9-10"                   
 # 
 # $sdq_peeg
 # [1] "Schedule not applicable" "0-2"                     "4-10"                    "3"                       "No answer/refused"       "Schedule not obtained"  
 # [7] "Refused"                 "schedule not applicable" "schedule not obtained"   "Refusal"                 "Refused/not answered"    NA                       
-# [13] "Not applicable"         
+# [13] "Not applicable"          "Item not applicable"     "4"                       "5-10"                   
 # 
 # $sdq_pro
 # [1] "Schedule not applicable" "10"                      "9"                       "2"                       "4"                       "8"                      
@@ -424,13 +430,16 @@ responses_as_list_shes
 # [13] "No answer/refused"       "7.5"                     "3"                       "1.25"                    "8.33333333333333"        "Schedule not obtained"  
 # [19] "0"                       "Refused"                 "3.75"                    "1.66666666666667"        "schedule not applicable" "schedule not obtained"  
 # [25] "2.5"                     "Refusal"                 "Refused/not answered"    NA                        "6.66666666666667"        "Not applicable"         
+# [31] "Item not applicable"    
 # 
 # $sdq_totg
 # [1] "Schedule not applicable" "0-13"                    "17-40"                   "14-16"                   "No answer/refused"       "Schedule not obtained"  
-# [7] "Refused"                 "schedule not applicable" "schedule not obtained"   NA                        "Not applicable"         
+# [7] "Refused"                 "schedule not applicable" "schedule not obtained"   NA                        "Not applicable"          "17-19"                  
+# [13] "Item not applicable"     "20-40"                  
+# 
 # 
 # $sex
-# [1] "Female" "Male"  NA      
+# [1] "Male"              "Female"            NA                  "Refused"           "Prefer not to say"
 # 
 # $simd16_s_ga
 # [1] "Most deprived"  "4"              "3"              "2"              "Least deprived" "Not applicable"
@@ -480,7 +489,8 @@ responses_as_list_shes
 # 
 # $support1_19
 # [1] "Not applicable"          "Schedule not applicable" "Tend to agree"           "Strongly agree"          "Tend to disagree"        "Strongly disagree"      
-# [7] "Neutral"                 "Does not apply"          "CAPI routing error"      "Refused"                 "Don't know"             
+# [7] "Neutral"                 "Does not apply"          "CAPI routing error"      "Refused"                 "Don't know"              "Item not applicable"    
+# [13] "Not_Apply"               "Don't Know"              "Refusal"                  
 # 
 # $wemwbs
 # [1] "39"                      "Schedule not applicable" "50"                      "57"                      "41"                      "56"                     
@@ -524,7 +534,7 @@ responses_as_list_shes
 # "yes" indicates a case (summed later to give numerator)
 # "no" indicates an alternative response (not a case) that should be included in the denominator
 
-# physical activity indicator
+# physical activity indicator # adt10gptw AND adt10gp_tw
 lookup_adt10gp_tw <- list(
   "Meets recommendations"="yes",
   "Low activity"="no", 
@@ -648,12 +658,16 @@ lookup_rg17a_new <- list(
 lookup_sdq_totg <- list(
   "14-16"="yes", 
   "17-40"="yes",
+  "17-19"="yes",
+  "20-40"="yes",
   "0-13"="no"
 )
 
 # For recoding sdq_cong
 lookup_sdq_cong <- list(
   "4-10"="yes",                     
+  "4-5"="yes",                     
+  "6-10"="yes",                     
   "3"="yes",
   "0-2"="no" 
 )
@@ -661,6 +675,8 @@ lookup_sdq_cong <- list(
 # For recoding sdq_emog
 lookup_sdq_emog <- list(
   "5-10"="yes",                     
+  "5-6"="yes",                     
+  "7-10"="yes",                     
   "4"="yes",
   "0-3"="no" 
 )
@@ -669,12 +685,17 @@ lookup_sdq_emog <- list(
 lookup_sdq_hypg <- list(
   "7-10"="yes",                     
   "6"="yes",
+  "6-7"="yes",                     
+  "8"="yes",                     
+  "9-10"="yes",                     
   "0-5"="no" 
 )
 
 # For recoding sdq_peeg
 lookup_sdq_peeg <- list(
   "4-10"="yes",                     
+  "4"="yes",                     
+  "5-10"="yes",                     
   "3"="yes",
   "0-2"="no" 
 )
@@ -787,7 +808,9 @@ shes_data <- extracted_survey_data_shes %>%
   filter(!year %in% c("95", "98", "03", "20")) 
 # keep only single year and 4-year aggregations:
 shes_data <- shes_data %>% 
-  mutate(year = ifelse(year=="2022", "22", year)) %>%
+  mutate(year = case_when(year=="2022" ~ "22", 
+                          year=="2023" ~ "23",
+                          TRUE ~ year)) %>%
   filter(nchar(year)==2|nchar(year)==8)
   
 # Harmonise HB variable names and coding: (working within list column, hence use of 'map' function)
