@@ -62,7 +62,7 @@ vars_to_keep <- c(
   "support1", "support1_19", 
   "suicide2", 
   "dsh5", "dsh5sc", 
-  "adt10gp_tw",  
+  "adt10gp_tw", "adt10gptw", 
   "life_sat", # mean score variable
   "sdq_totg", "sdq_pro", "sdq_emog", "sdq_cong", "sdq_hypg", "sdq_peeg", #child sdq variables 
   
@@ -117,6 +117,8 @@ vars_to_keep <- c(
   "int20wt", 
   "int21wt", 
   "int22wt",
+ "int19212223wt",
+ "int23wt",
   # version a (vera) weights (22 files have vera weights: annual and ~3yr)
   "vera08wt", 
   "vera0810wt", 
@@ -143,7 +145,8 @@ vars_to_keep <- c(
   "vera19wt", 
   "vera21wt",
   "vera22wt",
-  # version b (verb) biol module weights (22 files have bio weights: annual, ~3yr and ~4yr, from 1213)
+ "vera23wt",
+ # version b (verb) biol module weights (22 files have bio weights: annual, ~3yr and ~4yr, from 1213)
   "bio12131415wt",
   "bio121314wt",
   "bio1213wt",
@@ -168,6 +171,9 @@ vars_to_keep <- c(
   "bio19wt",
   "bio21wt",
   "bio22wt",
+ "bio19212223wt",
+ "bio23wt",
+ 
   #nurse weights: (pre-dated introduction of bioweights, 2008-11, and are used for self-harm/suicide/anxiety/depression questions)
   "nurs08wt",
   "nurs0809_wt",
@@ -215,7 +221,9 @@ vars_to_keep <- c(
  "cint1921wt",
  "cint19wt",
  "cint21wt",
- "cint22wt"
+ "cint22wt",
+ "cint19212223wt",
+ "cint23wt"
  
  
  
