@@ -162,7 +162,9 @@ save_var_descriptions(survey = "shes", # looks in this folder
 
 ## A. Extract the data we want:
 # N.B. RUNNING THIS WILL OVERWRITE EXISTING DATA AND WILL TAKE ~5 MINS.
-# LAST RUN 12 JAN 2026 (ADDITION OF CHILD SDQ VARS)
+# RECENT RUNS:
+# 14 JAN 2026: ADDING 2023 DATA
+# 12 JAN 2026: ADDITION OF CHILD SDQ VARS
 extracted_survey_data_shes <- extract_survey_data("shes") 
 # What this function is doing:
 #   Uses the file locations saved in the spreadsheet, and opens each file in turn.
@@ -221,6 +223,10 @@ responses_as_list_shes
 # $adt10gp_tw
 # [1] "Meets recommendations"   "Schedule not applicable" "Very low activity"       "Some activity"           "Low activity"            "Don't know"             
 # [7] "Refused"                 "Not answered"            "Refused/ not answered"   "Refused\\ not answered"  "Refused/not answered"   
+#
+# $adt10gptw
+# [1] "Meets recommendations"   "Schedule not applicable" "Very low activity"       "Some activity"           "Low activity"            "Don't know"             
+# [7] "Refused"
 # 
 # $anxsymp
 # [1] "0"                       "Schedule not applicable" "Item not applicable"     "1"                       "4"                       "2"                      
@@ -277,7 +283,7 @@ responses_as_list_shes
 # 
 # $gen_helf
 # [1] "Very good"     "Good"          "Bad"           "Fair"          "Very bad"      "Don't know"    "Refused"       "Don't Know"    "Refusal"       "refused"      
-# [11] "don't know"    NA              "Dont know"     "...very good," "good,"         "bad, or"       "fair,"         "very bad?"    
+# [11] "don't know"    NA              "Dont know"     "...very good," "good,"         "bad, or"       "fair,"         "very bad?"   "No answer/refused" 
 # 
 # $genhelf
 # [1] "Very good"     "Fair"          "Good"          "Bad"           "Very bad"      "good,"         "...very good," "fair,"         "bad, or"       "very bad?"    
@@ -295,7 +301,7 @@ responses_as_list_shes
 # 
 # $ghqg2
 # [1] "Score 0"                 "Score 1-3"               "not applicable"          "Score 4+"                "schedule not obtained"   "Schedule not applicable"
-# [7] "No answer/refused"      
+# [7] "No answer/refused"     "Schedule not obtained"   "Refused"                 "Don't know"              "Item not applicable" 
 # 
 # $hb_code
 # [1] NA                            "Forth Valley"                "Fife"                        "Western Isles"               "Greater Glasgow and Clyde"  
@@ -352,7 +358,7 @@ responses_as_list_shes
 # 
 # $limitill
 # [1] "No LI"           "Non limiting LI" "Limiting LI"     "Don't know"      "Refused"         "refused"         "don't know"      "Refusal"         "Don't Know"     
-# [10] "-9"              NA                "Dont know"       "Not answered"   "No answer/refused"
+# [10] "-9"              NA                "Dont know"       "Not answered"   "No answer/refused" NA
 # 
 # $number_of_recalls
 # [1] "2"              "Not applicable" "1"             
@@ -372,10 +378,7 @@ responses_as_list_shes
 # [25] "40"                      "32"                      "18"                      "25"                      "415"                     "50"                     
 # [31] "70"                      "100"                     "23"                      "28"                      "410"                     "24"                     
 # [37] "19"                      "22"                      "Don't know"              "200"                     "17"                      "29"                     
-# [43] "49"                      "73"                      "37"                     
-# 
-# $person
-# [1] "2"  "1"  "3"  "4"  "5"  "6"  "7"  "10" "11" "12" "8"  "9"  NA  
+# [43] "49"                      "73"                      "37"                      "Item not applicable"     "21"                      "36"                             
 # 
 # $porftvg3
 # [1] "5 portions or more"      "Less than 5 portions"    "None"                    "Schedule not applicable" "Refused"                 "schedule not applicable"
@@ -401,22 +404,22 @@ responses_as_list_shes
 # $sdq_cong
 # [1] "Schedule not applicable" "0-2"                     "4-10"                    "3"                       "No answer/refused"       "Schedule not obtained"  
 # [7] "Refused"                 "schedule not applicable" "schedule not obtained"   "Refusal"                 "Refused/not answered"    NA                       
-# [13] "Not applicable"         
+# [13] "Not applicable"          "4-5"                     "Item not applicable"     "6-10"                   
 # 
 # $sdq_emog
 # [1] "Schedule not applicable" "0-3"                     "5-10"                    "4"                       "No answer/refused"       "Schedule not obtained"  
 # [7] "Refused"                 "schedule not applicable" "schedule not obtained"   "Refusal"                 "Refused/not answered"    NA                       
-# [13] "Not applicable"         
+# [13] "Not applicable"          "5-6"                     "7-10"                    "Item not applicable"    
 # 
 # $sdq_hypg
 # [1] "Schedule not applicable" "0-5"                     "7-10"                    "6"                       "No answer/refused"       "Schedule not obtained"  
 # [7] "Refused"                 "schedule not applicable" "schedule not obtained"   "Refusal"                 "Refused/not answered"    NA                       
-# [13] "Not applicable"         
+# [13] "Not applicable"          "6-7"                     "8"                       "Item not applicable"     "9-10"                   
 # 
 # $sdq_peeg
 # [1] "Schedule not applicable" "0-2"                     "4-10"                    "3"                       "No answer/refused"       "Schedule not obtained"  
 # [7] "Refused"                 "schedule not applicable" "schedule not obtained"   "Refusal"                 "Refused/not answered"    NA                       
-# [13] "Not applicable"         
+# [13] "Not applicable"          "Item not applicable"     "4"                       "5-10"                   
 # 
 # $sdq_pro
 # [1] "Schedule not applicable" "10"                      "9"                       "2"                       "4"                       "8"                      
@@ -424,13 +427,16 @@ responses_as_list_shes
 # [13] "No answer/refused"       "7.5"                     "3"                       "1.25"                    "8.33333333333333"        "Schedule not obtained"  
 # [19] "0"                       "Refused"                 "3.75"                    "1.66666666666667"        "schedule not applicable" "schedule not obtained"  
 # [25] "2.5"                     "Refusal"                 "Refused/not answered"    NA                        "6.66666666666667"        "Not applicable"         
+# [31] "Item not applicable"    
 # 
 # $sdq_totg
 # [1] "Schedule not applicable" "0-13"                    "17-40"                   "14-16"                   "No answer/refused"       "Schedule not obtained"  
-# [7] "Refused"                 "schedule not applicable" "schedule not obtained"   NA                        "Not applicable"         
+# [7] "Refused"                 "schedule not applicable" "schedule not obtained"   NA                        "Not applicable"          "17-19"                  
+# [13] "Item not applicable"     "20-40"                  
+# 
 # 
 # $sex
-# [1] "Female" "Male"  NA      
+# [1] "Male"              "Female"            NA                  "Refused"           "Prefer not to say"
 # 
 # $simd16_s_ga
 # [1] "Most deprived"  "4"              "3"              "2"              "Least deprived" "Not applicable"
@@ -480,7 +486,8 @@ responses_as_list_shes
 # 
 # $support1_19
 # [1] "Not applicable"          "Schedule not applicable" "Tend to agree"           "Strongly agree"          "Tend to disagree"        "Strongly disagree"      
-# [7] "Neutral"                 "Does not apply"          "CAPI routing error"      "Refused"                 "Don't know"             
+# [7] "Neutral"                 "Does not apply"          "CAPI routing error"      "Refused"                 "Don't know"              "Item not applicable"    
+# [13] "Not_Apply"               "Don't Know"              "Refusal"                  
 # 
 # $wemwbs
 # [1] "39"                      "Schedule not applicable" "50"                      "57"                      "41"                      "56"                     
@@ -524,7 +531,7 @@ responses_as_list_shes
 # "yes" indicates a case (summed later to give numerator)
 # "no" indicates an alternative response (not a case) that should be included in the denominator
 
-# physical activity indicator
+# physical activity indicator # adt10gptw AND adt10gp_tw
 lookup_adt10gp_tw <- list(
   "Meets recommendations"="yes",
   "Low activity"="no", 
@@ -648,12 +655,16 @@ lookup_rg17a_new <- list(
 lookup_sdq_totg <- list(
   "14-16"="yes", 
   "17-40"="yes",
+  "17-19"="yes",
+  "20-40"="yes",
   "0-13"="no"
 )
 
 # For recoding sdq_cong
 lookup_sdq_cong <- list(
   "4-10"="yes",                     
+  "4-5"="yes",                     
+  "6-10"="yes",                     
   "3"="yes",
   "0-2"="no" 
 )
@@ -661,6 +672,8 @@ lookup_sdq_cong <- list(
 # For recoding sdq_emog
 lookup_sdq_emog <- list(
   "5-10"="yes",                     
+  "5-6"="yes",                     
+  "7-10"="yes",                     
   "4"="yes",
   "0-3"="no" 
 )
@@ -669,12 +682,17 @@ lookup_sdq_emog <- list(
 lookup_sdq_hypg <- list(
   "7-10"="yes",                     
   "6"="yes",
+  "6-7"="yes",                     
+  "8"="yes",                     
+  "9-10"="yes",                     
   "0-5"="no" 
 )
 
 # For recoding sdq_peeg
 lookup_sdq_peeg <- list(
   "4-10"="yes",                     
+  "4"="yes",                     
+  "5-10"="yes",                     
   "3"="yes",
   "0-2"="no" 
 )
@@ -787,7 +805,9 @@ shes_data <- extracted_survey_data_shes %>%
   filter(!year %in% c("95", "98", "03", "20")) 
 # keep only single year and 4-year aggregations:
 shes_data <- shes_data %>% 
-  mutate(year = ifelse(year=="2022", "22", year)) %>%
+  mutate(year = case_when(year=="2022" ~ "22", 
+                          year=="2023" ~ "23",
+                          TRUE ~ year)) %>%
   filter(nchar(year)==2|nchar(year)==8)
   
 # Harmonise HB variable names and coding: (working within list column, hence use of 'map' function)
@@ -796,6 +816,7 @@ shes_data <- shes_data %>%
                              mutate(across(.cols = everything(), as.character)) %>% # some factors muck up the processing otherwise. Will convert some vars back to numeric eventually. 
                              # ensure there's only a single HB variable each year
                              { if (length(grep("hlth_brd|hbcode|hlthbrd|hb_code|hboard", names(.))) > 1) select(., -starts_with("hb")) else .} %>% # drop hb* when there are two hb vars (see logic above)
+                             { if (length(grep("hlth_brd|hbcode|hlthbrd|hb_code|hboard", names(.))) ==0) mutate(., hb=strata) else .} %>% # when there's no hb var use strata instead (could actually probably be done for every year, if consistently coded...)
                              rename(any_of(hb_lookup)) %>% # apply the lookup defined above to rename all hb vars as 'hb'
                              # Standardise HB names for matching with ScotPHO geo_lookup
                              mutate(spatial.unit = case_match(hb,
@@ -851,6 +872,8 @@ shes_data <- shes_data %>%
                              # drop cpserial_a when pserial_a is also used (in 2010: Liz checked this, and pserial_a is the one we need here)
                              { if (length(grep("cpserial_a|pserial_a", names(.)))>1) select(., -cpserial_a) else .} %>%
                              rename(any_of(indserial_lookup)) %>% 
+                             # extract person id (used to link children to their parents)
+                             mutate(person=substr(indserial, nchar(indserial)-1, nchar(indserial))) %>%
                              # All versions of household serial numbers: rename as hhserial
                              rename(any_of(hhserial_lookup)))) 
                 
@@ -890,7 +913,7 @@ shes_data <- shes_data %>%
 table(shes_data$sex, shes_data$year, useNA = "always") # Female/Male; some NA from 2022 (include in Totals)
 table(shes_data$quintile, shes_data$year, useNA = "always") # 5 bands; no NAs
 table(shes_data$spatial.unit, useNA = "always") # 14 HBs as expected, no NA
-table(shes_data$age, useNA = "always") # 0 to 103y; no NAs
+table(shes_data$age, useNA = "always") # 0 to 103y; 4 NAs from ~2023 (refused to answer)
 
 
 # Combine indicators that have two different names in the data
@@ -902,6 +925,7 @@ shes_data <- shes_data %>%
   mutate(dsh5sc = coalesce(dsh5sc, dsh5)) %>%
   mutate(depsymp = coalesce(depsymp, dvg11)) %>% 
   mutate(anxsymp = coalesce(anxsymp, dvj12)) %>%
+  mutate(adt10gp_tw = coalesce(adt10gptw, adt10gp_tw)) %>%
   #mutate(gen_helf = coalesce(gen_helf, genhelf)) %>% # years with genhelf now excluded before this point
   #mutate(gh_qg2 = coalesce(ghqg2, gh_qg2)) %>% # years with ghqg2 now excluded before this point
   # delete the redundant vars now
@@ -1047,7 +1071,8 @@ shes_adult_data <- shes_data %>%
 # subset adult data to merge with child data:
 parent_data <- shes_data %>%
   filter(!child) %>% # keep 16+
-  select(trend_axis, contains("serial"), person, auditg, gh_qg2) # the parent variables of interest for the CYP mental health indicators
+  select(trend_axis, contains("serial"), person, auditg, gh_qg2) %>% # the parent variables of interest for the CYP mental health indicators
+  mutate(person = as.character(as.numeric(person))) # e.g., convert from "02", to "2" to enable correct matching with child's par1 and par2 vars
 
 # Subset off the data to form the child indicators 
 shes_child_data <- shes_data %>%
@@ -1101,8 +1126,8 @@ table(shes_child_data$trend_axis, shes_child_data$sdq_pro)
 
 # Adult data
 # Groupings:
-table(shes_adult_data$trend_axis, useNA = "always") # 2008 to 2022; no NA
-table(shes_adult_data$sex, useNA = "always") # Female/Male/Total; 82 NA (2022)
+table(shes_adult_data$trend_axis, useNA = "always") # 2008 to 2023; no NA
+table(shes_adult_data$sex, shes_adult_data$trend_axis, useNA = "always") # Female/Male/Total; some NAs from 2022 onwards
 table(shes_adult_data$quintile, useNA = "always") # 5 groups; no NAs
 table(shes_adult_data$spatial.unit, useNA = "always") # 14 HBs; no NAs 
 table(shes_adult_data$agegp7, useNA = "always") # no NAs
@@ -1132,11 +1157,12 @@ table(shes_adult_data$life_sat, useNA = "always") # all numeric and NA, so codin
 
 # Child data
 # Groupings:
-table(shes_child_data$trend_axis, useNA = "always") # 2008 to 2022; no NA
-table(shes_child_data$sex, useNA = "always") # Female/Male/Total; 2 NA
+table(shes_child_data$trend_axis, useNA = "always") # 2008 to 2023; no NA
+table(shes_child_data$sex, shes_child_data$trend_axis, useNA = "always") # Female/Male/Total; some NAs from 2022 onwards
 table(shes_child_data$quintile, useNA = "always") # 5 groups; no NAs
 table(shes_child_data$spatial.unit, useNA = "always") # 14 HBs; no NA 
 table(shes_child_data$agegp7, useNA = "always") # none (as expected)
+table(shes_child_data$agegp, useNA = "always") # 5 age groups, no NA
 
 # 9 categorical indicators:
 table(shes_child_data$ch_ghq, useNA = "always") # just yes, no and NA, so coding has worked
@@ -1226,27 +1252,6 @@ svy_percent_sdq_cond <- calc_indicator_data(shes_child_data, "sdq_cong", "cintwt
 svy_percent_sdq_hyp <- calc_indicator_data(shes_child_data, "sdq_hypg", "cintwt", ind_id=30174, type= "percent")  # ok
 svy_percent_sdq_pro <- calc_indicator_data(shes_child_data, "sdq_pro", "cintwt", ind_id=30175, type= "percent")  # ok
 
-# Let's check that all ages are available when split_name="Age", and that there are sufficient denominators (>30 for SHeS)
-make_denom_table <- function(df) {
-  
-  df %>% 
-    filter(split_name == "Age group") %>%
-    select(trend_axis, split_value, denominator) %>%
-    pivot_wider(names_from = split_value, values_from = denominator) %>%
-    print(n = 30) 
-  
-}
-
-make_denom_table(svy_percent_ch_ghq) # 0 to 15y
-make_denom_table(svy_percent_ch_audit) # 0 to 15y
-make_denom_table(svy_percent_childpa1hr) # 2 to 15y
-make_denom_table(svy_percent_sdq) # 4 to 12 years
-make_denom_table(svy_percent_sdq_peer) # 4 to 12 years
-make_denom_table(svy_percent_sdq_emo) # 4 to 12 years
-make_denom_table(svy_percent_sdq_cond) # 4 to 12 years
-make_denom_table(svy_percent_sdq_hyp) # 4 to 12 years
-make_denom_table(svy_percent_sdq_pro) # 4 to 12 years
-# Yep, all denoms >30 and most >100
 
 
 # 9. Combine all the resulting indicator data into a single file
@@ -1265,14 +1270,14 @@ rownames(shes_results0) <- NULL
 
 # Check the splits are ok:
 table(shes_results0$split_name, shes_results0$split_value, useNA="always")
-# Three splits (age, SIMD, and sex) available
+# Three splits (age group, SIMD, and sex) available
 # No split_names or split_values are blank.
 # Each split_name has a Total category.
 # This is correct
 
 # Check the deprivation splits have 6 rows each (5 quintiles + 1 total)
 # Deprivation data, keep all the totals that match each breakdown (Scotland x indicator x sex x trend_axis)
-shes_results1 <- shes_results0 %>% # from 26267 to 26063
+shes_results1 <- shes_results0 %>%  
   group_by(trend_axis, sex, indicator, ind_id, code, year, def_period, split_name) %>%
   mutate(count = n()) %>%
   ungroup() %>%
@@ -1283,7 +1288,7 @@ shes_results1 <- shes_results0 %>% # from 26267 to 26063
 hb_data <- shes_results1 %>%
   filter(substr(code, 1, 3)=="S08" & nchar(trend_axis)>4)  # all HB data
 ftable(hb_data$indicator, hb_data$split_value, hb_data$sex, hb_data$year)  
-# Full HB coverage for all indicators
+# Full HB coverage for all indicators in the data from aggregrated years: latest is 2021 (mid point of 2019-2023)
 
 # 6 adult vars from SHeS main sample are available from the published data (statistics.gov.scot, see SHeS script in the ScotPHO-indicator-production repo).
 # The UKDS data can supplement those published data with SIMD x sex data (Scotland). Just keep that breakdown here:
@@ -1302,13 +1307,13 @@ shes_results1 <- shes_results1 %>%
 
 
 # data checks:
-table(shes_results1$trend_axis, useNA = "always") # 2008 to 2022, na NA
+table(shes_results1$trend_axis, useNA = "always") # 2008 to 2023, na NA
 table(shes_results1$sex, useNA = "always") # Male, Female, Total 
 table(shes_results1$indicator, useNA = "always") # 27 vars (18 adult, 9 child), no NA
-table(shes_results1$year, useNA = "always") # 2008 to 2022
+table(shes_results1$year, useNA = "always") # 2008 to 2023
 table(shes_results1$def_period, useNA = "always") # Aggregated years () and Survey year (), no NA
-table(shes_results1$split_name, useNA = "always") # Deprivation, Age, or Sex, no NA
-table(shes_results1$split_value, useNA = "always") # 1 to 5, M/F/Total, 0y to 15y, no NA
+table(shes_results1$split_name, useNA = "always") # Deprivation, Age group, or Sex, no NA
+table(shes_results1$split_value, useNA = "always") # 1 to 5, M/F/Total, 5 CYP age groups, no NA
 # all good
 
 # Suppress values where necessary:
