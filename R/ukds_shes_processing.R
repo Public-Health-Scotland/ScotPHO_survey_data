@@ -1252,27 +1252,6 @@ svy_percent_sdq_cond <- calc_indicator_data(shes_child_data, "sdq_cong", "cintwt
 svy_percent_sdq_hyp <- calc_indicator_data(shes_child_data, "sdq_hypg", "cintwt", ind_id=30174, type= "percent")  # ok
 svy_percent_sdq_pro <- calc_indicator_data(shes_child_data, "sdq_pro", "cintwt", ind_id=30175, type= "percent")  # ok
 
-# Let's check the ages available when split_name="Age group", and that there are sufficient denominators (>30 for SHeS)
-make_denom_table <- function(df) {
-  
-  df %>% 
-    filter(split_name == "Age group") %>%
-    select(trend_axis, split_value, denominator) %>%
-    pivot_wider(names_from = split_value, values_from = denominator) %>%
-    print(n = 30) 
-  
-}
-
-make_denom_table(svy_percent_ch_ghq) # 0 to 15y
-make_denom_table(svy_percent_ch_audit) # 0 to 15y
-make_denom_table(svy_percent_childpa1hr) # 2 to 15y
-make_denom_table(svy_percent_sdq) # 4 to 12 years
-make_denom_table(svy_percent_sdq_peer) # 4 to 12 years
-make_denom_table(svy_percent_sdq_emo) # 4 to 12 years
-make_denom_table(svy_percent_sdq_cond) # 4 to 12 years
-make_denom_table(svy_percent_sdq_hyp) # 4 to 12 years
-make_denom_table(svy_percent_sdq_pro) # 4 to 12 years
-# Yep, all denoms >30 and most >100
 
 
 # 9. Combine all the resulting indicator data into a single file
@@ -1291,14 +1270,14 @@ rownames(shes_results0) <- NULL
 
 # Check the splits are ok:
 table(shes_results0$split_name, shes_results0$split_value, useNA="always")
-# Three splits (age, SIMD, and sex) available
+# Three splits (age group, SIMD, and sex) available
 # No split_names or split_values are blank.
 # Each split_name has a Total category.
 # This is correct
 
 # Check the deprivation splits have 6 rows each (5 quintiles + 1 total)
 # Deprivation data, keep all the totals that match each breakdown (Scotland x indicator x sex x trend_axis)
-shes_results1 <- shes_results0 %>% # from 26267 to 26063
+shes_results1 <- shes_results0 %>%  
   group_by(trend_axis, sex, indicator, ind_id, code, year, def_period, split_name) %>%
   mutate(count = n()) %>%
   ungroup() %>%
@@ -1309,7 +1288,7 @@ shes_results1 <- shes_results0 %>% # from 26267 to 26063
 hb_data <- shes_results1 %>%
   filter(substr(code, 1, 3)=="S08" & nchar(trend_axis)>4)  # all HB data
 ftable(hb_data$indicator, hb_data$split_value, hb_data$sex, hb_data$year)  
-# Full HB coverage for all indicators
+# Full HB coverage for all indicators in the data from aggregrated years: latest is 2021 (mid point of 2019-2023)
 
 # 6 adult vars from SHeS main sample are available from the published data (statistics.gov.scot, see SHeS script in the ScotPHO-indicator-production repo).
 # The UKDS data can supplement those published data with SIMD x sex data (Scotland). Just keep that breakdown here:
@@ -1328,13 +1307,13 @@ shes_results1 <- shes_results1 %>%
 
 
 # data checks:
-table(shes_results1$trend_axis, useNA = "always") # 2008 to 2022, na NA
+table(shes_results1$trend_axis, useNA = "always") # 2008 to 2023, na NA
 table(shes_results1$sex, useNA = "always") # Male, Female, Total 
 table(shes_results1$indicator, useNA = "always") # 27 vars (18 adult, 9 child), no NA
-table(shes_results1$year, useNA = "always") # 2008 to 2022
+table(shes_results1$year, useNA = "always") # 2008 to 2023
 table(shes_results1$def_period, useNA = "always") # Aggregated years () and Survey year (), no NA
-table(shes_results1$split_name, useNA = "always") # Deprivation, Age, or Sex, no NA
-table(shes_results1$split_value, useNA = "always") # 1 to 5, M/F/Total, 0y to 15y, no NA
+table(shes_results1$split_name, useNA = "always") # Deprivation, Age group, or Sex, no NA
+table(shes_results1$split_value, useNA = "always") # 1 to 5, M/F/Total, 5 CYP age groups, no NA
 # all good
 
 # Suppress values where necessary:
