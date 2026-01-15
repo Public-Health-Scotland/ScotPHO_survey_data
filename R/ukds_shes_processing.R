@@ -380,9 +380,6 @@ responses_as_list_shes
 # [37] "19"                      "22"                      "Don't know"              "200"                     "17"                      "29"                     
 # [43] "49"                      "73"                      "37"                      "Item not applicable"     "21"                      "36"                             
 # 
-# $person
-# [1] "2"  "1"  "3"  "4"  "5"  "6"  "7"  "10" "11" "12" "8"  "9"  NA  
-# 
 # $porftvg3
 # [1] "5 portions or more"      "Less than 5 portions"    "None"                    "Schedule not applicable" "Refused"                 "schedule not applicable"
 # [7] "refused"                 "Refusal"                 "Refused/not answered"    NA                       
@@ -819,6 +816,7 @@ shes_data <- shes_data %>%
                              mutate(across(.cols = everything(), as.character)) %>% # some factors muck up the processing otherwise. Will convert some vars back to numeric eventually. 
                              # ensure there's only a single HB variable each year
                              { if (length(grep("hlth_brd|hbcode|hlthbrd|hb_code|hboard", names(.))) > 1) select(., -starts_with("hb")) else .} %>% # drop hb* when there are two hb vars (see logic above)
+                             { if (length(grep("hlth_brd|hbcode|hlthbrd|hb_code|hboard", names(.))) ==0) mutate(., hb=strata) else .} %>% # when there's no hb var use strata instead (could actually probably be done for every year, if consistently coded...)
                              rename(any_of(hb_lookup)) %>% # apply the lookup defined above to rename all hb vars as 'hb'
                              # Standardise HB names for matching with ScotPHO geo_lookup
                              mutate(spatial.unit = case_match(hb,
@@ -874,6 +872,8 @@ shes_data <- shes_data %>%
                              # drop cpserial_a when pserial_a is also used (in 2010: Liz checked this, and pserial_a is the one we need here)
                              { if (length(grep("cpserial_a|pserial_a", names(.)))>1) select(., -cpserial_a) else .} %>%
                              rename(any_of(indserial_lookup)) %>% 
+                             # extract person id (used to link children to their parents)
+                             mutate(person=substr(indserial, nchar(indserial)-1, nchar(indserial))) %>%
                              # All versions of household serial numbers: rename as hhserial
                              rename(any_of(hhserial_lookup)))) 
                 
@@ -913,7 +913,7 @@ shes_data <- shes_data %>%
 table(shes_data$sex, shes_data$year, useNA = "always") # Female/Male; some NA from 2022 (include in Totals)
 table(shes_data$quintile, shes_data$year, useNA = "always") # 5 bands; no NAs
 table(shes_data$spatial.unit, useNA = "always") # 14 HBs as expected, no NA
-table(shes_data$age, useNA = "always") # 0 to 103y; no NAs
+table(shes_data$age, useNA = "always") # 0 to 103y; 4 NAs from ~2023 (refused to answer)
 
 
 # Combine indicators that have two different names in the data
@@ -925,6 +925,7 @@ shes_data <- shes_data %>%
   mutate(dsh5sc = coalesce(dsh5sc, dsh5)) %>%
   mutate(depsymp = coalesce(depsymp, dvg11)) %>% 
   mutate(anxsymp = coalesce(anxsymp, dvj12)) %>%
+  mutate(adt10gp_tw = coalesce(adt10gptw, adt10gp_tw)) %>%
   #mutate(gen_helf = coalesce(gen_helf, genhelf)) %>% # years with genhelf now excluded before this point
   #mutate(gh_qg2 = coalesce(ghqg2, gh_qg2)) %>% # years with ghqg2 now excluded before this point
   # delete the redundant vars now
@@ -1070,7 +1071,8 @@ shes_adult_data <- shes_data %>%
 # subset adult data to merge with child data:
 parent_data <- shes_data %>%
   filter(!child) %>% # keep 16+
-  select(trend_axis, contains("serial"), person, auditg, gh_qg2) # the parent variables of interest for the CYP mental health indicators
+  select(trend_axis, contains("serial"), person, auditg, gh_qg2) %>% # the parent variables of interest for the CYP mental health indicators
+  mutate(person = as.character(as.numeric(person))) # e.g., convert from "02", to "2" to enable correct matching with child's par1 and par2 vars
 
 # Subset off the data to form the child indicators 
 shes_child_data <- shes_data %>%
@@ -1124,8 +1126,8 @@ table(shes_child_data$trend_axis, shes_child_data$sdq_pro)
 
 # Adult data
 # Groupings:
-table(shes_adult_data$trend_axis, useNA = "always") # 2008 to 2022; no NA
-table(shes_adult_data$sex, useNA = "always") # Female/Male/Total; 82 NA (2022)
+table(shes_adult_data$trend_axis, useNA = "always") # 2008 to 2023; no NA
+table(shes_adult_data$sex, shes_adult_data$trend_axis, useNA = "always") # Female/Male/Total; some NAs from 2022 onwards
 table(shes_adult_data$quintile, useNA = "always") # 5 groups; no NAs
 table(shes_adult_data$spatial.unit, useNA = "always") # 14 HBs; no NAs 
 table(shes_adult_data$agegp7, useNA = "always") # no NAs
@@ -1155,11 +1157,12 @@ table(shes_adult_data$life_sat, useNA = "always") # all numeric and NA, so codin
 
 # Child data
 # Groupings:
-table(shes_child_data$trend_axis, useNA = "always") # 2008 to 2022; no NA
-table(shes_child_data$sex, useNA = "always") # Female/Male/Total; 2 NA
+table(shes_child_data$trend_axis, useNA = "always") # 2008 to 2023; no NA
+table(shes_child_data$sex, shes_child_data$trend_axis, useNA = "always") # Female/Male/Total; some NAs from 2022 onwards
 table(shes_child_data$quintile, useNA = "always") # 5 groups; no NAs
 table(shes_child_data$spatial.unit, useNA = "always") # 14 HBs; no NA 
 table(shes_child_data$agegp7, useNA = "always") # none (as expected)
+table(shes_child_data$agegp, useNA = "always") # 5 age groups, no NA
 
 # 9 categorical indicators:
 table(shes_child_data$ch_ghq, useNA = "always") # just yes, no and NA, so coding has worked
@@ -1249,7 +1252,7 @@ svy_percent_sdq_cond <- calc_indicator_data(shes_child_data, "sdq_cong", "cintwt
 svy_percent_sdq_hyp <- calc_indicator_data(shes_child_data, "sdq_hypg", "cintwt", ind_id=30174, type= "percent")  # ok
 svy_percent_sdq_pro <- calc_indicator_data(shes_child_data, "sdq_pro", "cintwt", ind_id=30175, type= "percent")  # ok
 
-# Let's check that all ages are available when split_name="Age", and that there are sufficient denominators (>30 for SHeS)
+# Let's check the ages available when split_name="Age group", and that there are sufficient denominators (>30 for SHeS)
 make_denom_table <- function(df) {
   
   df %>% 
