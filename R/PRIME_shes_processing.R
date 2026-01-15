@@ -13,7 +13,8 @@ pacman::p_load(
   openxlsx, # reading and creating spreadsheets
   arrow, # work with parquet files
   survey, # analysing data from a clustered survey design
-  reactable # required for the QA .Rmd file
+  reactable, # required for the QA .Rmd file
+  tidyverse
 )
 
 ## B. Source generic and specialist functions 
@@ -59,7 +60,7 @@ vars_to_keep <- c(
                                                                                                                                                                                                                                                           
   # chars:
   "age", 
-  "sex", 
+  "sex", "final_sex22",
   "simd20_sga", #SIMD2020 used 19 to 21
 
   # survey design
@@ -71,6 +72,8 @@ vars_to_keep <- c(
   "int17181921wt", 
  "int19212223wt", 
  "bio19212223wt", 
+ "int22wt", 
+ "biophy22wt", 
  
  # intake weight:
   "s_he_s_intake24_wt_sc",	#Intake24 weight (scaling weight)
@@ -85,16 +88,16 @@ vars_to_keep <- c(
 
 # Get data from indiv survey data files
 
-# Latest for BMI groups = 2019-2023:
-year <- 19212223
-filename <- "shes19212223i_eul"
-fileloc <- "shes_2023/UKDA-9503-stata/stata/stata13_se/shes19212223_eul.dta"
+# Latest for continuous BMI = 2022:
+year <- 2022
+filename <- "shes22i_eul"
+fileloc <- "shes_2022/UKDA-9390-stata/stata/stata13_se/shes_2022_eul.dta"
 survey_year_lookups <- data.frame(year, filename, fileloc)
 
 # Now extract the variables from the relevant survey files, and store in a single dataframe (requires a list column)
 source_dir <- "/conf/MHI_Data/big/big_mhi_data/unzipped/shes"  
 
-shes_2019to2023 <- 
+shes_2022 <- 
     survey_year_lookups %>% # starts with the list of survey files
     mutate(survey_data = # adds a column called survey_data, which is then filled with the result of the subsequent function (making it a list column):
              # The map() function here passes the fileloc (path) from the survey_year_lookups dataframe to the read_select() function (pre-defined in the utils script),
@@ -133,15 +136,16 @@ shes_2019to2023 <-
 
 
 # Save this object 
-write_rds(shes_2019to2023, "/PHI_conf/PHSci/Liz/10 y pop health framework/data/shes_2019to2023.rds")
+write_rds(shes_2022, "/PHI_conf/PHSci/Liz/10 y pop health framework/data/shes_2022.rds")
 
 
 # Calculate % BMI over 25
 # =================================================================================================================
 
 #restrict to respondents with valid data
-bmi_2019to2023 <- shes_2019to2023 %>%
-  filter(bmi25 %in% c("25 and over", "Under 25") & sex %in% c("Female", "Male"))
+bmi_2022 <- shes_2022 %>%
+  filter(bmi25 %in% c("25 and over", "Under 25") & final_sex22 %in% c("Female", "Male")) %>%
+  rename(sex = final_sex22)
 
 # Run the survey calculation for the indicator
 # single-PSU strata are centred at the sample mean
@@ -150,8 +154,8 @@ options(survey.lonely.psu="adjust")
 # specify the complex survey design
 svy_design <- svydesign(id=~psu,
                          strata=~strata,
-                         weights=~int19212223wt, # should use biophy192223wt but user guide says not currently available in this data (Jan 2026)
-                         data=bmi_2019to2023,
+                         weights=~int22wt, # think biophy should be used but had missings
+                         data=bmi_2022,
                          nest=TRUE) #different strata might have same psu numbering (which are different psu)
 
 # Calculate % and CIs 
@@ -164,9 +168,41 @@ percents <- data.frame(svyby(~I(bmi25=="25 and over"),
          lowci = ci_l * 100,
          upci = ci_u * 100) %>%
   select(year, sex, agegp, percent) 
-
 # drop the row names
 rownames(percents) <- NULL 
+
+
+# Calculate mean BMI and CIs
+
+#restrict to respondents with BMI 25+
+bmi25_2022 <- bmi_2022 %>%
+  filter(bmi25 == "25 and over") %>%
+  mutate(bmival=as.numeric(bmival))
+
+# Run the survey calculation for the indicator
+# single-PSU strata are centred at the sample mean
+options(survey.lonely.psu="adjust") 
+
+# specify the complex survey design
+svy_design <- svydesign(id=~psu,
+                        strata=~strata,
+                        weights=~int22wt, # think biophy should be used but had missings
+                        data=bmi25_2022,
+                        nest=TRUE) #different strata might have same psu numbering (which are different psu)
+
+
+
+means <- data.frame(svyby(~bmival, 
+                           reformulate(termlabels = c("year", "sex", "agegp")), 
+                           svy_design, svymean, 
+                           ci=TRUE, vartype=c("se"))) # "SE" here is actually the standard deviation, as it is the square root of the variance.
+# drop the row names
+rownames(means) <- NULL 
+
+# # Save this object 
+# write_rds(shes_2022, "/PHI_conf/PHSci/Liz/10 y pop health framework/data/shes_2022.rds")
+
+
 
 # Calculate mean alcohol consumption (+ SD) for drinkers
 # =================================================================================================================
