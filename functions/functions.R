@@ -237,7 +237,7 @@ save_var_descriptions <- function (survey, name_pattern) {
 #' @return The dataframe is written to a rds file called "extracted_survey_data_", survey, ".rds" 
 #'
 #' @examples
-extract_survey_data <- function (survey) {
+extract_survey_data <- function (survey, phy = FALSE) {
   
   # Set the directory containing the data (assumes it is a folder within /conf/MHI_Data/big/big_mhi_data/unzipped/)
   
@@ -249,8 +249,11 @@ extract_survey_data <- function (survey) {
                                    sheet = paste0("files-", survey))
   
   # Source the variables to extract
-  
-  source(here("R", paste0("vars_to_extract_", survey, ".R")))
+  if(phy == TRUE){
+  source(here("R", paste0("vars_to_extract_", survey, "_pa.R")))
+  }else{
+    source(here("R", paste0("vars_to_extract_", survey, ".R")))
+  }
   
   # Now extract the variables from the relevant survey files, and store in a single dataframe (requires a list column)
   
@@ -281,10 +284,14 @@ extract_survey_data <- function (survey) {
   message("Extraction completed")
   message("This took ", round(as.double(end_time - start_time, units = "mins"), 2), " minutes")
   
-  
   # Save this object 
-  write_rds(extracted_survey_data, paste0("/conf/MHI_Data/derived data/extracted_survey_data_", survey, ".rds"))
+  if(phy == TRUE){
+    write_rds(extracted_survey_data, paste0("/conf/MHI_Data/derived data/extracted_survey_data_", survey, "_pa.rds"))
+  }else{
+    write_rds(extracted_survey_data, paste0("/conf/MHI_Data/derived data/extracted_survey_data_", survey, ".rds"))
+  }
 }
+
 
 
 #' Extracts and store the responses that have been recorded for each variable
@@ -296,10 +303,13 @@ extract_survey_data <- function (survey) {
 #' @export var names and their responses are written to workbook "all_survey_var_info.xlsx"
 #'
 #' @examples
-extract_responses <- function (survey, chars_to_exclude=NULL) {
+extract_responses <- function (survey, chars_to_exclude=NULL, phy = FALSE) {
   
   # read in the survey data
-  df <- readRDS(paste0("/conf/MHI_Data/derived data/extracted_survey_data_", survey, ".rds"))
+  if(phy == TRUE){
+  df <- readRDS(paste0("/conf/MHI_Data/derived data/extracted_survey_data_", survey, "_pa.rds"))
+  }else{
+  df <- readRDS(paste0("/conf/MHI_Data/derived data/extracted_survey_data_", survey, ".rds"))}
   
   # Produce a df with var_name column for the variable name, and responses column containing a list of all recorded responses for that variable
   if(survey=="unsoc"){
@@ -349,7 +359,10 @@ extract_responses <- function (survey, chars_to_exclude=NULL) {
   names(responses_as_list) <- all_responses$var_name # add the variable names to the list
 
   # Save this list
-  write_rds(responses_as_list, paste0("/conf/MHI_Data/derived data/responses_as_list_", survey, ".rds"))
+  if(phy == TRUE){
+    write_rds(responses_as_list, paste0("/conf/MHI_Data/derived data/responses_as_list_", survey, "_pa.rds"))
+  }else{
+    write_rds(responses_as_list, paste0("/conf/MHI_Data/derived data/responses_as_list_", survey, ".rds"))}
   
   # Make a flat df (no lists) for saving into xlsx
   responses_df <- data.frame(all_responses %>% unnest(cols = c(responses)))
@@ -637,13 +650,12 @@ calc_single_breakdown <- function (df, var, wt, variables, type) {
   
 }
 
-
 # Function for calling the required functions to produce Scotland, HB and SIMD data:
-
 calc_indicator_data <- function (df, var, wt, ind_id, type) {
   
+  
   # Scotland by sex
-  results <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "sex"), type)
+  results <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "sex"), type) 
   
   # Scotland by SIMD and sex 
   if ("quintile" %in% names(df)) {
@@ -657,6 +669,18 @@ calc_indicator_data <- function (df, var, wt, ind_id, type) {
   results_simd <- calc_single_breakdown(simd_df, var, wt, variables = c("trend_axis", "sex", "quintile"), type)
   results <- bind_rows(results, results_simd)
   
+  }
+  
+  #Scotland by LTI
+  if("age65plus" %in% names(df)){ #if indicator is for adults
+  results_lti <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "limitill"), type)
+  results <- bind_rows(results, results_lti)}
+  
+
+  # Scotland by age 65+ 
+  if ("age65plus" %in% names(df)) {
+    results_age65plus <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "age65plus"), type)
+    results <- bind_rows(results, results_age65plus)
   }
   
   # Scotland by age (child indicators only) 
@@ -676,17 +700,34 @@ calc_indicator_data <- function (df, var, wt, ind_id, type) {
     
     results <- bind_rows(results,
                          results_hb)
-    
-  }
   
+  #HB by age
+    if("age65plus" %in% names(df)){
+    results_hb_age <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "age65plus", "spatial.unit"), type) %>%
+      mutate(spatial.scale = "Health board", # (amend this if different geographies are needed)
+             quintile = "Total") 
+    
+    results <- bind_rows(results,
+                         results_hb_age)}
+    
+  #HB by LTI
+    results_hb_lti <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "limitill", "spatial.unit"), type) %>%
+      mutate(spatial.scale = "Health board", # (amend this if different geographies are needed)
+             quintile = "Total") 
+    
+    results <- bind_rows(results,
+                         results_hb_lti)
+  }
+    
   # Read in lookup for harmonising area names
   geo_lookup <- readRDS(paste0(profiles_lookups, "/Geography/opt_geo_lookup.rds")) %>% 
     select(!c(parent_area, areaname_full))
   
   results <- results %>%
     mutate(ind_id = ind_id) %>%
+    mutate(indicator = var) %>%
     # add the geog codes, 
-    merge(y=geo_lookup, by.x=c("spatial.unit", "spatial.scale"), by.y=c("areaname", "areatype")) %>%
+    left_join(geo_lookup, by = c("spatial.unit" = "areaname", "spatial.scale" = "areatype")) %>%
     # add year back in
     # Replicating the standard used elsewhere in ScotPHO: year = the midpoint of the year range, rounded up if decimal
     mutate(year = case_when(nchar(trend_axis)==4 ~ as.numeric(trend_axis), # single years
@@ -696,22 +737,52 @@ calc_indicator_data <- function (df, var, wt, ind_id, type) {
     # add def_period
     mutate(def_period = case_when(nchar(trend_axis) == 4 ~ paste0("Survey year (", trend_axis, ")"),
                                   substr(trend_axis, 5, 5)=="/" ~ paste0("Survey year (", trend_axis, ")"),
-                                  nchar(trend_axis) > 7 ~ paste0("Aggregated survey years (", trend_axis, ")"))) %>%
+                                  nchar(trend_axis) > 7 ~ paste0("Aggregated survey years (", trend_axis, ")"))) 
     # add split info
-    mutate(split_name = case_when(!is.na(age) ~ "Age", 
-                                  !is.na(quintile) ~ "Deprivation (SIMD)",
-                                  TRUE ~ as.character(NA))) %>%
-    mutate(split_value = case_when(!is.na(age) ~ paste0(age, " years"), 
-                                   !is.na(quintile) ~ quintile,
-                                   TRUE ~ as.character(NA))) %>%
+  safe_col <- function(.data, name, default = NA_character_) {
+    if (name %in% names(.data)) {
+      # return existing column (as-is)
+      .data[[name]]
+    } else {
+      # return a recycled default of the same length
+      rep(default, nrow(.data))
+    }
+  }
+  
+  results2 <- results %>%
+    mutate( #checking whether each column is present before doing a case_when - causes error if col doesn't exist
+      age_val    = safe_col(., "age",      default = NA_real_),
+      quint_val  = safe_col(., "quintile", default = NA_character_),
+      lti_val    = safe_col(., "limitill", default = NA_character_),
+      age65_val  = safe_col(., "age65plus", default = NA_character_),
+      
+      # split labels
+      split_name = case_when(
+        !is.na(age_val)    ~ "Age",
+        !is.na(lti_val)    ~ "Long-term Illness (LTI)",
+        !is.na(age65_val)  ~ "Age 65+",
+        .default = "Deprivation (SIMD)"),
+      
+      # split values (keep types consistent; age as "n years")
+      split_value = case_when(
+        !is.na(age_val)    ~ paste0(age_val, " years"),
+        !is.na(lti_val)    ~ as.character(lti_val),
+        !is.na(age65_val)  ~ as.character(age65_val),
+        !is.na(quint_val)  ~ as.character(quint_val),
+        .default = NA_character_)) %>%
+    select(indicator, ind_id, code, split_name, split_value, year, trend_axis, def_period,
+      sex, any_of("quintile"), numerator, denominator, rate, lowci, upci) %>%
+    arrange(indicator, ind_id, code, split_name, split_value, year, trend_axis) %>%
+  
+  
     # Result: All sex/deprivation split names are called Deprivation: can fix this in the final processing 
-    
     # required columns
     select(indicator, ind_id, code, split_name, split_value, year, trend_axis, def_period, sex, quintile, numerator, denominator, rate, lowci, upci) %>%
     # arrange so the points plot in right order in QA stage
-    arrange(ind_id, code, split_name, split_value, year, trend_axis)
+    arrange(indicator, ind_id, code, split_name, split_value, year, trend_axis)
   
 }
+
 
 ## END
 ##########################################################################################
