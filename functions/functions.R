@@ -237,7 +237,7 @@ save_var_descriptions <- function (survey, name_pattern) {
 #' @return The dataframe is written to a rds file called "extracted_survey_data_", survey, ".rds" 
 #'
 #' @examples
-extract_survey_data <- function (survey) {
+extract_survey_data <- function (survey, pa = FALSE) {
   
   # Set the directory containing the data (assumes it is a folder within /conf/MHI_Data/big/big_mhi_data/unzipped/)
   
@@ -250,7 +250,11 @@ extract_survey_data <- function (survey) {
   
   # Source the variables to extract
   
-  source(here("R", paste0("vars_to_extract_", survey, ".R")))
+  if(pa == TRUE){
+    source(here("R", paste0("vars_to_extract_", survey, "_pa.R")))
+  }else{
+    source(here("R", paste0("vars_to_extract_", survey, ".R")))
+  }
   
   # Now extract the variables from the relevant survey files, and store in a single dataframe (requires a list column)
   
@@ -296,10 +300,13 @@ extract_survey_data <- function (survey) {
 #' @export var names and their responses are written to workbook "all_survey_var_info.xlsx"
 #'
 #' @examples
-extract_responses <- function (survey, chars_to_exclude=NULL) {
+extract_responses <- function (survey, chars_to_exclude=NULL, pa = FALSE) {
   
   # read in the survey data
-  df <- readRDS(paste0("/conf/MHI_Data/derived data/extracted_survey_data_", survey, ".rds"))
+  if(pa == TRUE){
+    df <- readRDS(paste0("/conf/MHI_Data/derived data/extracted_survey_data_", survey, "_pa.rds"))
+  }else{
+  df <- readRDS(paste0("/conf/MHI_Data/derived data/extracted_survey_data_", survey, ".rds"))}
   
   # Produce a df with var_name column for the variable name, and responses column containing a list of all recorded responses for that variable
   if(survey=="unsoc"){
@@ -675,6 +682,48 @@ calc_indicator_data <- function (df, var, wt, ind_id, type) {
     
   }
   
+  # Scotland by Long-term ILlness (only run if the df has a column called limitill)
+  if("limitill" %in% names(df)){
+    results_lti <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "limitill"), type) %>%
+      mutate(split_name = "Long-term Illness (LTI)",
+             split_value = limitill,
+             sex = "Total") %>% #doesn't include totals, need to add from results derived above
+      select(-limitill)
+    lti_totals <- results %>%
+      select(-starts_with("split")) %>%
+      filter(sex == "Total" & quintile=="Total") %>%
+      unique()
+    results_lti_totals <- results_lti %>%
+      select(-c(numerator, denominator, rate, lowci, upci, starts_with("split"))) %>%
+      unique() %>% #the rows that need totals adding
+      merge(y=lti_totals, by=c("trend_axis", "indicator", "spatial.scale", "spatial.unit"), all.x=TRUE) %>% # only keeps those groups that already existed in results_simd
+      mutate(split_name = "Long-term Illness (LTI)",
+             split_value = "Total") %>% # ensures the totals get the right split info
+      bind_rows(results_lti)  # add the lti split data back in
+                                         
+  }
+  
+  #Scotland by age (16-64 and 65+ split) (only run if the df has a column called age65plus)
+  if("age65plus" %in% names(df)){
+    results_age65plus <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "age65plus"), type) %>%
+      mutate(split_name = "Older Adults",
+             split_value = as.character(age65plus), #converting to character here as it's logical types (T/F)
+             sex = "Total") %>% #doesn't include totals, need to add from results derived above
+      select(-age65plus)
+    age65plus_totals <- results %>%
+      select(-starts_with("split")) %>%
+      filter(sex=="Total" & quintile=="Total") %>% # all the totals
+      unique() 
+    results_age65plus_totals <- results_age65plus %>%
+      select(-c(numerator, denominator, rate, lowci, upci, starts_with("split"), quintile)) %>%
+      unique() %>% #the rows that need totals adding
+      merge(y=age65plus_totals, by=c("trend_axis", "sex", "indicator", "spatial.scale", "spatial.unit"), all.x=TRUE) %>% # only keeps those groups that already existed in results_simd
+      mutate(split_name = "Older adults",
+             split_value = "Total") %>% # ensures the totals get the right split info
+      bind_rows(results_age65plus)  # add the lti split data back in
+  
+  }
+
   # Scotland by age (child indicators only) (only run if the df has an age column, i.e., is a child indicator)
   if ("agegp" %in% names(df)) {
 
@@ -703,16 +752,40 @@ calc_indicator_data <- function (df, var, wt, ind_id, type) {
   if (wt %in% c("intwt", "cintwt") ) { # identify the weights (and hence variables) that can be analysed at lower geographies. Currently just intwt and cintwt in SHeS data.
     
   # HB by sex 
-    results_hb <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "sex", "spatial.unit"), type) %>%
+    results_hb_sex <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "sex", "spatial.unit"), type) %>%
       mutate(spatial.scale = "Health board", # (amend this if different geographies are needed)
              quintile = "Total") %>%
       mutate(split_name = "Sex",
              split_value = sex) # includes male, female and total      
     
-    results <- bind_rows(results, results_hb) 
+    results <- bind_rows(results, results_hb_sex) 
+    
+  # HB by Long-term illness
+  if("limitill" %in% names(df)){
+    results_hb_lti <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "limitill", "spatial.unit"), type) %>%
+      mutate(spatial.scale = "Health board", # (amend this if different geographies are needed)
+             quintile = "Total") %>%
+      mutate(split_name = "Long-term Illness",
+             split_value = limitill) # includes male, female and total      
+    
+    results <- bind_rows(results, results_hb_lti) 
     
   }
   
+  # HB by older age
+  if("age65plus" %in% names(df)){
+    results_hb_age65plus <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "age65plus", "spatial.unit"), type) %>%
+      mutate(spatial.scale = "Health board", # (amend this if different geographies are needed)
+             quintile = "Total") %>%
+      mutate(split_name = "Older adults",
+             split_value = as.character(age65plus))
+    
+    results <- bind_rows(results, results_hb_age65plus)
+    
+  }
+    
+  }
+    
   # Read in lookup for harmonising area names
   geo_lookup <- readRDS(paste0(profiles_lookups, "/Geography/opt_geo_lookup.rds")) %>% 
     select(!c(parent_area, areaname_full))
