@@ -166,7 +166,7 @@ extract_responses(survey = "shes", #survey acronym
 ## C. Read the responses back in and print out so we can work out how they should be coded
 # (also useful to see how sex/geography/simd variables have been recorded, for later standardisation)
 
-responses_as_list_shes <- readRDS(paste0(derived_data, "responses_as_list_shes_pa.rds"))
+responses_as_list_shes <- readRDS(paste0(derived_data, "responses_as_list_shes.rds"))
 
 ## D. Print out this list to the console and copy into this script for reference:
 # NB. When updating with more recent data the responses need to be compared with these: are the codings still comprehensive? new coding needed?
@@ -246,6 +246,9 @@ responses_as_list_shes
 # 
 # $mus_rec
 # [1] "Yes"                     "Schedule not applicable" "No"                     
+# 
+# $musrec
+# [1] "No"                      "Schedule not applicable" "Yes"       
 # 
 # $sex
 # [1] "Male"              "Female"            NA                  "Refused"           "Prefer not to say"
@@ -482,14 +485,27 @@ shes_data <- shes_data %>%
                                                        between(age, 65, 74) ~ "65-74",
                                                        age >=75 ~ "75+",
                                                        TRUE ~ as.character(NA))) %>% # 0-15y 
-                             mutate(child = between(age, 0, 15)))) 
-
+                             mutate(age65plus = case_when(age >= 65 ~ "65y and over",
+                                                          age < 65 ~ "16 to 64y")) %>%
+                             mutate(child = between(age, 0, 15)) %>%
+                             mutate(age_group = case_when(age < 12 ~ "5-11",
+                                                        age >= 12 ~ "12-15",
+                                                        TRUE ~ as.character(NA))))) 
 
 # Ready to unlist the df to create a flat file:
 shes_data <- shes_data %>%
   mutate(survey_data = map(survey_data, ~ .x %>% # map() here means this is all being done within the individual items in the list column, while retaining the list format
                              mutate(across(c(psu, strata, ends_with("wt")), as.numeric)))) %>% 
   unnest(cols = c(survey_data)) # Produce a flat file by unnesting the list column
+
+# Combine indicators that have two different names in the data
+shes_data <- shes_data %>%
+  # coalesce the indicator vars with two different names
+  mutate(mus_rec = coalesce(mus_rec, musrec)) %>%
+  mutate(adt10gp_tw = coalesce(adt10gp_tw, adt10gptw)) %>%
+  # delete the redundant vars now
+  select(-c(musrec, adt10gptw)) 
+
 
 # Do some data checks, now unnested:
 table(shes_data$sex, shes_data$year, useNA = "always") # Female/Male; some NA from 2022 and 23 (include in Totals)
@@ -525,11 +541,6 @@ shes_data <- shes_data %>%
          year = case_when(nchar(trend_axis)==4 ~ as.numeric(trend_axis), 
                           nchar(trend_axis)>4 ~ rnd(0.5*(as.numeric(substr(trend_axis, 6, 9)) + as.numeric(substr(trend_axis, 1, 4)))), # e.g., "2015-2018" -> "2017" or "2015-2016" to "2016"
                           TRUE ~ as.numeric(NA))) # shouldn't be any...
-
-#add in 65+ age group
-shes_data <- shes_data |> 
-  mutate(age65plus = case_when(age >= 65 ~ TRUE,
-                               TRUE ~ FALSE))
 
 ## D. Load the population data for the age-standardisation of SIMD results:
 
@@ -573,19 +584,19 @@ shes_data <- shes_data %>%
 # save intermediate df:
 #arrow::write_parquet(shes_data, paste0(derived_data, "shes_data_pa.parquet"))
 # read back in if not in memory:
-shes_data <- arrow::read_parquet(paste0(derived_data, "shes_data_pa.parquet"))
+#shes_data <- arrow::read_parquet(paste0(derived_data, "shes_data_pa.parquet"))
 
 
 # 7. Split data into adult and child subsets
 # =================================================================================================================
 
 ## A: Subset off the adult indicators
-# repeat all rows of the data with sex=="Total" & restrict to adults
+# restrict to adults
 shes_adult_data <- shes_data %>%
-  mutate(sex="Total") %>%
-  rbind(shes_data) %>%
+#  mutate(sex="Total") %>%
+#  rbind(shes_data) %>%
   filter(!child) %>%
-  select(-c(child, contains("serial"), starts_with("par"), cintwt, c00sum7s, spt1ch, ch30plyg, verawt))
+  select(-c(child, contains("serial"), starts_with("par"), cintwt, c00sum7s, spt1ch, ch30plyg, verawt, age_group))
 # save intermediate df:
 arrow::write_parquet(shes_adult_data, paste0(derived_data, "shes_adult_data_pa.parquet"))
 # read back in if not in memory:
@@ -595,18 +606,15 @@ shes_adult_data <- arrow::read_parquet(paste0(derived_data, "shes_adult_data_pa.
 shes_child_data <- shes_data %>%
   filter(child) %>% # keep 0-15
   select(year, trend_axis, contains("serial"),
-         cintwt, psu, strata, sex, age, spatial.unit, spatial.scale, quintile,
+         cintwt, psu, strata, sex, age, age_group, spatial.unit, spatial.scale, quintile,
          c00sum7s, spt1ch, ch30plyg, limitill) |> 
   filter(age >= 5) #only keep kids aged 5+ - new addition 
 
-# final child data (add in sex=total)
+# final child data 
 shes_child_data <- shes_child_data %>%
-  mutate(sex="Total") %>%
-  rbind(shes_child_data) %>%
-  select(-indserial, -hhserial, -limitill) |> 
-  mutate(age_group = case_when(age < 12 ~ "5-11",
-                               age >= 12 ~ "12-15",
-                               TRUE ~ as.character(NA)))
+ # mutate(sex="Total") %>%
+ # rbind(shes_child_data) %>%
+  select(-indserial, -hhserial, -limitill)  
 
 # save intermediate df:
 arrow::write_parquet(shes_child_data, paste0(derived_data, "shes_child_data_pa.parquet"))
@@ -639,7 +647,7 @@ table(shes_adult_data$agegp7, useNA = "always") # no NAs
 
 # Child data
 # Groupings:
-table(shes_child_data$trend_axis, useNA = "always") # 2012 to 2022; no NA
+table(shes_child_data$trend_axis, useNA = "always") # 2012 to 2023; no NA
 table(shes_child_data$sex, useNA = "always") # Female/Male/Total; 7 NA
 table(shes_child_data$quintile, useNA = "always") # 5 groups; no NAs
 table(shes_child_data$spatial.unit, useNA = "always") # 14 HBs; no NA 
@@ -651,121 +659,102 @@ table(shes_child_data$agegp7, useNA = "always") # none (as expected)
 # These survey calculation functions are in the functions.R script
 # There are some warnings that appear: a deprecated bit (I can't find where to change this) and some 'NAs introduced by coercion'. These are OK.
 
-# ADULT
 # percents:
-svy_percent_mus_rec <- calc_indicator_data(shes_adult_data, "mus_rec", "intwt", ind_id = 14001, type = "percent")
-svy_percent_adt10gp_tw <- calc_indicator_data(shes_adult_data, "adt10gp_tw", "intwt", ind_id= 14002, type= "percent") # ok
+# ADULT
+svy_percent_mus_rec <- calc_indicator_data(shes_adult_data, "mus_rec", "intwt", ind_id = 14001, type = "percent", split_cols=c("quintile", "limitill", "age65plus"))
+svy_percent_adt10gp_tw <- calc_indicator_data(shes_adult_data, "adt10gp_tw", "intwt", ind_id= 14002, type= "percent", split_cols=c("quintile", "limitill", "age65plus")) # ok
 
 # CHILDREN
-svy_percent_c00sum7s <- calc_indicator_data(shes_child_data, "c00sum7s", "cintwt", ind_id = 14003, type = "percent")
-svy_percent_spt1ch <- calc_indicator_data(shes_child_data, "spt1ch", "cintwt", ind_id = 14006, type = "percent")
-svy_percent_ch30plyg <- calc_indicator_data(shes_child_data, "ch30plyg", "cintwt", ind_id = 14007, type = "percent")
+svy_percent_c00sum7s <- calc_indicator_data(shes_child_data, "c00sum7s", "cintwt", ind_id = 14003, type = "percent", split_cols=c("quintile", "age_group"))
+svy_percent_spt1ch <- calc_indicator_data(shes_child_data, "spt1ch", "cintwt", ind_id = 14006, type = "percent", split_cols=c("quintile", "age_group"))
+svy_percent_ch30plyg <- calc_indicator_data(shes_child_data, "ch30plyg", "cintwt", ind_id = 14007, type = "percent", split_cols=c("quintile", "age_group"))
 
+# The svy_ dfs now have data for all specified splits and available years (single and aggregated).
+# Some will need to be removed entirely or suppressed.
 
-# Let's check that all ages are available when split_name="Age", and that there are sufficient denominators (>30 for SHeS)
+# Let's check whether there are denominators under 30 for each of the splits.
+# SHeS suppress any figures derived from denoms <30
 make_denom_table <- function(df) {
   
-  df %>% 
-    filter(split_name == "Age") %>%
-    select(trend_axis, split_value, denominator) %>%
-    pivot_wider(names_from = split_value, values_from = denominator) %>%
-    print(n = 30) 
-  
+  df %>%
+    filter(split_value!="Total") %>%
+    mutate(areatype = case_when(substr(code, 1, 3)=="S00" ~ "Scotland",
+                                substr(code, 1, 3)=="S08" ~ "Health board",
+                                TRUE ~ "NA")) %>%
+    select(trend_axis, areatype, split_name, denominator) %>%
+    group_by(areatype, split_name) %>%
+    summarise(mean_denom = mean(denominator),
+              min_denom = min(denominator),
+              total = n(),
+              n_under_30 = sum(denominator<30),
+              pc_under_30 = 100 * n_under_30 / total) %>%
+    ungroup()  
 }
 
-make_denom_table(svy_percent_mus_rec) # 0 to 15y
-make_denom_table(svy_percent_adt10gp_tw) # 0 to 15y
-make_denom_table(svy_percent_c00sum7s) # 4 to 12 years
-make_denom_table(svy_percent_spt1ch) # 0 to 15y
-make_denom_table(svy_percent_ch30plyg)
-# Yep, all denoms >30 and most >100
-
+make_denom_table(svy_percent_mus_rec) # drop HB * SIMD/LTI, suppress others
+make_denom_table(svy_percent_adt10gp_tw) # drop HB * SIMD/LTI, suppress others
+make_denom_table(svy_percent_c00sum7s) # drop all HB splits
+make_denom_table(svy_percent_spt1ch) # drop all HB splits
+make_denom_table(svy_percent_ch30plyg) # drop all HB splits
 
 # 9. Combine all the resulting indicator data into a single file
 ###############################################################################
 
-shes_results0 <- mget(ls(pattern = "^svy_"), .GlobalEnv) %>% # finds all the dataframes produced by the functions above
-  do.call(rbind.data.frame, .)  #rbinds them all together (appending the rows)
-rownames(shes_results0) <- NULL # drop the row names
+shes_results <- mget(ls(pattern = "^svy_"), .GlobalEnv) %>% # finds all the dataframes produced by the functions above
+  bind_rows(.)
 
-# save intermediate df:
-arrow::write_parquet(shes_results0, paste0(derived_data, "shes_results0_pa.parquet"))
-# read back in if not in memory:
-shes_results0 <- arrow::read_parquet(paste0(derived_data, "shes_results0_pa.parquet"))
-
-
-# Currently the only split_names are Age (which doesn't include a total) and Deprivation (SIMD) (which does include a Total)
-# Sex data: Extract data split by sex only (i.e., split_value == Total) and get split_name and split_value sorted:
-sex_data <- shes_results0 %>%
-  filter(split_value == "Total") %>% #10631
-  select(-quintile) %>%
-  mutate(split_name = "Sex",
-         split_value = sex)
-
-# Deprivation data, keep all the totals that match each breakdown (Scotland x indicator x sex x trend_axis)
-dep_data <- shes_results0 %>%
+# drop splits as identified above:
+shes_results <- shes_results %>%
+  filter(!(indicator %in% c("adt10gp_tw", "mus_rec") & (substr(code, 1, 3)=="S08" & split_name %in% c("Deprivation (SIMD)", "Long-term Illness")))) %>%
+  filter(!(indicator %in% c("c00sum7s", "spt1ch", "ch30plyg") & (substr(code, 1, 3)=="S08"))) 
+  
+# drop splits by SIMD if they have data for fewer than three quintiles (+ total = 4)
+shes_results <- shes_results %>%
   group_by(trend_axis, sex, indicator, ind_id, code, year, def_period, split_name) %>%
-  mutate(count = n()) %>%
+  mutate(count = n()) %>% # count all the values within each split, including the total
   ungroup() %>%
-  filter(count>2) %>% # 1 if only a total provided, 2 if only one quintile could be calculated in addition to the total.
-  select(-count, -quintile) #7295
-
-# Age data: add Age = Total to the age splits for CYP indicators
-age_totals <- shes_results0 %>%
-  filter(split_value == "Total" & sex == "Total" & indicator %in% c("spt1ch", "ch30plyg", "c00sum7s")) %>% 
-  select(-quintile) %>%
-  mutate(split_name = "Age")
-
-age_data <- shes_results0 %>%
-  filter(split_name=="Age" & indicator %in% c("spt1ch", "ch30plyg", "c00sum7s")) %>%
-  select(-quintile) %>%
-  rbind(age_totals)
-
-# Combine 
-shes_results1 <- sex_data %>%
-  rbind(dep_data, age_data) # n=19519
-
-# 6 adult vars from SHeS main sample are available from the published data (statistics.gov.scot, see SHeS script in the ScotPHO-indicator-production repo).
-# The UKDS data can supplement those published data with SIMD x sex data (Scotland). Just keep that breakdown here:
-published_vars <- c("gh_qg2", "gen_helf", "limitill",
-                    "adt10gp_tw", "porftvg3", "wemwbs")
-
-published_to_keep <- shes_results1 %>%
-  filter(indicator %in% published_vars & 
-           substr(code, 1, 3)=="S00" & 
-           split_name=="Deprivation (SIMD)" & 
-           sex %in% c("Male", "Female")) #1500
-
-shes_results1 <- shes_results1 %>%
-  filter(!indicator %in% published_vars) %>% 
-  rbind(published_to_keep) #9633
-
-# keep only trend_axis values that are single year or 4-year aggregates (shorter aggregate periods are sometimes available but confuse matters)
-shes_results1 <- shes_results1 %>%
-  filter(nchar(trend_axis)==4 | #single year
-           (as.numeric(substr(trend_axis, 6, 9)) - as.numeric(substr(trend_axis, 1, 4)) > 2)) # aggregations like 2017-2021
-# 9633 rows still
-
-
-# data checks:
-table(shes_results1$trend_axis, useNA = "always") # 2008 to 2022, na NA
-table(shes_results1$sex, useNA = "always") # Male, Female, Total, (NAs for CYP indicators)
-table(shes_results1$indicator, useNA = "always") # 22 vars (18 adult, 4 child), no NA
-table(shes_results1$year, useNA = "always") # 2008 to 2022
-table(shes_results1$def_period, useNA = "always") # Aggregated years () and Survey year (), no NA
-table(shes_results1$split_name, useNA = "always") # Deprivation, Age, or Sex, no NA
-table(shes_results1$split_value, useNA = "always") # 1 to 5, M/F/Total, 0y to 15y, no NA
-# all good
+  filter(!(split_name=="Deprivation (SIMD)" & count<4)) %>% 
+  select(-count) # none dropped in this case because all SIMD data are Scotland only
 
 # Suppress values where necessary:
 # SHeS suppress values where denominator (unweighted base) is <30
-shes_results1 <- shes_results1 %>%
+shes_results <- shes_results %>%
   mutate(across(.cols = c(numerator, rate, lowci, upci),
                 .fns = ~case_when(denominator < 30 ~ as.numeric(NA),
-                                  TRUE ~ as.numeric(.x)))) #9633 still
+                                  TRUE ~ as.numeric(.x)))) 
+
+# check: where has suppression occurred?
+shes_results %>% 
+  filter(is.na(rate)) %>%
+  select(indicator, code, trend_axis, split_value)
+# 7 HB values for mus_rec and adt10gp_tw
+
+# keep only trend_axis values that are single year or 4-year aggregates (shorter aggregate periods are sometimes available but confuse matters)
+shes_results <- shes_results %>%
+  filter(nchar(trend_axis)==4 | #single year
+           (as.numeric(substr(trend_axis, 6, 9)) - as.numeric(substr(trend_axis, 1, 4)) > 2)) # aggregations like 2017-2021
+# no rows dropped: all trend_axis are single/4-yr
+
+# save intermediate df:
+arrow::write_parquet(shes_results, paste0(derived_data, "shes_results_pa.parquet"))
+# read back in if not in memory:
+shes_results <- arrow::read_parquet(paste0(derived_data, "shes_results_pa.parquet"))
+
+
+
+# data checks:
+table(shes_results$trend_axis, useNA = "always") # 2008 to 2023, na NA
+table(shes_results$sex, useNA = "always") # Male, Female, Total
+table(shes_results$indicator, useNA = "always") # 5 vars (2 adult, 3 child), no NA
+table(shes_results$year, useNA = "always") # 2008 to 2022
+table(shes_results$def_period, useNA = "always") # Aggregated years () and Survey year (), no NA
+table(shes_results$split_name, useNA = "always") # Deprivation, Age group, LTI, or Sex, no NA
+table(shes_results$split_value, useNA = "always") # SIMD 1 to 5, M/F/Total, 5-11y, 12-15y, 16-64y, 65y+, LTIx3, no NA
+# all good
+
 
 # get indicator names into more informative names for using as filenames
-shes_raw_data <- shes_results1 %>%
+shes_raw_data <- shes_results %>%
   mutate(indicator = case_when( indicator == "adt10gp_tw" ~ "adults_very_low_activity",    
                                 indicator == "mus_rec" ~ "meeting_muscle_strengthening_recommendations",
                                 indicator == "c00sum7s" ~ "children_very_low_activity",
