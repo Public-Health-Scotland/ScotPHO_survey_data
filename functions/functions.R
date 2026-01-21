@@ -580,11 +580,6 @@ run_svy_calc <- function(df, variables, var, type) {
 
 add_more_required_cols <- function(df, var, svy_result, variables, type) {
   
-  # Options:
-  # variables <- c("trend_axis", "sex")
-  # variables <- c("trend_axis", "sex", "quintile")
-  # variables <- c("trend_axis", "sex", "spatial.unit")
-  
   # add numerators and denominators (including zeroes if present)
   
   if (type == "percent") {
@@ -612,25 +607,7 @@ add_more_required_cols <- function(df, var, svy_result, variables, type) {
     "Error: type should be score or percent"
     
   }
-  
-  
-  if ("quintile" %in% variables) { # only deals with Scotland-level quintiles for Scotland currently. If a survey has data for quintiles within HBs/CAs this will need to be amended.
-    
-    # SIMD results:
-    results <- results %>%
-      mutate(spatial.scale = "Scotland",
-             spatial.unit = "Scotland") 
-    
-  } else if (!"spatial.unit" %in% variables) { # spatial.unit included in any HB/CA level analyses
-    
-    # whole Scotland results:
-    results <- results %>%
-      mutate(spatial.scale = "Scotland",
-             spatial.unit = "Scotland",
-             quintile = "Total")
-    
-  } else { results } # any processed while grouped by spatial.unit should have spatial.scale and spatial.unit vars already?
-  
+
 }  
 
 
@@ -645,147 +622,100 @@ calc_single_breakdown <- function (df, var, wt, variables, type) {
 }
 
 
+run_splits <- function (df, var, wt, type, split, lowergeogs=NULL) {
+  
+  # split_name_lookup
+  split_nm = ifelse(split=="sex", "Sex",
+                 ifelse(split=="quintile", "Deprivation (SIMD)",
+                    ifelse(split=="limitill", "Long-term Illness",
+                       ifelse(split %in% c("age65plus", "agegp", "age_group"), "Age group", "ERROR"))))
+
+  # add totals for this split (base df is the data with totals already added for sex)
+  df <- add_totals(df, split)  # will add totals for this split, by duplicating the existing data 
+
+  # Adult SIMD calc only: adjust the weights for age-standardisation
+  if (split == "quintile" & "agegp7" %in% names(df)) { # For SHeS the adult data has agegroups, so that the SIMD calcs can be age-standardised
+    df <- add_std_weight(df, var, wt) # adjust the weight to age-standardise the result
+  }  
+  
+  # restrict to totals for the splits apart from sex or SIMD
+  # this is done because we can't currently present 2 pop splits simultaneously (apart from on deprivation tab)
+  if (!(split %in% c("sex", "quintile"))) { 
+    df <- df %>% filter(sex=="Total") 
+  }  
+  
+  if (is.null(lowergeogs)) {
+  
+    # run the survey calculation to produce the results
+    calc_single_breakdown(df, var, wt, variables = c("trend_axis", "sex", split), type) %>% # including sex even when all=Total, so it is included in output
+      mutate(split_name = split_nm) %>%
+      rename(split_value = split) # includes total
+  
+    } else if(lowergeogs==TRUE) {
+      
+    # run the survey calculation to produce the results
+      calc_single_breakdown(df, var, wt, variables = c("trend_axis", "sex", "spatial.unit", split), type) %>% 
+        mutate(split_name = split_nm) %>%
+        rename(split_value = split) # includes total
+  }
+  }
+
+
+# Function to add totals for each split required
+add_totals <- function (df, split_col) {
+  df_copy <- df # make a copy of the data
+  df[[split_col]]="Total" # recode all of the values in the split column of interest to "Total"
+  df_new <- rbind(df, df_copy) # combine both: will duplicate the individuals in the df, once coded as their original group, and once coded as "Total"
+  
+}
+  
 # Function for calling the required functions to produce Scotland, HB and SIMD data:
 
-calc_indicator_data <- function (df, var, wt, ind_id, type) {
+calc_indicator_data <- function (df, var, wt, ind_id, type, split_cols) {
   
-  # Scotland by sex
-  results <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "sex"), type) %>%
+  # First calculate the indicator values split by sex:
+  
+  # Scotland by sex (default: this is run for all)
+  sex_df <- add_totals(df, "sex")
+  results_sex <- calc_single_breakdown(sex_df, var, wt, variables = c("trend_axis", "sex"), type) %>%
     mutate(split_name = "Sex",
-           split_value = sex) # includes male, female and total      
-  
-  
-  # Scotland by SIMD and sex (only run if the df has a quintile column)
-  if ("quintile" %in% names(df)) {
+           split_value = sex) # includes total   
+
+  # HB by sex (will be run for any indicators that use specific main sample weights: currently intwt and cintwt in SHeS)
+  # Lower geographies (currently just HB in SHeS data)
+  if (wt %in% c("intwt", "cintwt") ) { # variables with these SHeS weights can be analysed at lower geographies.
+
+    results_hb_sex <- calc_single_breakdown(sex_df, var, wt, variables = c("trend_axis", "sex", "spatial.unit"), type) %>%
+      mutate(spatial.scale = "Health board", # (amend this if different geographies are needed)
+             split_name = "Sex",
+             split_value = sex) # includes total
+
+  }
     
-    if ("agegp7" %in% names(df)) { # For SHeS the adult data has agegroups, so that the SIMD calcs can be age-standardised
-      simd_df <- add_std_weight(df, var, wt) # adjust the weight to age-standardise the result
-    }  else { # SHeS child data or any data that doesn't need the SIMD calc to be age-standardised
-      simd_df <- df
+  # Now calculate for all other splits:
+  for (split in split_cols) {
+    
+    results <- run_splits(sex_df, var, wt, type, split)
+    assign(paste0("results_", split), results) # name it to differentiate from other results generated here, so it isn't overwritten
+    
+    # Lower geographies (currently just HB in SHeS data)
+    if (wt %in% c("intwt", "cintwt") ) { # variables with these SHeS weights can be analysed at lower geographies. 
+      
+      results <- run_splits(sex_df, var, wt, type, split, lowergeogs=TRUE) %>%
+        mutate(spatial.scale = "Health board") # (amend this if different geographies are possible/needed)
+      assign(paste0("results_hb_", split), results) # name it to differentiate from other results generated here, so it isn't overwritten
+      
     }
-  
-  results_simd <- calc_single_breakdown(simd_df, var, wt, variables = c("trend_axis", "sex", "quintile"), type) %>%
-    mutate(split_name = "Deprivation (SIMD)",
-           split_value = quintile) # doesn't include totals: need to add from the results derived above
-  simd_totals <- results %>%
-    mutate(quintile="Total") # all the totals
-  results_simd_totals <- results_simd %>%
-    select(-c(quintile, numerator, denominator, rate, lowci, upci, starts_with("split"))) %>% 
-    unique() %>% #the rows that need totals adding
-    merge(y=simd_totals, by=c("trend_axis", "sex", "indicator", "spatial.scale", "spatial.unit"), all.x=TRUE) %>% # only keeps those groups that already existed in results_simd
-    mutate(split_name = "Deprivation (SIMD)",
-           split_value = quintile) %>% # ensures the totals get the right split info
-    rbind(results_simd)  # add the quintile data back in
-  
-  # add to the results df
-  results <- bind_rows(results, results_simd_totals)
-    
   }
   
-  # Scotland by Long-term ILlness (only run if the df has a column called limitill)
-  if("limitill" %in% names(df)){
-    results_lti <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "limitill"), type) %>%
-      mutate(split_name = "Long-term Illness (LTI)",
-             split_value = limitill,
-             sex = "Total") %>% #doesn't include totals, need to add from results derived above
-      select(-limitill)
-    lti_totals <- results %>%
-      select(-starts_with("split")) %>%
-      filter(sex == "Total" & quintile=="Total") %>%
-      unique()
-    results_lti_totals <- results_lti %>%
-      select(-c(numerator, denominator, rate, lowci, upci, starts_with("split"))) %>%
-      unique() %>% #the rows that need totals adding
-      merge(y=lti_totals, by=c("trend_axis", "indicator", "spatial.scale", "spatial.unit"), all.x=TRUE) %>% # only keeps those groups that already existed in results_simd
-      mutate(split_name = "Long-term Illness (LTI)",
-             split_value = "Total") %>% # ensures the totals get the right split info
-      bind_rows(results_lti)  # add the lti split data back in
-                                         
-  }
+  # rbind all the splits together  
+  results <- mget(ls(pattern = "^results_")) %>% # finds all the "results_" dataframes produced by this function
+    bind_rows(.) %>%
+    mutate(spatial.scale = ifelse(is.na(spatial.scale), "Scotland", spatial.scale),
+           spatial.unit = ifelse(is.na(spatial.unit), "Scotland", spatial.unit),
+           quintile = ifelse(split_name=="Deprivation (SIMD)", split_value, "Total")) #needed later?
+  rm(list=ls(pattern="^results_"))
   
-  #Scotland by age (16-64 and 65+ split) (only run if the df has a column called age65plus)
-  if("age65plus" %in% names(df)){
-    results_age65plus <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "age65plus"), type) %>%
-      mutate(split_name = "Older Adults",
-             split_value = as.character(age65plus), #converting to character here as it's logical types (T/F)
-             sex = "Total") %>% #doesn't include totals, need to add from results derived above
-      select(-age65plus)
-    age65plus_totals <- results %>%
-      select(-starts_with("split")) %>%
-      filter(sex=="Total" & quintile=="Total") %>% # all the totals
-      unique() 
-    results_age65plus_totals <- results_age65plus %>%
-      select(-c(numerator, denominator, rate, lowci, upci, starts_with("split"), quintile)) %>%
-      unique() %>% #the rows that need totals adding
-      merge(y=age65plus_totals, by=c("trend_axis", "sex", "indicator", "spatial.scale", "spatial.unit"), all.x=TRUE) %>% # only keeps those groups that already existed in results_simd
-      mutate(split_name = "Older adults",
-             split_value = "Total") %>% # ensures the totals get the right split info
-      bind_rows(results_age65plus)  # add the lti split data back in
-  
-  }
-
-  # Scotland by age (child indicators only) (only run if the df has an age column, i.e., is a child indicator)
-  if ("agegp" %in% names(df)) {
-
-    results_agegp <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "agegp"), type) %>%
-      mutate(split_name = "Age group",
-             split_value = agegp, # doesn't include age totals: need to add from the results derived above
-             sex = "Total") %>%
-      select(-agegp)
-    agegp_totals <- results %>%
-      select(-starts_with("split")) %>%
-      filter(sex=="Total" & quintile=="Total") %>% # all the totals
-      unique() 
-    results_agegp_totals <- results_agegp %>%
-      select(-c(numerator, denominator, rate, lowci, upci, starts_with("split"), quintile)) %>% 
-      unique() %>% #the rows that need totals adding
-      merge(y=agegp_totals, by=c("trend_axis", "sex", "indicator", "spatial.scale", "spatial.unit"), all.x=TRUE) %>% # only keeps those groups that already existed in results_simd
-      mutate(split_name = "Age group",
-             split_value = "Total") %>% # ensures the totals get the right split info
-      rbind(results_agegp)  # add the quintile data back in
-    
-    # add to the results df
-    results <- bind_rows(results, results_agegp_totals) 
-  
-  }
-  # Lower geographies
-  if (wt %in% c("intwt", "cintwt") ) { # identify the weights (and hence variables) that can be analysed at lower geographies. Currently just intwt and cintwt in SHeS data.
-    
-  # HB by sex 
-    results_hb_sex <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "sex", "spatial.unit"), type) %>%
-      mutate(spatial.scale = "Health board", # (amend this if different geographies are needed)
-             quintile = "Total") %>%
-      mutate(split_name = "Sex",
-             split_value = sex) # includes male, female and total      
-    
-    results <- bind_rows(results, results_hb_sex) 
-    
-  # HB by Long-term illness
-  if("limitill" %in% names(df)){
-    results_hb_lti <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "limitill", "spatial.unit"), type) %>%
-      mutate(spatial.scale = "Health board", # (amend this if different geographies are needed)
-             quintile = "Total") %>%
-      mutate(split_name = "Long-term Illness",
-             split_value = limitill) # includes male, female and total      
-    
-    results <- bind_rows(results, results_hb_lti) 
-    
-  }
-  
-  # HB by older age
-  if("age65plus" %in% names(df)){
-    results_hb_age65plus <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "age65plus", "spatial.unit"), type) %>%
-      mutate(spatial.scale = "Health board", # (amend this if different geographies are needed)
-             quintile = "Total") %>%
-      mutate(split_name = "Older adults",
-             split_value = as.character(age65plus))
-    
-    results <- bind_rows(results, results_hb_age65plus)
-    
-  }
-    
-  }
-    
   # Read in lookup for harmonising area names
   geo_lookup <- readRDS(paste0(profiles_lookups, "/Geography/opt_geo_lookup.rds")) %>% 
     select(!c(parent_area, areaname_full))
@@ -805,7 +735,8 @@ calc_indicator_data <- function (df, var, wt, ind_id, type) {
                                   substr(trend_axis, 5, 5)=="/" ~ paste0("Survey year (", trend_axis, ")"),
                                   nchar(trend_axis) > 7 ~ paste0("Aggregated survey years (", trend_axis, ")"))) 
 
-  # required columns
+  # select required columns
+  # NB. Some splits will be suppressed after this stage.
   results <- results %>%
     select(indicator, ind_id, code, split_name, split_value, year, trend_axis, def_period, sex, quintile, numerator, denominator, rate, lowci, upci) %>%
     # arrange so the points plot in right order in QA stage
