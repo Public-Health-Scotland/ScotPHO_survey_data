@@ -34,7 +34,7 @@ vars_to_keep <- c(
   #indicator nuemrator variables
   "mus_rec", #adults meeting the muscle strengthening guideline
   "musrec", #used in 2023
-  "adt10gp_tw", #adults with very low activity (summary activity levels), 
+  "adt10gp_tw", "adt10gptw", #adults with very low activity (summary activity levels), 
   "c00sum7s", #children with very low activity (summary activity levels),
   "spt1ch", #children participating in sport
   "ch30plyg", #children engaging in active play
@@ -77,6 +77,7 @@ vars_to_keep <- c(
   "int20wt", 
   "int21wt", 
   "int22wt",
+  "int19212223wt",
   "int23wt",
   
   # version a (vera) weights (22 files have vera weights: annual and ~3yr)
@@ -124,6 +125,7 @@ vars_to_keep <- c(
   "cint18192122wt",
   "cint1819wt",
   "cint18wt",
+  "cint19212223wt",
   "cint1921wt",
   "cint19wt",
   "cint21wt",
