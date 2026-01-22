@@ -102,17 +102,17 @@ pacman::p_load(
 
 source(here("functions", "functions.R")) # sources the file "functions/functions.R" within this project/repo
 
-# Source functions/packages from ScotPHO's scotpho-indicator-production repo 
-# (works if you've stored the ScotPHO repo in same location as the current repo)
-#source("../scotpho-indicator-production/1.indicator_analysis.R")
-#source("../scotpho-indicator-production/2.deprivation_analysis.R")
-# change wd first
-setwd("../scotpho-indicator-production/")
-source("functions/main_analysis.R") # for packages and QA function 
-source("functions/deprivation_analysis.R") # for packages and QA function (and path to lookups)
-
-# move back to the ScotPHO_survey_data repo
-setwd("/conf/MHI_Data/Liz/repos/ScotPHO_survey_data")
+# # Source functions/packages from ScotPHO's scotpho-indicator-production repo 
+# # (works if you've stored the ScotPHO repo in same location as the current repo)
+# #source("../scotpho-indicator-production/1.indicator_analysis.R")
+# #source("../scotpho-indicator-production/2.deprivation_analysis.R")
+# # change wd first
+# setwd("../scotpho-indicator-production/")
+# source("functions/main_analysis.R") # for packages and QA function 
+# source("functions/deprivation_analysis.R") # for packages and QA function (and path to lookups)
+# 
+# # move back to the ScotPHO_survey_data repo
+# setwd("/conf/MHI_Data/Liz/repos/ScotPHO_survey_data")
 
 ## C. Path to the data derived by this script
 
@@ -163,6 +163,7 @@ save_var_descriptions(survey = "shes", # looks in this folder
 ## A. Extract the data we want:
 # N.B. RUNNING THIS WILL OVERWRITE EXISTING DATA AND WILL TAKE ~5 MINS.
 # RECENT RUNS:
+# 21 JAN 2026: ADDING IN PA PROFILE INDICATORS
 # 14 JAN 2026: ADDING 2023 DATA
 # 12 JAN 2026: ADDITION OF CHILD SDQ VARS
 extracted_survey_data_shes <- extract_survey_data("shes") 
@@ -515,7 +516,24 @@ responses_as_list_shes
 # [11] "0 - Extremely dissatisfied" "9"                          "1"                          "refused"                    NA                          
 # [16] "Item not applicable"        "Schedule not applicable"    "Dont know"                  "Don't Know"                 "Refusal"                   
 # [21] "Don't know"                 "Refused"                    "Not applicable"   
-
+#
+# $ch30plyg
+# [1] "not applicable"          "None"                    "5 or more"               "1 or 2"                 
+# [5] "3 or 4"                  "Item not applicable"     "Don't know"              "Schedule not applicable"
+# [9] "schedule not applicable" "don't know"              "Dont know"               NA                       
+# [13] "Not applicable"         
+# 
+# $mus_rec
+# [1] "Yes"                     "Schedule not applicable" "No"                     
+# 
+# $musrec
+# [1] "No"                      "Schedule not applicable" "Yes"       
+# 
+# $spt1ch
+# [1] "not applicable"          "No"                      "Yes"                     "Schedule not applicable"
+# [5] "Don't know"              "No answer/refused"       "Refused"                 "schedule not applicable"
+# [9] "refused"                 "don't know"              "Don't Know"              "Refusal"                
+# [13] NA   
 ###################################
 
 
@@ -746,6 +764,47 @@ lookup_sex <- list(
   "Male"="Male" 
 )
 
+# PA profile indicators:
+
+# low levels of physical activity indicator
+lookup_adt10gp_tw_LOW <- list(
+  "Meets recommendations"="no",
+  "Low activity"="no", 
+  "Some activity"="no", 
+  "Very low activity"="yes")
+
+#Children participating in sport
+lookup_spt1ch <- list(
+  "No" = "no",
+  "Yes" = "yes")
+
+#Children engaging in active play
+lookup_ch30plyg <- list(
+  "None" = "no",
+  "1 or 2" = "no",
+  "3 or 4" = "no",
+  "5 or more" = "yes")
+
+#Children with very low activity levels
+lookup_c00sum7s <- list(
+  "Group 1:60+min on all 7 days" = "no",
+  "Group 1: 60+min on all 7 days" = "no",
+  "Group 2:30-59min on all 7 days" = "no",
+  "Group 2: 30-59min on all 7 days" = "no",
+  "Group 3:Lower level of activity" = "yes",
+  "Group 3: Lower level of activity" = "yes")
+
+#Adults meeting muscle strengthening recommedation
+lookup_mus_rec <- list(
+  "No" = "no",
+  "Yes" = "yes")
+
+lookup_limitill_SPLIT <- list(
+  "Limiting LI" = "Limiting Long-term Illness",
+  "Non limiting LI" = "Non-limiting Long-term Illness",
+  "No LI" = "No Long-term Illness"
+)
+
 # 6. Initial processing of the survey data: creating a flat file with harmonised variable names.
 # =================================================================================================================
 
@@ -899,7 +958,16 @@ shes_data <- shes_data %>%
                                                        between(age, 65, 74) ~ "65-74",
                                                        age >=75 ~ "75+",
                                                        TRUE ~ as.character(NA))) %>% # 0-15y 
-                             mutate(child = between(age, 0, 15)))) 
+                             mutate(age65plus = case_when(age >= 65 ~ "65y and over",
+                                                          age < 65 ~ "16 to 64y")) %>%
+                             mutate(child = between(age, 0, 15)) %>%
+                             mutate(age_group = case_when(age %in% c(0:4) ~ "0 to 4y",
+                                                          age %in% c(5:11) ~ "5 to 11y",
+                                                          age %in% c(12:15) ~ "12 to 15y",
+                                                          TRUE ~ as.character(NA))) %>%
+                             mutate(age_group_sdq = case_when(age %in% c(4:11) ~ "4 to 11y",
+                                                              age %in% c(12:15) ~ "12 to 15y",
+                                                              TRUE ~ as.character(NA)))))
   
 
 # Ready to unlist the df to create a flat file:
@@ -926,10 +994,11 @@ shes_data <- shes_data %>%
   mutate(depsymp = coalesce(depsymp, dvg11)) %>% 
   mutate(anxsymp = coalesce(anxsymp, dvj12)) %>%
   mutate(adt10gp_tw = coalesce(adt10gptw, adt10gp_tw)) %>%
+  mutate(mus_rec = coalesce(mus_rec, musrec)) %>%
   #mutate(gen_helf = coalesce(gen_helf, genhelf)) %>% # years with genhelf now excluded before this point
   #mutate(gh_qg2 = coalesce(ghqg2, gh_qg2)) %>% # years with ghqg2 now excluded before this point
   # delete the redundant vars now
-  select(-c(involv19, support1_19, pcris19, dsh5, dvg11, dvj12)) 
+  select(-c(involv19, support1_19, pcris19, dsh5, dvg11, dvj12, musrec, -adt10gptw)) 
 
 
 # Convert some variables to numeric where appropriate
@@ -943,11 +1012,11 @@ shes_data <- shes_data %>%
 shes_data <- shes_data %>%  
   
   # Variables with simple recoding:
-  mutate(adt10gp_tw = recode(adt10gp_tw, !!!lookup_adt10gp_tw, .default = as.character(NA))) %>%
+  mutate(adt10gp_tw2 = recode(adt10gp_tw, !!!lookup_adt10gp_tw, .default = as.character(NA))) %>% # recodes into a copy, so that the var can also be used for another indicator (adt10gp_tw_LOW)
   mutate(contrl = recode(contrl, !!!lookup_contrl, .default = as.character(NA))) %>%
   mutate(gen_helf = recode(gen_helf, !!!lookup_gen_helf, .default = as.character(NA))) %>%
   mutate(gh_qg2 = recode(gh_qg2, !!!lookup_gh_qg2, .default = as.character(NA))) %>%
-  mutate(limitill = recode(limitill, !!!lookup_limitill, .default = as.character(NA))) %>%
+  mutate(limitill2 = recode(limitill, !!!lookup_limitill, .default = as.character(NA))) %>% # recodes into a copy, so that the var can also be used for a split column (limitill_SPLIT)
   mutate(str_work2 = recode(str_work2, !!!lookup_str_work2, .default = as.character(NA))) %>%
   mutate(suicide2 = recode(suicide2, !!!lookup_suicide2, .default = as.character(NA))) %>%
   mutate(involve = recode(involve, !!!lookup_involve, .default = as.character(NA))) %>%
@@ -962,7 +1031,14 @@ shes_data <- shes_data %>%
   mutate(sdq_hypg = recode(sdq_hypg, !!!lookup_sdq_hypg, .default = as.character(NA))) %>%
   mutate(sdq_emog = recode(sdq_emog, !!!lookup_sdq_emog, .default = as.character(NA))) %>%
   mutate(childpa1hr = recode(c00sum7s, !!!lookup_childpa1hr, .default = as.character(NA))) %>%
-  
+  # PA profile vars with simple recoding:
+  mutate(adt10gp_tw_LOW = recode(adt10gp_tw, !!!lookup_adt10gp_tw_LOW, .default = as.character(NA))) %>%
+  mutate(mus_rec = recode(mus_rec, !!!lookup_mus_rec, .default = as.character(NA))) %>%
+  mutate(c00sum7s = recode(c00sum7s, !!!lookup_c00sum7s, .default = as.character(NA))) %>% 
+  mutate(spt1ch = recode(spt1ch, !!!lookup_spt1ch, .default = as.character(NA))) %>%
+  mutate(ch30plyg = recode(ch30plyg, !!!lookup_ch30plyg, .default = as.character(NA))) %>%
+  mutate(limitill_SPLIT = recode(limitill, !!!lookup_limitill_SPLIT, .default = as.character(NA))) %>% # _SPLIT differentiates this split variable from the indicator that uses the same column (limitill)
+
   # Portions of fruit and veg: variable changed in 2021
   mutate(porftvg3 = recode(porftvg3, !!!lookup_porftvg3, .default = as.character(NA))) %>%
   # porftvg3intake data only in 2021 so far, so not in an aggregated file, but could require processing once more data are added
@@ -1055,12 +1131,13 @@ shes_data <- shes_data %>%
 # =================================================================================================================
 
 ## A: Subset off the adult indicators
-# repeat all rows of the data with sex=="Total" & restrict to adults
+# restrict to adults
 shes_adult_data <- shes_data %>%
-  mutate(sex="Total") %>%
-  rbind(shes_data) %>%
   filter(!child) %>%
-  select(-c(child, contains("serial"), starts_with("par"), cintwt, age))
+  select(-c(child, contains("serial"), starts_with("par"), 
+            cintwt, age, age_group,
+            c00sum7s, spt1ch, ch30plyg, childpa1hr, contains("sdq")
+            ))
 # save intermediate df:
 #arrow::write_parquet(shes_adult_data, paste0(derived_data, "shes_adult_data.parquet"))
 # read back in if not in memory:
@@ -1078,8 +1155,8 @@ parent_data <- shes_data %>%
 shes_child_data <- shes_data %>%
   filter(child) %>% # keep 0-15
   select(year, trend_axis, contains("serial"), par1, par2, 
-         cintwt, psu, strata, sex, age, spatial.unit, spatial.scale, quintile, 
-         starts_with("sdq"), childpa1hr) %>%
+         cintwt, psu, strata, sex, age, age_group, spatial.unit, spatial.scale, quintile, 
+         c00sum7s, spt1ch, ch30plyg, childpa1hr, contains("sdq")) %>%
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par1"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #1st parent/carer in hhd
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par2"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #2nd parent/carer in hhd
   # calculate the new child MHIs using the data for both parents (.x and .y)
@@ -1088,283 +1165,20 @@ shes_child_data <- shes_data %>%
                             TRUE ~ as.character(NA)), # NA if no data (question not asked / 'don't know'/refused/not answered)
          ch_audit = case_when(auditg.x=="yes" | auditg.y=="yes" ~ "yes", # yes if either parent has harmful/hazardous (8+) AUDIT score
                               auditg.x=="no" | auditg.y=="no" ~ "no", # otherwise no (if the data were collected)
-                              TRUE ~ as.character(NA)))  # NA if no data (question not asked / 'don't know'/refused/not answered)
-
-# final child data (add in sex=total)
-shes_child_data <- shes_child_data %>%
-  mutate(sex="Total") %>%
-  rbind(shes_child_data) %>%
-  mutate(agegp = case_when(age %in% c(0:3) ~ "0-3 years",
-                           age %in% c(4:6) ~ "4-6 years",
-                           age %in% c(7:9) ~ "7-9 years",
-                           age %in% c(10:12) ~ "10-12 years",
-                           age %in% c(13:15) ~ "13-15 years",
-                           TRUE ~ as.character(NA))) %>%
-  select(year, trend_axis, cintwt, spatial.unit, spatial.scale, quintile, psu, strata, sex, agegp, 
-         ch_ghq, ch_audit, starts_with("sdq"), childpa1hr)
+                              TRUE ~ as.character(NA))) %>%  # NA if no data (question not asked / 'don't know'/refused/not answered)
+  select(year, trend_axis, cintwt, spatial.unit, spatial.scale, quintile, psu, strata, sex, age_group,  
+         ch_ghq, ch_audit, contains("sdq"), childpa1hr, c00sum7s, spt1ch, ch30plyg)
 
 # save intermediate df:
 #arrow::write_parquet(shes_child_data, paste0(derived_data, "shes_child_data.parquet"))
 # read back in if not in memory:
 #shes_child_data <- arrow::read_parquet(paste0(derived_data, "shes_child_data.parquet"))
 
-# Data checks:
-table(shes_child_data$trend_axis, shes_child_data$ch_ghq)
-# GHQ data for parents of children all years and aggregated years since 2008
-table(shes_child_data$trend_axis, shes_child_data$ch_audit)
-# AUDIT data for parents of children from 2012, but some missings (related to 2018 and 2022)
-table(shes_child_data$trend_axis, shes_child_data$childpa1hr)
-# From SHeS dashboard notes: Data is not available for 2017 and 2018 (and hence 2015-18 and 2017-21) due to differences in the way the data was collected for these years which means that the estimates for these years are not comparable with the other SHeS surveys.
-table(shes_child_data$trend_axis, shes_child_data$sdq_peeg)
-table(shes_child_data$trend_axis, shes_child_data$sdq_cong)
-table(shes_child_data$trend_axis, shes_child_data$sdq_hypg)
-table(shes_child_data$trend_axis, shes_child_data$sdq_emog)
-table(shes_child_data$trend_axis, shes_child_data$sdq_totg)
-table(shes_child_data$trend_axis, shes_child_data$sdq_pro)
-
-# Do some more data checks:
-
-# Adult data
-# Groupings:
-table(shes_adult_data$trend_axis, useNA = "always") # 2008 to 2023; no NA
-table(shes_adult_data$sex, shes_adult_data$trend_axis, useNA = "always") # Female/Male/Total; some NAs from 2022 onwards
-table(shes_adult_data$quintile, useNA = "always") # 5 groups; no NAs
-table(shes_adult_data$spatial.unit, useNA = "always") # 14 HBs; no NAs 
-table(shes_adult_data$agegp7, useNA = "always") # no NAs
-
-# 18 categorical indicators:
-table(shes_adult_data$gh_qg2, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_adult_data$porftvg3, useNA = "always") # just yes, no and NA, so coding has worked
-#table(shes_adult_data$porftvg3intake, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_adult_data$gen_helf, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_adult_data$limitill, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_adult_data$depsymp, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_adult_data$anxsymp, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_adult_data$involve, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_adult_data$p_crisis, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_adult_data$str_work2, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_adult_data$contrl, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_adult_data$support1, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_adult_data$suicide2, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_adult_data$dsh5sc, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_adult_data$rg17a_new, useNA = "always") # just yes, no and NA, so coding has worked
-
-# 3 numeric indicators:
-table(shes_adult_data$work_bal, useNA = "always") # just numeric and NA, so coding has worked
-table(shes_adult_data$wemwbs, useNA = "always") # all numeric and NA, so coding has worked
-table(shes_adult_data$life_sat, useNA = "always") # all numeric and NA, so coding has worked
-
-
-# Child data
-# Groupings:
-table(shes_child_data$trend_axis, useNA = "always") # 2008 to 2023; no NA
-table(shes_child_data$sex, shes_child_data$trend_axis, useNA = "always") # Female/Male/Total; some NAs from 2022 onwards
-table(shes_child_data$quintile, useNA = "always") # 5 groups; no NAs
-table(shes_child_data$spatial.unit, useNA = "always") # 14 HBs; no NA 
-table(shes_child_data$agegp7, useNA = "always") # none (as expected)
-table(shes_child_data$agegp, useNA = "always") # 5 age groups, no NA
-
-# 9 categorical indicators:
-table(shes_child_data$ch_ghq, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_child_data$ch_audit, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_child_data$childpa1hr, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_child_data$sdq_totg, useNA = "always") # just yes, no and NA, so coding has worked. All are 4-12years.
-table(shes_child_data$sdq_peeg, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_child_data$sdq_cong, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_child_data$sdq_hypg, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_child_data$sdq_emog, useNA = "always") # just yes, no and NA, so coding has worked
-table(shes_child_data$sdq_pro, useNA = "always") # just yes, no and NA, so coding has worked
-
-
-
-
 
 # 8. Calculate indicator values by various groupings
-# =================================================================================================================
-
-# These survey calculation functions are in the functions.R script
-# There are some warnings that appear: a deprecated bit (I can't find where to change this) and some 'NAs introduced by coercion'. These are OK.
-
-# #test runs:
-# df = shes_adult_data
-# var = "gh_qg2"
-# wt = "intwt"
-# ind_id = 30003
-# type= "percent"
-
-# df=shes_child_data
-# var="ch_ghq"
-# wt="cintwt"
-# ind_id=30130
-# type= "percent"
-
-
-# ADULT
-
-# percents:
-
-# 1. intwt used with main sample variables 
-svy_percent_gh_qg2 <- calc_indicator_data(df = shes_adult_data, var = "gh_qg2", wt = "intwt", ind_id = 30003, type= "percent") # ok
-svy_percent_gen_helf <- calc_indicator_data(shes_adult_data, "gen_helf", "intwt", ind_id=99108, type= "percent") # ok
-svy_percent_limitill <- calc_indicator_data(shes_adult_data, "limitill", "intwt", ind_id=99109, type= "percent") # ok 
-svy_percent_adt10gp_tw <- calc_indicator_data(shes_adult_data, "adt10gp_tw", "intwt", ind_id=99107, type= "percent") # ok
-svy_percent_porftvg3 <- calc_indicator_data(shes_adult_data, "porftvg3", "intwt", ind_id=30013, type= "percent") # ok
-svy_percent_rg17a_new <- calc_indicator_data(shes_adult_data, "rg17a_new", "intwt", ind_id=30026, type= "percent") # ok
-
-# 2. verawt used for vera vars: National and SIMD only (samples too small for HB) 
-svy_percent_involve <- calc_indicator_data(shes_adult_data, "involve", "verawt", ind_id=30021, type= "percent") # ok
-svy_percent_p_crisis <- calc_indicator_data(shes_adult_data, "p_crisis", "verawt", ind_id=30023, type= "percent") # ok
-svy_percent_str_work2 <- calc_indicator_data(shes_adult_data, "str_work2", "verawt", ind_id=30051, type= "percent") # ok
-svy_percent_contrl <- calc_indicator_data(shes_adult_data, "contrl", "verawt", ind_id=30053, type= "percent") # ok
-svy_percent_support1 <- calc_indicator_data(shes_adult_data, "support1", "verawt", ind_id=30054, type= "percent") # ok
-
-# 3. biowt used with verb/bio sample variables (earlier surveys have nursxxwt not bioxxwt):
-# National and SIMD only (samples too small for HB) (use single or 2y agg data?)
-svy_percent_depsymp <- calc_indicator_data(shes_adult_data, "depsymp", "bio_wt", ind_id=30004, type= "percent") # ok
-svy_percent_anxsymp <- calc_indicator_data(shes_adult_data, "anxsymp", "bio_wt", ind_id=30005, type= "percent") # ok
-svy_percent_dsh5sc <- calc_indicator_data(shes_adult_data, "dsh5sc", "bio_wt", ind_id=30010, type= "percent") # ok
-svy_percent_suicide2 <- calc_indicator_data(shes_adult_data, "suicide2", "bio_wt", ind_id=30009, type= "percent") # ok
-
-# # 4. intake24 wt used with intake24 porftvg3 variable (from 2021)
-# svy_percent_porftvg3intake <- calc_indicator_data(shes_adult_data, "porftvg3intake", "intakewt") # ok
-
-# scores:
-
-# 1. intwts used with main sample variables 
-svy_score_wemwbs <- calc_indicator_data(shes_adult_data, "wemwbs", "intwt", ind_id=30001, type= "score") # ok
-svy_score_life_sat <- calc_indicator_data(shes_adult_data, "life_sat", "intwt", ind_id=30002, type= "score") # ok
-
-# 2. verawt used for vera vars: National and SIMD only (samples too small for HB) 
-svy_score_work_bal <- calc_indicator_data(shes_adult_data, "work_bal", "verawt", ind_id=30052, type= "score") # ok
-
-
-# CHILDREN
-
-# 1. cintwt used with main sample variables 
-svy_percent_ch_ghq <- calc_indicator_data(shes_child_data, "ch_ghq", "cintwt", ind_id=30130, type= "percent")  # ok
-svy_percent_ch_audit <- calc_indicator_data(shes_child_data, "ch_audit", "cintwt", ind_id=30129, type= "percent")  # ok
-svy_percent_childpa1hr <- calc_indicator_data(shes_child_data, "childpa1hr", "cintwt", ind_id=30111, type= "percent")  %>% # ok
-  mutate(split_value = ifelse(split_value=="0-3 years", "2-3 years", split_value))
-svy_percent_sdq <- calc_indicator_data(shes_child_data, "sdq_totg", "cintwt", ind_id=99117, type= "percent")  # ok
-svy_percent_sdq_peer <- calc_indicator_data(shes_child_data, "sdq_peeg", "cintwt", ind_id=30170, type= "percent")  # ok
-svy_percent_sdq_emo <- calc_indicator_data(shes_child_data, "sdq_emog", "cintwt", ind_id=30172, type= "percent")  # ok
-svy_percent_sdq_cond <- calc_indicator_data(shes_child_data, "sdq_cong", "cintwt", ind_id=30173, type= "percent")  # ok
-svy_percent_sdq_hyp <- calc_indicator_data(shes_child_data, "sdq_hypg", "cintwt", ind_id=30174, type= "percent")  # ok
-svy_percent_sdq_pro <- calc_indicator_data(shes_child_data, "sdq_pro", "cintwt", ind_id=30175, type= "percent")  # ok
-
-
-
-# 9. Combine all the resulting indicator data into a single file
-###############################################################################
-
-shes_results0 <- mget(ls(pattern = "^svy_"), .GlobalEnv) %>% # finds all the dataframes produced by the functions above
-  do.call(rbind.data.frame, .)  #rbinds them all together (appending the rows)
-
-# drop the row names
-rownames(shes_results0) <- NULL 
-
-# save intermediate df:
-#arrow::write_parquet(shes_results0, paste0(derived_data, "shes_results0.parquet"))
-# read back in if not in memory:
-#shes_results0 <- arrow::read_parquet(paste0(derived_data, "shes_results0.parquet"))
-
-# Check the splits are ok:
-table(shes_results0$split_name, shes_results0$split_value, useNA="always")
-# Three splits (age group, SIMD, and sex) available
-# No split_names or split_values are blank.
-# Each split_name has a Total category.
-# This is correct
-
-# Check the deprivation splits have 6 rows each (5 quintiles + 1 total)
-# Deprivation data, keep all the totals that match each breakdown (Scotland x indicator x sex x trend_axis)
-shes_results1 <- shes_results0 %>%  
-  group_by(trend_axis, sex, indicator, ind_id, code, year, def_period, split_name) %>%
-  mutate(count = n()) %>%
-  ungroup() %>%
-  filter(!(split_name=="Deprivation (SIMD)" & count<6)) %>% # 1 if only a total provided, 2 if only one quintile could be calculated in addition to the total.
-  select(-count, -quintile) 
-
-# Availability by HB
-hb_data <- shes_results1 %>%
-  filter(substr(code, 1, 3)=="S08" & nchar(trend_axis)>4)  # all HB data
-ftable(hb_data$indicator, hb_data$split_value, hb_data$sex, hb_data$year)  
-# Full HB coverage for all indicators in the data from aggregrated years: latest is 2021 (mid point of 2019-2023)
-
-# 6 adult vars from SHeS main sample are available from the published data (statistics.gov.scot, see SHeS script in the ScotPHO-indicator-production repo).
-# The UKDS data can supplement those published data with SIMD x sex data (Scotland). Just keep that breakdown here:
-published_vars <- c("gh_qg2", "gen_helf", "limitill",
-                      "adt10gp_tw", "porftvg3", "wemwbs")
-
-published_to_keep <- shes_results1 %>%
-  filter(indicator %in% published_vars & 
-           substr(code, 1, 3)=="S00" & 
-           split_name=="Deprivation (SIMD)" & 
-           sex %in% c("Male", "Female")) 
-
-shes_results1 <- shes_results1 %>%
-  filter(!indicator %in% published_vars) %>% 
-  rbind(published_to_keep) 
-
-
-# data checks:
-table(shes_results1$trend_axis, useNA = "always") # 2008 to 2023, na NA
-table(shes_results1$sex, useNA = "always") # Male, Female, Total 
-table(shes_results1$indicator, useNA = "always") # 27 vars (18 adult, 9 child), no NA
-table(shes_results1$year, useNA = "always") # 2008 to 2023
-table(shes_results1$def_period, useNA = "always") # Aggregated years () and Survey year (), no NA
-table(shes_results1$split_name, useNA = "always") # Deprivation, Age group, or Sex, no NA
-table(shes_results1$split_value, useNA = "always") # 1 to 5, M/F/Total, 5 CYP age groups, no NA
-# all good
-
-# Suppress values where necessary:
-# SHeS suppress values where denominator (unweighted base) is <30
-shes_results1 <- shes_results1 %>%
-  mutate(across(.cols = c(numerator, rate, lowci, upci),
-                .fns = ~case_when(denominator < 30 ~ as.numeric(NA),
-                                  TRUE ~ as.numeric(.x)))) 
-
-# get indicator names into more informative names for using as filenames
-shes_raw_data <- shes_results1 %>%
-  mutate(indicator = case_when( indicator == "gh_qg2" ~ "common_mh_probs",    
-                                indicator == "gen_helf" ~ "self_assessed_health",  
-                                indicator == "limitill" ~ "limiting_long_term_condition",  
-                                indicator == "adt10gp_tw" ~ "physical_activity",
-                                indicator == "porftvg3" ~ "fruit_veg_consumption",  
-                                indicator == "rg17a_new" ~ "unpaid_caring", 
-                                indicator == "wemwbs" ~ "mental_wellbeing",    
-                                indicator == "life_sat" ~ "life_satisfaction",  
-                                indicator == "ch_ghq" ~ "cyp_parent_w_ghq4",    
-                                indicator == "ch_audit" ~ "cyp_parent_w_harmful_alc",
-                                indicator == "involve" ~ "involved_locally",  
-                                indicator == "p_crisis" ~ "support_network", 
-                                indicator == "str_work2" ~ "stress_at_work",
-                                indicator == "contrl" ~ "choice_at_work",   
-                                indicator == "support1" ~ "line_manager", 
-                                indicator == "depsymp" ~ "depression_symptoms",  
-                                indicator == "anxsymp" ~ "anxiety_symptoms",  
-                                indicator == "dsh5sc" ~ "deliberate_selfharm",   
-                                indicator == "suicide2" ~ "attempted_suicide",
-                                indicator == "work_bal" ~ "work-life_balance",
-                                indicator == "sdq_totg" ~ "cyp_sdq_totaldiffs",
-                                indicator == "childpa1hr" ~ "cyp_pa_over_1h_per_day",
-                                indicator == "sdq_totg" ~ "cyp_sdq_totaldiffs",
-                                indicator == "sdq_peeg" ~ "cyp_sdq_peer",
-                                indicator == "sdq_cong" ~ "cyp_sdq_conduct",
-                                indicator == "sdq_hypg" ~ "cyp_sdq_hyperactivity",
-                                indicator == "sdq_emog" ~ "cyp_sdq_emotional",
-                                indicator == "sdq_pro" ~ "cyp_sdq_prosocial",
-                                TRUE ~ as.character(NA)  )) %>%
-  select(-denominator) 
-
-# save data ----
-saveRDS(shes_raw_data, file = paste0(profiles_data_folder, '/Prepared Data/shes_raw.rds'))
-#shes_raw_data <- readRDS(file = paste0(data_folder, 'Prepared Data/shes_raw.rds'))
-
-
-# 10. Import into the SHeS script in scotpho-indicator-production repo and prepare final files there. 
-###############################################################################
-
-
-
-
-## END
+# # =================================================================================================================
+# Go to ukds_shes_calcs.R to perform the calculations and prepare the final results file
+# 
+# 
+# 
+# ## END
