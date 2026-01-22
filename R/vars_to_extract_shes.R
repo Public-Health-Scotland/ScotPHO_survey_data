@@ -65,7 +65,11 @@ vars_to_keep <- c(
   "adt10gp_tw", "adt10gptw", 
   "life_sat", # mean score variable
   "sdq_totg", "sdq_pro", "sdq_emog", "sdq_cong", "sdq_hypg", "sdq_peeg", #child sdq variables 
-  
+ "mus_rec", #adults meeting the muscle strengthening guideline
+ "musrec", #used in 2023
+ "spt1ch", #children participating in sport
+ "ch30plyg", #children engaging in active play
+
   # child physical activity
   "c00sum7s", # Summary classification activity levels - All activities, INCLUDING SCHOOL no lower limits
 
