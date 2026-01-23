@@ -6,7 +6,7 @@
 
 # Notes on SHeS
 
-# 18 adult indicators: 
+# 20 adult indicators: 
 
 # 99107 = adt10gp_tw2	(also in CWB and PA profiles) Percentage of adults who met the recommended moderate or vigorous physical activity guideline in the previous four weeks. In July 2011, the Chief Medical Officers of each of the four UK countries agreed and introduced revised guidelines on physical activity. Adults are recommended to accumulate 150 minutes of moderate activity or 75 minutes of vigorous activity per week, or an equivalent combination of both, in bouts of 10 minutes or more. The variable used was adt10gpTW. This bandings used for this variable include the new walking definition for those aged 65 years and over. 
 # 99108 = gen_helf	(also in CWB profile) Percentage of adults who, when asked "How good is your health in general?", selected "good" or "very good". The five possible options ranged from very good to very bad, and the variable was GenHelf. 
@@ -29,7 +29,7 @@
 # 14001 - mus_rec - Adults meeting muscle strengthening guidelines. 2011 CMO guidelines recommend 2x 30 minute muscle strengthening sessions per week
 # 14002 - adt10gp_tw_LOW - Adults with very low activity levels. Also in CWB, AMH profiles. 2011 CMO guidelines recommend 150 mins/week MVPA.
 
-# 9 child indicators:
+# 12 child indicators:
 # 30130 = ch_ghq  Percentage of children aged 15 years or under who have a parent/carer who scores 4 or more on the General Health Questionnaire-12 (GHQ-12)
 # 30129 = ch_audit  Percentage of children aged 15 years or under with a parent/carer who reports consuming alcohol at hazardous or harmful levels (AUDIT questionnaire score 8+)
 # 30170	Peer relationship problems - Percentage of children with a 'slightly raised', 'high' or 'very high' score (a score of 3-10) on the peer relationship problems scale of the Strengths and Difficulties Questionnaire (SDQ)
@@ -98,17 +98,17 @@ pacman::p_load(
 
 source(here("functions", "functions.R")) # sources the file "functions/functions.R" within this project/repo
 
-# # # Source functions/packages from ScotPHO's scotpho-indicator-production repo 
-# # # (works if you've stored the ScotPHO repo in same location as the current repo)
-# # #source("../scotpho-indicator-production/1.indicator_analysis.R")
-# # #source("../scotpho-indicator-production/2.deprivation_analysis.R")
-# # # change wd first
-# setwd("../scotpho-indicator-production/")
-# source("functions/main_analysis.R") # for packages and QA function
-# source("functions/deprivation_analysis.R") # for packages and QA function (and path to lookups)
-# 
-# # move back to the ScotPHO_survey_data repo
-# setwd("/conf/MHI_Data/Liz/repos/ScotPHO_survey_data")
+# # Source functions/packages/lookups from ScotPHO's scotpho-indicator-production repo
+# # (works if you've stored the ScotPHO repo in same location as the current repo)
+# #source("../scotpho-indicator-production/1.indicator_analysis.R")
+# #source("../scotpho-indicator-production/2.deprivation_analysis.R")
+# # change wd first
+setwd("../scotpho-indicator-production/")
+source("functions/main_analysis.R") # for packages and QA function
+source("functions/deprivation_analysis.R") # for packages and QA function (and path to lookups)
+
+# move back to the ScotPHO_survey_data repo
+setwd("/conf/MHI_Data/Liz/repos/ScotPHO_survey_data")
 
 ## C. Path to the data derived by this script
 
@@ -122,7 +122,7 @@ shes_adult_data <- arrow::read_parquet(paste0(derived_data, "shes_adult_data.par
 shes_child_data <- arrow::read_parquet(paste0(derived_data, "shes_child_data.parquet"))
 
 # Read in lookup for harmonising area names
-geo_lookup <- readRDS("/PHI_conf/ScotPHO/Profiles/Data/Lookups/Geography/opt_geo_lookup.rds") %>% 
+geo_lookup <- readRDS(paste0(profiles_lookups,"/Geography/opt_geo_lookup.rds")) %>% 
   select(!c(parent_area, areaname_full))
 
 
@@ -225,11 +225,25 @@ svy_percent_ch30plyg <- calc_indicator_data(shes_child_data, "ch30plyg", "cintwt
 #arrow::write_parquet(svy_percent_ch30plyg, "svy_percent_ch30plyg.parquet")
 
 
+
+
+# 9. Combine all the resulting indicator data into a single file
+###############################################################################
+
+shes_results <- mget(ls(pattern = "^svy_"), .GlobalEnv) %>% # finds all the dataframes produced by the functions above
+  bind_rows(.)
+# save intermediate df:
+arrow::write_parquet(shes_results, paste0(derived_data, "shes_results.parquet"))
+shes_results <- arrow::read_parquet(paste0(derived_data, "shes_results.parquet")) #Jan 2026: 164848
+rm(list=ls(pattern="^svy_"))
+
+
 # Let's check whether there are denominators under 30 for each of the splits.
 # SHeS suppress any figures derived from denoms <30
-make_denom_table <- function(df) {
+make_denom_table <- function(ind) {
   
-  df %>%
+  shes_results %>%
+    filter(indicator==ind) %>%
     filter(split_value!="Total") %>%
     mutate(areatype = case_when(substr(code, 1, 3)=="S00" ~ "Scotland",
                                 substr(code, 1, 3)=="S08" ~ "Health board",
@@ -244,55 +258,53 @@ make_denom_table <- function(df) {
     ungroup()  
 }
 
-make_denom_table(svy_percent_gh_qg2)
-make_denom_table(svy_percent_gen_helf) 
-make_denom_table(svy_percent_limitill) 
-make_denom_table(svy_percent_adt10gp_tw)
-make_denom_table(svy_percent_porftvg3) 
-make_denom_table(svy_percent_rg17a_new)
-make_denom_table(svy_percent_mus_rec) # drop HB * SIMD/LTI, suppress others
-make_denom_table(svy_percent_adt10gp_tw_LOW) # drop HB * SIMD/LTI, suppress others
-make_denom_table(svy_percent_involve)
-make_denom_table(svy_percent_p_crisis) 
-make_denom_table(svy_percent_str_work2)
-make_denom_table(svy_percent_contrl)
-make_denom_table(svy_percent_support1) 
-make_denom_table(svy_percent_depsymp)
-make_denom_table(svy_percent_anxsymp)
-make_denom_table(svy_percent_dsh5sc)
-make_denom_table(svy_percent_suicide2) 
-make_denom_table(svy_score_wemwbs)
-make_denom_table(svy_score_life_sat)
-make_denom_table(svy_score_work_bal)
+make_denom_table("gh_qg2")# drop HB * SIMD/LTI, suppress others
+make_denom_table("gen_helf") # drop HB * SIMD/LTI, suppress others
+make_denom_table("adt10gp_tw2") # drop HB * SIMD/LTI, suppress others
+make_denom_table("porftvg3") # drop HB * SIMD/LTI, suppress others
+make_denom_table("rg17a_new") # drop HB * SIMD/LTI, suppress others
+make_denom_table("mus_rec") # drop HB * SIMD/LTI, suppress others
+make_denom_table("adt10gp_tw_LOW") # drop HB * SIMD/LTI, suppress others
+make_denom_table("wemwbs") # drop HB * SIMD/LTI, suppress others
+make_denom_table("life_sat") # drop HB * SIMD/LTI, suppress others
+make_denom_table("limitill2") # drop HB * SIMD, suppress others
+make_denom_table("support1") # drop scot x age group
+make_denom_table("involve") # nothing to drop
+make_denom_table("p_crisis") # nothing to drop
+make_denom_table("str_work2")# nothing to drop
+make_denom_table("contrl") # nothing to drop
+make_denom_table("depsymp") # nothing to drop
+make_denom_table("anxsymp") # nothing to drop
+make_denom_table("dsh5sc") # nothing to drop
+make_denom_table("suicide2")  # nothing to drop
+make_denom_table("work_bal") # nothing to drop
 
-make_denom_table(svy_percent_ch_ghq) 
-make_denom_table(svy_percent_ch_audit) 
-make_denom_table(svy_percent_childpa1hr) 
-make_denom_table(svy_percent_sdq)
-make_denom_table(svy_percent_sdq_peer) 
-make_denom_table(svy_percent_sdq_emo)
-make_denom_table(svy_percent_sdq_cond) 
-make_denom_table(svy_percent_sdq_hyp)
-make_denom_table(svy_percent_sdq_pro)
-make_denom_table(svy_percent_c00sum7s) # drop all HB splits
-make_denom_table(svy_percent_spt1ch) # drop all HB splits
-make_denom_table(svy_percent_ch30plyg) # drop all HB splits
+make_denom_table("ch_ghq") # drop all HB splits
+make_denom_table("ch_audit") # drop all HB splits
+make_denom_table("childpa1hr") # drop all HB splits
+make_denom_table("sdq_totg") # drop all HB splits
+make_denom_table("sdq_peeg") # drop all HB splits
+make_denom_table("sdq_emog") # drop all HB splits
+make_denom_table("sdq_cong") # drop all HB splits
+make_denom_table("sdq_hypg") # drop all HB splits
+make_denom_table("sdq_pro") # drop all HB splits
+make_denom_table("c00sum7s") # drop all HB splits
+make_denom_table("spt1ch") # drop all HB splits
+make_denom_table("ch30plyg") # drop all HB splits
 
-
-
-# 9. Combine all the resulting indicator data into a single file
-###############################################################################
-
-shes_results <- mget(ls(pattern = "^svy_"), .GlobalEnv) %>% # finds all the dataframes produced by the functions above
-  bind_rows(.)
-# save intermediate df:
-arrow::write_parquet(shes_results, paste0(derived_data, "shes_results.parquet"))
-rm(list=ls(pattern="^svy_"))
+# Add any new vars to these vectors, depending on which splits you want to drop:
+drop_hb_by_simd_and_lti <- c("gh_qg2", "gen_helf","adt10gp_tw2","porftvg3","rg17a_new",
+                             "mus_rec","adt10gp_tw_LOW","wemwbs","life_sat","limitill2")
+drop_scot_by_agegp <- "support1"
+drop_all_hb_data <- c("ch_ghq","ch_audit","childpa1hr","sdq_totg","sdq_peeg",
+                      "sdq_emog","sdq_cong","sdq_hypg","sdq_pro","c00sum7s","spt1ch","ch30plyg")
 
 # drop splits as identified above:
 shes_results <- shes_results %>%
-  filter(!(indicator %in% c("adt10gp_tw", "mus_rec") & (substr(code, 1, 3)=="S08" & split_name %in% c("Deprivation (SIMD)", "Long-term Illness")))) %>%
-  filter(!(indicator %in% c("c00sum7s", "spt1ch", "ch30plyg") & (substr(code, 1, 3)=="S08"))) 
+  filter(!(indicator %in% drop_hb_by_simd_and_lti & (substr(code, 1, 3)=="S08" & split_name %in% c("Deprivation (SIMD)", "Long-term Illness")))) %>%
+  filter(!(indicator %in% drop_scot_by_agegp & (substr(code, 1, 3)=="S00" & split_name =="Age group"))) %>%
+  filter(!(indicator %in% drop_all_hb_data & (substr(code, 1, 3)=="S08"))) 
+#Jan 2026: now 33877
 
 # drop splits by SIMD if they have data for fewer than three quintiles (+ total = 4)
 shes_results <- shes_results %>%
@@ -301,6 +313,7 @@ shes_results <- shes_results %>%
   ungroup() %>%
   filter(!(split_name=="Deprivation (SIMD)" & count<4)) %>% 
   select(-count) # none dropped in this case because all SIMD data are Scotland only
+#Jan 2026: now 33847 (30 rows dropped)
 
 # Suppress values where necessary:
 # SHeS suppress values where denominator (unweighted base) is <30
@@ -312,8 +325,9 @@ shes_results <- shes_results %>%
 # check: where has suppression occurred?
 shes_results %>% 
   filter(is.na(rate)) %>%
-  select(indicator, code, trend_axis, split_value)
-# 7 HB values for mus_rec and adt10gp_tw
+  select(indicator, code, trend_axis, split_value) %>%
+  print(n=80)
+# Jan 2026: 74 values suppressed for 11 indicators. All at HB level.
 
 # keep only trend_axis values that are single year or 4-year aggregates (shorter aggregate periods are sometimes available but confuse matters)
 shes_results <- shes_results %>%
@@ -327,54 +341,42 @@ arrow::write_parquet(shes_results, paste0(derived_data, "shes_results.parquet"))
 shes_results <- arrow::read_parquet(paste0(derived_data, "shes_results.parquet"))
 
 # Check the splits are ok:
-table(shes_results0$split_name, shes_results0$split_value, useNA="always")
-# Three splits (age group, SIMD, and sex) available
+table(shes_results$split_name, shes_results$split_value, useNA="always")
+# Four splits (age group, SIMD, LTI and sex) available
 # No split_names or split_values are blank.
 # Each split_name has a Total category.
 # This is correct
 
-
-# Availability by HB
-hb_data <- shes_results1 %>%
-  filter(substr(code, 1, 3)=="S08" & nchar(trend_axis)>4)  # all HB data
-ftable(hb_data$indicator, hb_data$split_value, hb_data$sex, hb_data$year)  
-# Full HB coverage for all indicators in the data from aggregrated years: latest is 2021 (mid point of 2019-2023)
 
 # 6 adult vars from SHeS main sample are available from the published data (statistics.gov.scot, see SHeS script in the ScotPHO-indicator-production repo).
 # The UKDS data can supplement those published data with SIMD x sex data (Scotland). Just keep that breakdown here:
 published_vars <- c("gh_qg2", "gen_helf", "limitill",
                     "adt10gp_tw", "porftvg3", "wemwbs")
 
-published_to_keep <- shes_results1 %>%
+published_to_keep <- shes_results %>%
   filter(indicator %in% published_vars & 
            substr(code, 1, 3)=="S00" & 
            split_name=="Deprivation (SIMD)" & 
            sex %in% c("Male", "Female")) 
 
-shes_results1 <- shes_results1 %>%
+shes_results <- shes_results %>%
   filter(!indicator %in% published_vars) %>% 
   rbind(published_to_keep) 
+#Jan 2026: now 24752
 
 
 # data checks:
-table(shes_results1$trend_axis, useNA = "always") # 2008 to 2023, na NA
-table(shes_results1$sex, useNA = "always") # Male, Female, Total 
-table(shes_results1$indicator, useNA = "always") # 27 vars (18 adult, 9 child), no NA
-table(shes_results1$year, useNA = "always") # 2008 to 2023
-table(shes_results1$def_period, useNA = "always") # Aggregated years () and Survey year (), no NA
-table(shes_results1$split_name, useNA = "always") # Deprivation, Age group, or Sex, no NA
-table(shes_results1$split_value, useNA = "always") # 1 to 5, M/F/Total, 5 CYP age groups, no NA
+table(shes_results$trend_axis, useNA = "always") # 2008 to 2023, na NA
+table(shes_results$sex, useNA = "always") # Male, Female, Total 
+table(shes_results$indicator, useNA = "always") # 32 vars (20 adult, 12 child), no NA
+table(shes_results$year, useNA = "always") # 2008 to 2023
+table(shes_results$def_period, useNA = "always") # Aggregated years () and Survey year (), no NA
+table(shes_results$split_name, useNA = "always") # Deprivation, Age group, LTI or Sex, no NA
+table(shes_results$split_value, useNA = "always") # SIMD 1 to 5, M/F, age groups, LTI cats, no NA
 # all good
 
-# Suppress values where necessary:
-# SHeS suppress values where denominator (unweighted base) is <30
-shes_results1 <- shes_results1 %>%
-  mutate(across(.cols = c(numerator, rate, lowci, upci),
-                .fns = ~case_when(denominator < 30 ~ as.numeric(NA),
-                                  TRUE ~ as.numeric(.x)))) 
-
 # get indicator names into more informative names for using as filenames
-shes_raw_data <- shes_results1 %>%
+shes_raw_data <- shes_results %>%
   mutate(indicator = case_when( indicator == "gh_qg2" ~ "common_mh_probs",    
                                 indicator == "gen_helf" ~ "self_assessed_health",  
                                 indicator == "limitill2" ~ "limiting_long_term_condition",  
