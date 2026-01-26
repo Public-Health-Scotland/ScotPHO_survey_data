@@ -617,7 +617,7 @@ run_splits <- function (df, var, wt, type, split, lowergeogs=NULL) {
   split_nm = ifelse(split=="sex", "Sex",
                     ifelse(split=="quintile", "Deprivation (SIMD)",
                            ifelse(split=="limitill_SPLIT", "Long-term Illness",
-                                  ifelse(split %in% c("age65plus", "agegp", "age_group", "age_group_sdq"), "Age group", "ERROR"))))
+                                  ifelse(split %in% c("age65plus", "agegp", "age_group", "age_group_sdq", "agegp7"), "Age group", "ERROR"))))
   
   # add totals for this split (base df is the data with totals already added for sex)
   df <- add_totals(df, split)  # will add totals for this split, by duplicating the existing data 
