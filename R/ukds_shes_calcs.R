@@ -138,15 +138,15 @@ geo_lookup <- readRDS(paste0(profiles_lookups,"/Geography/opt_geo_lookup.rds")) 
 # percents:
 
 # 1. intwt used with main sample variables 
-svy_percent_gh_qg2 <- calc_indicator_data(df = shes_adult_data, var = "gh_qg2", wt = "intwt", ind_id = 30003, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
+svy_percent_gh_qg2 <- calc_indicator_data(df = shes_adult_data, var = "gh_qg2", wt = "intwt", ind_id = 30003, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "agegp7")) 
 #arrow::write_parquet(svy_percent_gh_qg2, "svy_percent_gh_qg2.parquet")
-svy_percent_gen_helf <- calc_indicator_data(shes_adult_data, "gen_helf", "intwt", ind_id=99108, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
+svy_percent_gen_helf <- calc_indicator_data(shes_adult_data, "gen_helf", "intwt", ind_id=99108, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "agegp7")) 
 #arrow::write_parquet(svy_percent_gen_helf, "svy_percent_gen_helf.parquet")
-svy_percent_limitill <- calc_indicator_data(shes_adult_data, "limitill2", "intwt", ind_id=99109, type= "percent", split_cols=c("quintile", "age65plus"))  
+svy_percent_limitill <- calc_indicator_data(shes_adult_data, "limitill2", "intwt", ind_id=99109, type= "percent", split_cols=c("quintile", "agegp7"))  
 #arrow::write_parquet(svy_percent_limitill, "svy_percent_limitill.parquet")
-svy_percent_adt10gp_tw <- calc_indicator_data(shes_adult_data, "adt10gp_tw2", "intwt", ind_id=99107, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
+svy_percent_adt10gp_tw <- calc_indicator_data(shes_adult_data, "adt10gp_tw2", "intwt", ind_id=99107, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "agegp7")) 
 #arrow::write_parquet(svy_percent_adt10gp_tw, "svy_percent_adt10gp_tw.parquet")
-svy_percent_porftvg3 <- calc_indicator_data(shes_adult_data, "porftvg3", "intwt", ind_id=30013, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
+svy_percent_porftvg3 <- calc_indicator_data(shes_adult_data, "porftvg3", "intwt", ind_id=30013, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "agegp7")) 
 #arrow::write_parquet(svy_percent_porftvg3, "svy_percent_porftvg3.parquet")
 svy_percent_rg17a_new <- calc_indicator_data(shes_adult_data, "rg17a_new", "intwt", ind_id=30026, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
 #arrow::write_parquet(svy_percent_rg17a_new, "svy_percent_rg17a_new.parquet")
@@ -185,7 +185,7 @@ svy_percent_suicide2 <- calc_indicator_data(shes_adult_data, "suicide2", "bio_wt
 # scores:
 
 # 1. intwts used with main sample variables 
-svy_score_wemwbs <- calc_indicator_data(shes_adult_data, "wemwbs", "intwt", ind_id=30001, type= "score", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
+svy_score_wemwbs <- calc_indicator_data(shes_adult_data, "wemwbs", "intwt", ind_id=30001, type= "score", split_cols=c("quintile", "limitill_SPLIT", "agegp7")) 
 #arrow::write_parquet(svy_score_wemwbs, "svy_score_wemwbs.parquet")
 svy_score_life_sat <- calc_indicator_data(shes_adult_data, "life_sat", "intwt", ind_id=30002, type= "score", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
 #arrow::write_parquet(svy_score_life_sat, "svy_score_life_sat.parquet")
@@ -234,9 +234,15 @@ shes_results <- mget(ls(pattern = "^svy_"), .GlobalEnv) %>% # finds all the data
   bind_rows(.)
 # save intermediate df:
 arrow::write_parquet(shes_results, paste0(derived_data, "shes_results.parquet"))
-shes_results <- arrow::read_parquet(paste0(derived_data, "shes_results.parquet")) #Jan 2026: 164848
+shes_results <- arrow::read_parquet(paste0(derived_data, "shes_results.parquet")) 
 rm(list=ls(pattern="^svy_"))
 
+new <- mget(ls(pattern = "^svy_"), .GlobalEnv) %>% # finds all the dataframes produced by the functions above
+  bind_rows(.)
+new_inds = c(30001, 30003, 99108, 99109, 99107, 30013)
+shes_results <- shes_results %>%
+  filter(!ind_id %in% new_inds) %>%
+  rbind(new)
 
 # Let's check whether there are denominators under 30 for each of the splits.
 # SHeS suppress any figures derived from denoms <30
@@ -350,8 +356,8 @@ table(shes_results$split_name, shes_results$split_value, useNA="always")
 
 # 6 adult vars from SHeS main sample are available from the published data (statistics.gov.scot, see SHeS script in the ScotPHO-indicator-production repo).
 # The UKDS data can supplement those published data with SIMD x sex data (Scotland). Just keep that breakdown here:
-published_vars <- c("gh_qg2", "gen_helf", "limitill",
-                    "adt10gp_tw", "porftvg3", "wemwbs")
+published_vars <- c("gh_qg2", "gen_helf", "limitill2",
+                    "adt10gp_tw2", "porftvg3", "wemwbs")
 
 published_to_keep <- shes_results %>%
   filter(indicator %in% published_vars & 
