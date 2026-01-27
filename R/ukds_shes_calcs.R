@@ -202,7 +202,7 @@ svy_percent_ch_ghq <- calc_indicator_data(shes_child_data, "ch_ghq", "cintwt", i
 #arrow::write_parquet(svy_percent_ch_ghq, "svy_percent_ch_ghq.parquet")
 svy_percent_ch_audit <- calc_indicator_data(shes_child_data, "ch_audit", "cintwt", ind_id=30129, type= "percent", split_cols=c("quintile", "age_group"))  
 #arrow::write_parquet(svy_percent_ch_audit, "svy_percent_ch_audit.parquet")
-svy_percent_childpa1hr <- calc_indicator_data(shes_child_data, "childpa1hr", "cintwt", ind_id=30111, type= "percent", split_cols=c("quintile", "age_group"))  %>% 
+svy_percent_childpa1hr <- calc_indicator_data(shes_child_data, "childpa1hr", "cintwt", ind_id=30111, type= "percent", split_cols=c("quintile", "age_group_chpa"))  %>% 
   mutate(split_value = ifelse(split_value=="0 to 4y", "2-4y", split_value))
 #arrow::write_parquet(svy_percent_childpa1hr, "svy_percent_childpa1hr.parquet")
 svy_percent_sdq <- calc_indicator_data(shes_child_data, "sdq_totg", "cintwt", ind_id=99117, type= "percent", split_cols=c("quintile", "age_group_sdq"))  
@@ -217,11 +217,11 @@ svy_percent_sdq_hyp <- calc_indicator_data(shes_child_data, "sdq_hypg", "cintwt"
 #arrow::write_parquet(svy_percent_sdq_hyp, "svy_percent_sdq_hyp.parquet")
 svy_percent_sdq_pro <- calc_indicator_data(shes_child_data, "sdq_pro", "cintwt", ind_id=30175, type= "percent", split_cols=c("quintile", "age_group_sdq"))  
 #arrow::write_parquet(svy_percent_sdq_pro, "svy_percent_sdq_pro.parquet")
-svy_percent_c00sum7s <- calc_indicator_data(shes_child_data, "c00sum7s", "cintwt", ind_id = 14003, type = "percent", split_cols=c("quintile", "age_group"))
+svy_percent_c00sum7s <- calc_indicator_data(shes_child_data, "c00sum7s", "cintwt", ind_id = 14003, type = "percent", split_cols=c("quintile", "age_group_chpa"))
 #arrow::write_parquet(svy_percent_c00sum7s, "svy_percent_c00sum7s.parquet")
-svy_percent_spt1ch <- calc_indicator_data(shes_child_data, "spt1ch", "cintwt", ind_id = 14006, type = "percent", split_cols=c("quintile", "age_group"))
+svy_percent_spt1ch <- calc_indicator_data(shes_child_data, "spt1ch", "cintwt", ind_id = 14006, type = "percent", split_cols=c("quintile", "age_group_chpa"))
 #arrow::write_parquet(svy_percent_spt1ch, "svy_percent_spt1ch.parquet")
-svy_percent_ch30plyg <- calc_indicator_data(shes_child_data, "ch30plyg", "cintwt", ind_id = 14007, type = "percent", split_cols=c("quintile", "age_group"))
+svy_percent_ch30plyg <- calc_indicator_data(shes_child_data, "ch30plyg", "cintwt", ind_id = 14007, type = "percent", split_cols=c("quintile", "age_group_chpa"))
 #arrow::write_parquet(svy_percent_ch30plyg, "svy_percent_ch30plyg.parquet")
 
 
