@@ -304,7 +304,6 @@ shes_results <- shes_results %>%
   filter(!(indicator %in% drop_hb_by_simd_and_lti & (substr(code, 1, 3)=="S08" & split_name %in% c("Deprivation (SIMD)", "Long-term Illness")))) %>%
   filter(!(indicator %in% drop_scot_by_agegp & (substr(code, 1, 3)=="S00" & split_name =="Age group"))) %>%
   filter(!(indicator %in% drop_all_hb_data & (substr(code, 1, 3)=="S08"))) 
-#Jan 2026: now 33877
 
 # drop splits by SIMD if they have data for fewer than three quintiles (+ total = 4)
 shes_results <- shes_results %>%
@@ -313,7 +312,6 @@ shes_results <- shes_results %>%
   ungroup() %>%
   filter(!(split_name=="Deprivation (SIMD)" & count<4)) %>% 
   select(-count) # none dropped in this case because all SIMD data are Scotland only
-#Jan 2026: now 33847 (30 rows dropped)
 
 # Suppress values where necessary:
 # SHeS suppress values where denominator (unweighted base) is <30
