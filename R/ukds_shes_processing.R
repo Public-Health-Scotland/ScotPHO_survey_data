@@ -965,9 +965,13 @@ shes_data <- shes_data %>%
                                                           age %in% c(5:11) ~ "5 to 11y",
                                                           age %in% c(12:15) ~ "12 to 15y",
                                                           TRUE ~ as.character(NA))) %>%
-                             mutate(age_group_sdq = case_when(age %in% c(4:11) ~ "4 to 11y",
-                                                              age %in% c(12:15) ~ "12 to 15y",
-                                                              TRUE ~ as.character(NA)))))
+                             mutate(age_group_sdq = case_when(age %in% c(4:8) ~ "4 to 8y",
+                                                              age %in% c(9:12) ~ "9 to 12y",
+                                                              TRUE ~ as.character(NA))) %>%
+                             mutate(age_group_chpa = case_when(age %in% c(2:4) ~ "2 to 4y",
+                                                               age %in% c(5:11) ~ "5 to 11y",
+                                                               age %in% c(12:15) ~ "12 to 15y",
+                                                               TRUE ~ as.character(NA)))))
   
 
 # Ready to unlist the df to create a flat file:
@@ -1155,7 +1159,7 @@ parent_data <- shes_data %>%
 shes_child_data <- shes_data %>%
   filter(child) %>% # keep 0-15
   select(year, trend_axis, contains("serial"), par1, par2, 
-         cintwt, psu, strata, sex, age, age_group, spatial.unit, spatial.scale, quintile, 
+         cintwt, psu, strata, sex, age, starts_with("age_group"), spatial.unit, spatial.scale, quintile, 
          c00sum7s, spt1ch, ch30plyg, childpa1hr, contains("sdq")) %>%
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par1"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #1st parent/carer in hhd
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par2"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #2nd parent/carer in hhd
@@ -1166,7 +1170,7 @@ shes_child_data <- shes_data %>%
          ch_audit = case_when(auditg.x=="yes" | auditg.y=="yes" ~ "yes", # yes if either parent has harmful/hazardous (8+) AUDIT score
                               auditg.x=="no" | auditg.y=="no" ~ "no", # otherwise no (if the data were collected)
                               TRUE ~ as.character(NA))) %>%  # NA if no data (question not asked / 'don't know'/refused/not answered)
-  select(year, trend_axis, cintwt, spatial.unit, spatial.scale, quintile, psu, strata, sex, age_group,  
+  select(year, trend_axis, cintwt, spatial.unit, spatial.scale, quintile, psu, strata, sex, starts_with("age_group"),  
          ch_ghq, ch_audit, contains("sdq"), childpa1hr, c00sum7s, spt1ch, ch30plyg)
 
 # save intermediate df:
