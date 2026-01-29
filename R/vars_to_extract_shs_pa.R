@@ -22,6 +22,9 @@ vars_to_keep <- c(
   "randsex",
   "randgender",
   
+  ##age (random adults only)
+  "randage",
+  
   # spatial units
   "hlth06", #some years have 2 hb/la variables (usually code and name): need both because of some unclear coding from the data dictionary
   "hlth14",
