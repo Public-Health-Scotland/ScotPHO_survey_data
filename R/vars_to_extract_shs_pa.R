@@ -14,7 +14,6 @@ vars_to_keep <- c(
   "serv3a", #satisfaction with local sports and leisure facilities
   "serv3e", #satisaction with local parks and open spaces
   "rg5a", #disability or long term illness
-  "rg5b", #limiting vs. non-limiting long-term illness
   
   # weights
   "ind_wt", # data in derived vars about random adult or collected from random adult. Incorporates stratum selection weights.

@@ -159,7 +159,7 @@ pacman::p_load(
 
 ## B. Source generic and specialist functions 
 
-source(here("functions", "functions_pa.R")) # sources the file "functions/functions.R" within this project/repo
+source(here("functions", "functions.R")) # sources the file "functions/functions.R" within this project/repo
 
 # Source functions/packages from ScotPHO's scotpho-indicator-production repo 
 # (works if you've stored the ScotPHO repo in same location as the current repo)
@@ -423,6 +423,14 @@ lookup_sprt3aa <- list(
   "refused" = "no"
 )
 
+lookup_rg5a <- list(
+  "Yes" = "Long-term illness",
+  "No" = "No long-term illness",
+  "Don't know" = "No long-term illness",
+  "Refused" = "No long-term illness",
+  "Refusal" = "No long-term illness"
+)
+
 # Create a LUT for a person's uniqid to SIMD for the SHCS processing
 # =================================================================================================================
 
@@ -554,14 +562,13 @@ shs_data <- extracted_survey_data_shs %>%
          age_grp = case_when(randage < 65 ~ "16-64", #recoding into 16-64 and 65+ due to different guidelines. 
                              randage >= 65 ~ "65+", #Consider revisiting later and adding more granular groups
                              TRUE ~ as.character(randage))) %>% 
-  mutate(long_term_illness = case_when(rg5a == "Yes" & rg5b == "Yes, a lot" ~ "Limiting long-term illness",
-                                       rg5a == "Yes" & rg5b == "Not at all" ~ "Non-limiting long-term illness",
-                                       rg5a == "No" ~ "No long-term illness", 
-                                       TRUE ~ NA_character_)) |> #recoding 2x disability Qs into one variable
+  rename(long_term_illness = rg5a) %>%
+
   mutate(outdoor = recode(outdoor, !!!lookup_outdoor)) %>%
   mutate(sprt3aa = recode(sprt3aa, !!!lookup_sprt3aa)) %>%
   mutate(serv3a = recode(serv3a, !!!lookup_serv3a)) %>%
   mutate(serv3e = recode(serv3e, !!!lookup_serv3e)) %>%
+  mutate(long_term_illness = recode(long_term_illness, !!!lookup_rg5a)) %>%
   mutate(anysportnowalk = recode(anysportnowalk, !!!lookup_anysportnowalk)) %>%
 
   select(-contains(c("hlth", "rand", "pc15", "dec", "file", "quin", "cred")), -la_code, -md04quin, -council) %>% #drop if not needed
