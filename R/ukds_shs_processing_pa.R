@@ -358,7 +358,7 @@ responses_as_list_shs
 # [7] "NOT A - Walking (at least 30 minutes for recreational purposes)"
 # [8] "A - Walking (at least 30 minutes for recreational purposes)"    
 # [9] "Walking"                                                        
-# [10] "NOT Walking"     
+# [10] "NOT Walking"    
 ###################################
 
 # 5. How should the responses be coded?
@@ -421,15 +421,6 @@ lookup_sprt3aa <- list(
   "NOT A - Walking (at least 30 minutes for recreational purposes)" = "no",
   "NOT Walking" = "no",
   "refused" = "no"
-)
-
-lookup_rg5a <- list(
-  "Yes" = "yes",
-  "No" = "no",
-  "Don't know" = "no",
-  "Refusal" = "no",
-  "Refused" = "no",
-  "Don't know" = "no"
 )
 
 # Create a LUT for a person's uniqid to SIMD for the SHCS processing
@@ -563,13 +554,16 @@ shs_data <- extracted_survey_data_shs %>%
          age_grp = case_when(randage < 65 ~ "16-64", #recoding into 16-64 and 65+ due to different guidelines. 
                              randage >= 65 ~ "65+", #Consider revisiting later and adding more granular groups
                              TRUE ~ as.character(randage))) %>% 
+  mutate(long_term_illness = case_when(rg5a == "Yes" & rg5b == "Yes, a lot" ~ "Limiting long-term illness",
+                                       rg5a == "Yes" & rg5b == "Not at all" ~ "Non-limiting long-term illness",
+                                       rg5a == "No" ~ "No long-term illness", 
+                                       TRUE ~ NA_character_)) |> #recoding 2x disability Qs into one variable
   mutate(outdoor = recode(outdoor, !!!lookup_outdoor)) %>%
   mutate(sprt3aa = recode(sprt3aa, !!!lookup_sprt3aa)) %>%
   mutate(serv3a = recode(serv3a, !!!lookup_serv3a)) %>%
   mutate(serv3e = recode(serv3e, !!!lookup_serv3e)) %>%
   mutate(anysportnowalk = recode(anysportnowalk, !!!lookup_anysportnowalk)) %>%
-  mutate(rg5a = recode(rg5a, !!!lookup_rg5a)) %>%
-  
+
   select(-contains(c("hlth", "rand", "pc15", "dec", "file", "quin", "cred")), -la_code, -md04quin, -council) %>% #drop if not needed
   merge(y = shs_design_effects, by.x="year", by.y="Year", all.x=TRUE) |> 
   filter(year >= 2012) #none of my variables have data from before 2012 so getting rid of unneeded data
@@ -597,7 +591,7 @@ table(shs_data$serv3a, useNA = "always")# just yes, no and NA, so coding has wor
 table(shs_data$serv3e, useNA = "always")# just yes, no and NA, so coding has worked
 table(shs_data$sprt3aa, useNA = "always") # just yes, no and NA, so coding has worked
 table(shs_data$anysportnowalk, useNA = "always") # just yes, no and NA, so coding has worked
-table(shs_data$rg5a, useNA = "always") # just yes, no and NA, so coding has worked
+table(shs_data$long_term_illness, useNA = "always") # just yes, no and NA, so coding has worked
 
 # # repeat the data with sex=="Total"
 shs_data <- shs_data %>%
@@ -609,7 +603,7 @@ shs_data2 <- shs_data %>%
          hb = paste0 ("NHS ", hb)) %>%
   mutate(la = gsub(" and ", " & ", la)) %>%
   mutate(new_Scotland = "Scotland") %>%
-  pivot_longer(cols = c("sex", "rg5a", "simd5", "age_grp"), names_to = "split_name", values_to = "split_value") |> #pivoting the 3x splits longer
+  pivot_longer(cols = c("sex", "long_term_illness", "simd5", "age_grp"), names_to = "split_name", values_to = "split_value") |> #pivoting the 3x splits longer
   pivot_longer(cols = c("la", "hb", "new_Scotland"), names_to = "spatial.scale", values_to = "spatial.unit") #pivoting the areas longer
 
 #Add on sex totals
@@ -620,7 +614,7 @@ sex_totals <- shs_data2 |>
 shs_data3 <- bind_rows(shs_data2, sex_totals)
 
 lti_totals <- shs_data3 |> 
-  filter(split_name == "rg5a") |> 
+  filter(split_name == "long_term_illness") |> 
   mutate(split_value = "Total")
 
 shs_data4 <- bind_rows(shs_data3, lti_totals)
@@ -664,7 +658,7 @@ shs_percent_analysis <- function (df, var, wt) {
     select(year, starts_with("spatial"), numerator = yes_unwted, denominator, rate, lowci, upci, split_name, split_value) %>%
     mutate(indicator = var) |> 
     filter(!is.na(split_value)) |> #filter out rows where the split variable is na
-    mutate(split_name = case_when(split_name == "rg5a" ~ "Long-term Illness (LTI)",
+    mutate(split_name = case_when(split_name == "long_term_illness" ~ "Long-term Illness (LTI)",
                                   split_name == "sex" ~ "Sex", 
                                   split_name == "simd5" ~ "Deprivation",
                                   split_name == "age_grp" ~ "Age Group"))
