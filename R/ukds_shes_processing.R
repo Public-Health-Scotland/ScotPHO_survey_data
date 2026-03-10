@@ -409,6 +409,16 @@ responses_as_list_shes
 # [5] "50 or more hours a week"                "20 - 34 hours a week"                   "Varies (spontaneous - not on showcard)" "35 - 49 hours a week"                  
 # [9] "Not applicable"                         "Don't Know"                             "Varies"                                 "Don't know"                            
 # 
+# $rg17a_new
+# [1] "Item not applicable"                    "Schedule not applicable"                "Up to 4 hours a week"                   "5 - 19 hours a week"                   
+# [5] "50 or more hours a week"                "20 - 34 hours a week"                   "Varies (spontaneous - not on showcard)" "35 - 49 hours a week"                  
+# [9] "Not applicable"                         "Don't Know"                             "Varies"                                 "Don't know"                            
+# 
+# $rg17anew
+# [1] "Item not applicable"                    "Schedule not applicable"                "5 - 19 hours a week"                    "35 - 49 hours a week"                  
+# [5] "20 - 34 hours a week"                   "50 or more hours a week"                "Up to 4 hours a week"                   "Varies (Spontaneous - not on showcard)"
+# [9] "Don't know"                          
+#
 # $sdq_cong
 # [1] "Schedule not applicable" "0-2"                     "4-10"                    "3"                       "No answer/refused"       "Schedule not obtained"  
 # [7] "Refused"                 "schedule not applicable" "schedule not obtained"   "Refusal"                 "Refused/not answered"    NA                       
@@ -484,7 +494,7 @@ responses_as_list_shes
 # [10] "Don't know"                              "Refusal"                                 "Dont know"                              
 # [13] NA                                        "Not applicable"                          "Refused"                                
 # [16] "Yes in last year (including last week)"  "Never"                                   "Yes, in last year (including last week)"
-# [19] "Yes, longer than year"                   "Schedule not obtained"                  
+# [19] "Yes, longer than year"                   "Schedule not obtained"                  "Yes, in last year (including last week or month)"              
 # 
 # $support1
 # [1] "schedule not applicable" "Tend to agree"           "Tend to disagree"        "Not_Apply"               "Strongly agree"          "Neutral"                
@@ -537,10 +547,9 @@ responses_as_list_shes
 # [1] "No"                      "Schedule not applicable" "Yes"       
 # 
 # $spt1ch
-# [1] "not applicable"          "No"                      "Yes"                     "Schedule not applicable"
-# [5] "Don't know"              "No answer/refused"       "Refused"                 "schedule not applicable"
-# [9] "refused"                 "don't know"              "Don't Know"              "Refusal"                
-# [13] NA   
+# [1] "not applicable"          "No"                      "Yes"                     "Schedule not applicable" "Don't know"              "No answer/refused"      
+# [7] "Refused"                 "schedule not applicable" "refused"                 "don't know"              "Don't Know"              "Refusal"                
+# [13] NA                        "Dont know"               "Item not applicable"   
 ###################################
 
 
@@ -661,7 +670,7 @@ lookup_porftvg3 <- list(
   "Less than 1 portion"="no"
 )
 
-# Unpaid caring
+# Unpaid caring (NB. 2024: renamed to rg17anew)
 lookup_rg17a_new <- list( 
   # we opted to treat those responding 'varies' and 'don't know' as unlikely to be giving 20+ hours care/week, and to include them in the denominator only. 
   # It's possible these answers were given by respondents who didn't know which of the 3 20+ hours categories their caregiving fell into, but we cannot know. 
@@ -676,6 +685,7 @@ lookup_rg17a_new <- list(
   "Don't Know"= "no"
 )
 
+                        
 # For recoding sdq_totg
 lookup_sdq_totg <- list(
   "14-16"="yes", 
@@ -741,6 +751,7 @@ lookup_suicide2 <- list(
   "Yes in last year (inc last week)"="yes", 
   "Yes in last year (including last week)"="yes", 
   "Yes, in last year (including last week)"="yes",
+  "Yes, in last year (including last week or month)" = "yes",
   "Never"="no", 
   "No"="no", 
   "Yes longer than year"="no", 
@@ -1006,6 +1017,8 @@ shes_data <- shes_data %>%
   mutate(anxsymp = coalesce(anxsymp, dvj12)) %>%
   mutate(adt10gp_tw = coalesce(adt10gptw, adt10gp_tw)) %>%
   mutate(mus_rec = coalesce(mus_rec, musrec)) %>%
+  mutate(rg17a_new = coalesce(rg17a_new, rg17anew)) %>%
+  mutate(rg15a_new = coalesce(rg15a_new, rg15anew)) %>%
   #mutate(gen_helf = coalesce(gen_helf, genhelf)) %>% # years with genhelf now excluded before this point
   #mutate(gh_qg2 = coalesce(ghqg2, gh_qg2)) %>% # years with ghqg2 now excluded before this point
   # delete the redundant vars now
