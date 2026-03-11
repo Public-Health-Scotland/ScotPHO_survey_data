@@ -884,6 +884,7 @@ shes_data <- extracted_survey_data_shes %>%
 shes_data <- shes_data %>% 
   mutate(year = case_when(year=="2022" ~ "22", 
                           year=="2023" ~ "23",
+                          year=="2024" ~ "24",
                           TRUE ~ year)) %>%
   filter(nchar(year)==2|nchar(year)==8)
   
@@ -1003,7 +1004,7 @@ shes_data <- shes_data %>%
 table(shes_data$sex, shes_data$year, useNA = "always") # Female/Male; some NA from 2022 (include in Totals)
 table(shes_data$quintile, shes_data$year, useNA = "always") # 5 bands; no NAs
 table(shes_data$spatial.unit, useNA = "always") # 14 HBs as expected, no NA
-table(shes_data$age, useNA = "always") # 0 to 103y; 4 NAs from ~2023 (refused to answer)
+table(shes_data$age, useNA = "always") # 0 to 103y; 6 NAs from ~2023 (refused to answer)
 
 
 # Combine indicators that have two different names in the data
@@ -1022,7 +1023,7 @@ shes_data <- shes_data %>%
   #mutate(gen_helf = coalesce(gen_helf, genhelf)) %>% # years with genhelf now excluded before this point
   #mutate(gh_qg2 = coalesce(ghqg2, gh_qg2)) %>% # years with ghqg2 now excluded before this point
   # delete the redundant vars now
-  select(-c(involv19, support1_19, pcris19, dsh5, dvg11, dvj12, musrec, -adt10gptw)) 
+  select(-c(involv19, support1_19, pcris19, dsh5, dvg11, dvj12, musrec, adt10gptw, rg17anew, rg15anew)) 
 
 
 # Convert some variables to numeric where appropriate
@@ -1065,10 +1066,10 @@ shes_data <- shes_data %>%
 
   # Portions of fruit and veg: variable changed in 2021
   mutate(porftvg3 = recode(porftvg3, !!!lookup_porftvg3, .default = as.character(NA))) %>%
-  # porftvg3intake data only in 2021 so far, so not in an aggregated file, but could require processing once more data are added
- # mutate(porftvg3intake = recode(porftvg3intake, !!!lookup_porftvg3, .default = as.character(NA))) %>% # porftvg3intake variable (from food diary) only used if number_of_recalls == 2
- # mutate(porftvg3intake = case_when(number_of_recalls %in% c("1", "Not applicable") ~ as.character(NA),
- #                                   TRUE ~ porftvg3intake)) %>% # in 2021 porftvg3 is only valid if number_of_recalls == 2, so recode other options as NA. Earlier years won't have anything but NA for the recall var. 
+  # porftvg3intake data only in 2021 and 2024 so far
+  mutate(porftvg3intake = recode(porftvg3intake, !!!lookup_porftvg3, .default = as.character(NA))) %>% # porftvg3intake variable (from food diary) only used if number_of_recalls == 2
+  mutate(porftvg3intake = case_when(number_of_recalls %in% c("1", "Not applicable") ~ as.character(NA),
+                                    TRUE ~ porftvg3intake)) %>% # in 2021 porftvg3 is only valid if number_of_recalls == 2, so recode other options as NA. Earlier years won't have anything but NA for the recall var. 
   
   # Hours of unpaid caring needs coding from 2 vars:
   mutate(rg17a_new = recode(rg17a_new, !!!lookup_rg17a_new, .default = as.character(NA))) %>%
@@ -1126,6 +1127,8 @@ private_pops_2022to23 <- read.xlsx(here(shes_source_dir, "NRS - 2025 - 047 - Pri
 private_pops <- private_pops_2008to18 %>%
   merge(y = private_pops_2019to21) %>%
   merge(y = private_pops_2022to23) %>%
+  # repeat 2023 for 2024 until 2024 data received
+  mutate(`2024` = `2023`) %>%
   rename(sex=Sex,
          agegp7 = Age.group) %>%
   pivot_longer(cols = c(-sex, -agegp7), names_to = "year", values_to = "scotpop", names_transform = list(year = as.integer)) %>%
@@ -1141,7 +1144,7 @@ private_pops <- private_pops_2008to18 %>%
 
 # merge in the private household pops for age standardisation purposes
 shes_data <- shes_data %>%  
-  merge(y=private_pops, by = c("agegp7", "year", "sex"), all.x=TRUE) 
+  merge(y=private_pops, by = c("agegp7", "year", "sex"), all.x=TRUE) # keeps even those without sex=m/f, for completeness
 
 # save intermediate df:
 #arrow::write_parquet(shes_data, paste0(derived_data, "shes_data.parquet"))
