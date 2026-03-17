@@ -347,26 +347,26 @@ table(shes_results$split_name, shes_results$split_value, useNA="always")
 # Each split_name has a Total category.
 # This is correct
 
-
-# 6 adult vars from SHeS main sample are available from the published data (statistics.gov.scot, see SHeS script in the ScotPHO-indicator-production repo).
-# The UKDS data can supplement those published data with SIMD x sex data (Scotland). 
-published_vars <- c("gh_qg2", "gen_helf", "limitill2",
-                    "adt10gp_tw2", "porftvg3", "wemwbs")
-
-# Keep SIMD x sex for Scotland:
-published_to_keep_1 <- shes_results %>%
-  filter(indicator %in% published_vars & 
-           substr(code, 1, 3)=="S00" & 
-           split_name=="Deprivation (SIMD)" & 
-           sex %in% c("Male", "Female")) 
-# and also keep data for the coarser Age groups we have created here (don't use the finer ones in the published data as these aren't as usable for HBs)
-published_to_keep_2 <- shes_results %>%
-  filter(indicator %in% published_vars & 
-           split_name=="Age group") 
-
-shes_results <- shes_results %>%
-  filter(!indicator %in% published_vars) %>% 
-  rbind(published_to_keep_1, published_to_keep_2) 
+# ### 2026 update: 2024 data not available on statistics.scot.gov yet, so keep all from the UKDS microdata
+# # 6 adult vars from SHeS main sample are available from the published data (statistics.gov.scot, see SHeS script in the ScotPHO-indicator-production repo).
+# # The UKDS data can supplement those published data with SIMD x sex data (Scotland). 
+# published_vars <- c("gh_qg2", "gen_helf", "limitill2",
+#                     "adt10gp_tw2", "porftvg3", "wemwbs")
+# 
+# # Keep SIMD x sex for Scotland:
+# published_to_keep_1 <- shes_results %>%
+#   filter(indicator %in% published_vars & 
+#            substr(code, 1, 3)=="S00" & 
+#            split_name=="Deprivation (SIMD)" & 
+#            sex %in% c("Male", "Female")) 
+# # and also keep data for the coarser Age groups we have created here (don't use the finer ones in the published data as these aren't as usable for HBs)
+# published_to_keep_2 <- shes_results %>%
+#   filter(indicator %in% published_vars & 
+#            split_name=="Age group") 
+# 
+# shes_results <- shes_results %>%
+#   filter(!indicator %in% published_vars) %>% 
+#   rbind(published_to_keep_1, published_to_keep_2) 
 
 
 # data checks:
