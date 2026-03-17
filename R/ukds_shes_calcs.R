@@ -258,16 +258,16 @@ make_denom_table <- function(ind) {
     ungroup()  
 }
 
-make_denom_table("gh_qg2")# drop HB * SIMD/LTI, suppress others
-make_denom_table("gen_helf") # drop HB * SIMD/LTI, suppress others
-make_denom_table("adt10gp_tw2") # drop HB * SIMD/LTI, suppress others
-make_denom_table("porftvg3") # drop HB * SIMD/LTI, suppress others
+make_denom_table("gh_qg2")# drop HB * SIMD/LTI/agegp, suppress others
+make_denom_table("gen_helf") # drop HB * SIMD/LTI/agegp, suppress others
+make_denom_table("adt10gp_tw2") # drop HB * SIMD/LTI/agegp, suppress others
+make_denom_table("porftvg3") # drop HB * SIMD/LTI/agegp, suppress others
 make_denom_table("rg17a_new") # drop HB * SIMD/LTI, suppress others
 make_denom_table("mus_rec") # drop HB * SIMD/LTI, suppress others
 make_denom_table("adt10gp_tw_LOW") # drop HB * SIMD/LTI, suppress others
-make_denom_table("wemwbs") # drop HB * SIMD/LTI, suppress others
+make_denom_table("wemwbs") # drop HB * SIMD/LTI/agegp, suppress others
 make_denom_table("life_sat") # drop HB * SIMD/LTI, suppress others
-make_denom_table("limitill2") # drop HB * SIMD, suppress others
+make_denom_table("limitill2") # drop HB * SIMD/agegp, suppress others
 make_denom_table("support1") # drop scot x age group
 make_denom_table("involve") # nothing to drop
 make_denom_table("p_crisis") # nothing to drop
@@ -295,6 +295,7 @@ make_denom_table("ch30plyg") # drop all HB splits
 # Add any new vars to these vectors, depending on which splits you want to drop:
 drop_hb_by_simd_and_lti <- c("gh_qg2", "gen_helf","adt10gp_tw2","porftvg3","rg17a_new",
                              "mus_rec","adt10gp_tw_LOW","wemwbs","life_sat","limitill2")
+drop_hb_by_agegp <- c("gh_qg2", "gen_helf","adt10gp_tw2","porftvg3","wemwbs","limitill2")
 drop_scot_by_agegp <- "support1"
 drop_all_hb_data <- c("ch_ghq","ch_audit","childpa1hr","sdq_totg","sdq_peeg",
                       "sdq_emog","sdq_cong","sdq_hypg","sdq_pro","c00sum7s","spt1ch","ch30plyg")
@@ -302,6 +303,7 @@ drop_all_hb_data <- c("ch_ghq","ch_audit","childpa1hr","sdq_totg","sdq_peeg",
 # drop splits as identified above:
 shes_results <- shes_results %>%
   filter(!(indicator %in% drop_hb_by_simd_and_lti & (substr(code, 1, 3)=="S08" & split_name %in% c("Deprivation (SIMD)", "Long-term Illness")))) %>%
+  filter(!(indicator %in% drop_hb_by_agegp & (substr(code, 1, 3)=="S08" & split_name == "Age group"))) %>%
   filter(!(indicator %in% drop_scot_by_agegp & (substr(code, 1, 3)=="S00" & split_name =="Age group"))) %>%
   filter(!(indicator %in% drop_all_hb_data & (substr(code, 1, 3)=="S08"))) 
 
@@ -325,7 +327,7 @@ shes_results %>%
   filter(is.na(rate)) %>%
   select(indicator, code, trend_axis, split_value) %>%
   print(n=80)
-# Jan 2026: 74 values suppressed for 11 indicators. All at HB level.
+# March 2026: 31 values suppressed for 10 indicators. All at HB level.
 
 # keep only trend_axis values that are single year or 4-year aggregates (shorter aggregate periods are sometimes available but confuse matters)
 shes_results <- shes_results %>%
@@ -345,33 +347,33 @@ table(shes_results$split_name, shes_results$split_value, useNA="always")
 # Each split_name has a Total category.
 # This is correct
 
-
-# 6 adult vars from SHeS main sample are available from the published data (statistics.gov.scot, see SHeS script in the ScotPHO-indicator-production repo).
-# The UKDS data can supplement those published data with SIMD x sex data (Scotland). 
-published_vars <- c("gh_qg2", "gen_helf", "limitill2",
-                    "adt10gp_tw2", "porftvg3", "wemwbs")
-
-# Keep SIMD x sex for Scotland:
-published_to_keep_1 <- shes_results %>%
-  filter(indicator %in% published_vars & 
-           substr(code, 1, 3)=="S00" & 
-           split_name=="Deprivation (SIMD)" & 
-           sex %in% c("Male", "Female")) 
-# and also keep data for the coarser Age groups we have created here (don't use the finer ones in the published data as these aren't as usable for HBs)
-published_to_keep_2 <- shes_results %>%
-  filter(indicator %in% published_vars & 
-           split_name=="Age group") 
-
-shes_results <- shes_results %>%
-  filter(!indicator %in% published_vars) %>% 
-  rbind(published_to_keep_1, published_to_keep_2) 
+# ### 2026 update: 2024 data not available on statistics.scot.gov yet, so keep all from the UKDS microdata
+# # 6 adult vars from SHeS main sample are available from the published data (statistics.gov.scot, see SHeS script in the ScotPHO-indicator-production repo).
+# # The UKDS data can supplement those published data with SIMD x sex data (Scotland). 
+# published_vars <- c("gh_qg2", "gen_helf", "limitill2",
+#                     "adt10gp_tw2", "porftvg3", "wemwbs")
+# 
+# # Keep SIMD x sex for Scotland:
+# published_to_keep_1 <- shes_results %>%
+#   filter(indicator %in% published_vars & 
+#            substr(code, 1, 3)=="S00" & 
+#            split_name=="Deprivation (SIMD)" & 
+#            sex %in% c("Male", "Female")) 
+# # and also keep data for the coarser Age groups we have created here (don't use the finer ones in the published data as these aren't as usable for HBs)
+# published_to_keep_2 <- shes_results %>%
+#   filter(indicator %in% published_vars & 
+#            split_name=="Age group") 
+# 
+# shes_results <- shes_results %>%
+#   filter(!indicator %in% published_vars) %>% 
+#   rbind(published_to_keep_1, published_to_keep_2) 
 
 
 # data checks:
-table(shes_results$trend_axis, useNA = "always") # 2008 to 2023, na NA
+table(shes_results$trend_axis, useNA = "always") # 2008 to 2024, no NA
 table(shes_results$sex, useNA = "always") # Male, Female, Total 
 table(shes_results$indicator, useNA = "always") # 32 vars (20 adult, 12 child), no NA
-table(shes_results$year, useNA = "always") # 2008 to 2023
+table(shes_results$year, useNA = "always") # 2008 to 2024
 table(shes_results$def_period, useNA = "always") # Aggregated years () and Survey year (), no NA
 table(shes_results$split_name, useNA = "always") # Deprivation, Age group, LTI or Sex, no NA
 table(shes_results$split_value, useNA = "always") # SIMD 1 to 5, M/F, age groups, LTI cats, no NA

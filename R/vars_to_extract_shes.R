@@ -50,12 +50,12 @@ vars_to_keep <- c(
   "depsymp", "depsymp_t20", "dvg11", 
   "anxsymp", "anxsymp_t20", "dvj12", 
   "porftvg3", #"porftvg5", #(last one used in 2003)
-  "porftvg3intake", "number_of_recalls", #Intake used in 2021 data: might not be comparable (though SG present in same timeseries). Published intake24 data = only fom those with 2 recalls.
+  "porftvg3intake", "number_of_recalls", "numberofrecalls",#Intake used in 2021 data: might not be comparable (though SG present in same timeseries). Published intake24 data = only fom those with 2 recalls.
   "gen_helf", "genhelf",
   "limitill",
   "involve", "involv19",
   "pcris19", "p_crisis",  
-  "rg17a_new", "rg15a_new", # need rg15a_new to identify those who give no caring per week (0 hrs not included in rg17a_new)
+  "rg17a_new", "rg15a_new", "rg17anew", "rg15anew",# need rg15a_new to identify those who give no caring per week (0 hrs not included in rg17a_new)
   "str_work2",
   "work_bal", # mean score variable 
   "contrl", 
@@ -66,7 +66,7 @@ vars_to_keep <- c(
   "life_sat", # mean score variable
   "sdq_totg", "sdq_pro", "sdq_emog", "sdq_cong", "sdq_hypg", "sdq_peeg", #child sdq variables 
  "mus_rec", #adults meeting the muscle strengthening guideline
- "musrec", #used in 2023
+ "musrec", #used in 2023 and 2024
  "spt1ch", #children participating in sport
  "ch30plyg", #children engaging in active play
 
@@ -123,6 +123,8 @@ vars_to_keep <- c(
   "int22wt",
  "int19212223wt",
  "int23wt",
+ "int21222324wt",
+ "int24wt",
   # version a (vera) weights (22 files have vera weights: annual and ~3yr)
   "vera08wt", 
   "vera0810wt", 
@@ -150,6 +152,7 @@ vars_to_keep <- c(
   "vera21wt",
   "vera22wt",
  "vera23wt",
+ "vera24wt",
  # version b (verb) biol module weights (22 files have bio weights: annual, ~3yr and ~4yr, from 1213)
   "bio12131415wt",
   "bio121314wt",
@@ -177,6 +180,8 @@ vars_to_keep <- c(
   "bio22wt",
  "bio19212223wt",
  "bio23wt",
+ "bio21222324wt",
+ "bio24wt",
  
   #nurse weights: (pre-dated introduction of bioweights, 2008-11, and are used for self-harm/suicide/anxiety/depression questions)
   "nurs08wt",
@@ -227,7 +232,9 @@ vars_to_keep <- c(
  "cint21wt",
  "cint22wt",
  "cint19212223wt",
- "cint23wt"
+ "cint23wt",
+ "cint21222324wt",
+ "cint24wt"
  
  
  
