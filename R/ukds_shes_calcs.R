@@ -161,9 +161,9 @@ svy_percent_involve <- calc_indicator_data(shes_adult_data, "involve", "verawt",
 #arrow::write_parquet(svy_percent_involve, "svy_percent_involve.parquet")
 svy_percent_p_crisis <- calc_indicator_data(shes_adult_data, "p_crisis", "verawt", ind_id=30023, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
 #arrow::write_parquet(svy_percent_p_crisis, "svy_percent_p_crisis.parquet")
-svy_percent_str_work2 <- calc_indicator_data(shes_adult_data, "str_work2", "verawt", ind_id=30051, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
+svy_percent_str_work2 <- calc_indicator_data(shes_adult_data, "str_work2", "verawt", ind_id=30051, type= "percent", split_cols=c("quintile", "limitill_SPLIT")) 
 #arrow::write_parquet(svy_percent_str_work2, "svy_percent_str_work2.parquet")
-svy_percent_contrl <- calc_indicator_data(shes_adult_data, "contrl", "verawt", ind_id=30053, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
+svy_percent_contrl <- calc_indicator_data(shes_adult_data, "contrl", "verawt", ind_id=30053, type= "percent", split_cols=c("quintile", "limitill_SPLIT")) 
 #arrow::write_parquet(svy_percent_contrl, "svy_percent_contrl.parquet")
 svy_percent_support1 <- calc_indicator_data(shes_adult_data, "support1", "verawt", ind_id=30054, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
 #arrow::write_parquet(svy_percent_support1, "svy_percent_support1.parquet")
@@ -191,7 +191,7 @@ svy_score_life_sat <- calc_indicator_data(shes_adult_data, "life_sat", "intwt", 
 #arrow::write_parquet(svy_score_life_sat, "svy_score_life_sat.parquet")
 
 # 2. verawt used for vera vars: National and SIMD only (samples too small for HB) 
-svy_score_work_bal <- calc_indicator_data(shes_adult_data, "work_bal", "verawt", ind_id=30052, type= "score", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
+svy_score_work_bal <- calc_indicator_data(shes_adult_data, "work_bal", "verawt", ind_id=30052, type= "score", split_cols=c("quintile", "limitill_SPLIT")) 
 #arrow::write_parquet(svy_score_work_bal, "svy_score_work_bal.parquet")
 
 
@@ -217,11 +217,11 @@ svy_percent_sdq_hyp <- calc_indicator_data(shes_child_data, "sdq_hypg", "cintwt"
 #arrow::write_parquet(svy_percent_sdq_hyp, "svy_percent_sdq_hyp.parquet")
 svy_percent_sdq_pro <- calc_indicator_data(shes_child_data, "sdq_pro", "cintwt", ind_id=30175, type= "percent", split_cols=c("quintile", "age_group_sdq"))  
 #arrow::write_parquet(svy_percent_sdq_pro, "svy_percent_sdq_pro.parquet")
-svy_percent_c00sum7s <- calc_indicator_data(shes_child_data, "c00sum7s", "cintwt", ind_id = 14003, type = "percent", split_cols=c("quintile", "age_group_chpa"))
+svy_percent_c00sum7s <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "c00sum7s", "cintwt", ind_id = 14003, type = "percent", split_cols=c("quintile", "age_group_chpa"))
 #arrow::write_parquet(svy_percent_c00sum7s, "svy_percent_c00sum7s.parquet")
-svy_percent_spt1ch <- calc_indicator_data(shes_child_data, "spt1ch", "cintwt", ind_id = 14006, type = "percent", split_cols=c("quintile", "age_group_chpa"))
+svy_percent_spt1ch <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "spt1ch", "cintwt", ind_id = 14006, type = "percent", split_cols=c("quintile", "age_group_chpa"))
 #arrow::write_parquet(svy_percent_spt1ch, "svy_percent_spt1ch.parquet")
-svy_percent_ch30plyg <- calc_indicator_data(shes_child_data, "ch30plyg", "cintwt", ind_id = 14007, type = "percent", split_cols=c("quintile", "age_group_chpa"))
+svy_percent_ch30plyg <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "ch30plyg", "cintwt", ind_id = 14007, type = "percent", split_cols=c("quintile", "age_group_chpa"))
 #arrow::write_parquet(svy_percent_ch30plyg, "svy_percent_ch30plyg.parquet")
 
 
