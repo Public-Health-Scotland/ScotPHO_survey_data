@@ -230,11 +230,11 @@ svy_percent_ch30plyg <- calc_indicator_data(shes_child_data[shes_child_data$age_
 # 9. Combine all the resulting indicator data into a single file
 ###############################################################################
 
-shes_results <- mget(ls(pattern = "^svy_"), .GlobalEnv) %>% # finds all the dataframes produced by the functions above
+shes_results0 <- mget(ls(pattern = "^svy_"), .GlobalEnv) %>% # finds all the dataframes produced by the functions above
   bind_rows(.)
 # save intermediate df:
-arrow::write_parquet(shes_results, paste0(derived_data, "shes_results.parquet"))
-shes_results <- arrow::read_parquet(paste0(derived_data, "shes_results.parquet")) 
+arrow::write_parquet(shes_results0, paste0(derived_data, "shes_results0.parquet"))
+shes_results0 <- arrow::read_parquet(paste0(derived_data, "shes_results0.parquet")) 
 
 #rm(list=ls(pattern="^svy_"))
 
@@ -242,12 +242,13 @@ shes_results <- arrow::read_parquet(paste0(derived_data, "shes_results.parquet")
 # SHeS suppress any figures derived from denoms <30
 make_denom_table <- function(ind) {
   
-  shes_results %>%
+  shes_results0 %>%
     filter(indicator==ind) %>%
-    filter(split_value!="Total") %>%
+    mutate(split_name = ifelse(split_value=="Total", "Total", split_name)) %>%
     mutate(areatype = case_when(substr(code, 1, 3)=="S00" ~ "Scotland",
                                 substr(code, 1, 3)=="S08" ~ "Health board",
                                 TRUE ~ "NA")) %>%
+    unique() %>%
     select(trend_axis, areatype, split_name, denominator) %>%
     group_by(areatype, split_name) %>%
     summarise(mean_denom = mean(denominator),
@@ -258,15 +259,15 @@ make_denom_table <- function(ind) {
     ungroup()  
 }
 
-make_denom_table("gh_qg2")# drop HB * SIMD/LTI/agegp, suppress others
-make_denom_table("gen_helf") # drop HB * SIMD/LTI/agegp, suppress others
-make_denom_table("adt10gp_tw2") # drop HB * SIMD/LTI/agegp, suppress others
-make_denom_table("porftvg3") # drop HB * SIMD/LTI/agegp, suppress others
-make_denom_table("rg17a_new") # drop HB * SIMD/LTI, suppress others
-make_denom_table("mus_rec") # drop HB * SIMD/LTI, suppress others
-make_denom_table("adt10gp_tw_LOW") # drop HB * SIMD/LTI, suppress others
-make_denom_table("wemwbs") # drop HB * SIMD/LTI/agegp, suppress others
-make_denom_table("life_sat") # drop HB * SIMD/LTI, suppress others
+make_denom_table("gh_qg2")# drop HB * SIMD/agegp, suppress others
+make_denom_table("gen_helf") # drop HB * SIMD/agegp, suppress others
+make_denom_table("adt10gp_tw2") # drop HB * SIMD/agegp, suppress others
+make_denom_table("porftvg3") # drop HB * SIMD/agegp, suppress others
+make_denom_table("rg17a_new") # drop HB * SIMD, suppress others
+make_denom_table("mus_rec") # drop HB * SIMD, suppress others
+make_denom_table("adt10gp_tw_LOW") # drop HB * SIMD, suppress others
+make_denom_table("wemwbs") # drop HB * SIMD/agegp, suppress others
+make_denom_table("life_sat") # drop HB * SIMD, suppress others
 make_denom_table("limitill2") # drop HB * SIMD/agegp, suppress others
 make_denom_table("support1") # drop scot x age group
 make_denom_table("involve") # nothing to drop
@@ -279,33 +280,34 @@ make_denom_table("dsh5sc") # nothing to drop
 make_denom_table("suicide2")  # nothing to drop
 make_denom_table("work_bal") # nothing to drop
 
-make_denom_table("ch_ghq") # drop all HB splits
-make_denom_table("ch_audit") # drop all HB splits
-make_denom_table("childpa1hr") # drop all HB splits
-make_denom_table("sdq_totg") # drop all HB splits
-make_denom_table("sdq_peeg") # drop all HB splits
-make_denom_table("sdq_emog") # drop all HB splits
-make_denom_table("sdq_cong") # drop all HB splits
-make_denom_table("sdq_hypg") # drop all HB splits
-make_denom_table("sdq_pro") # drop all HB splits
-make_denom_table("c00sum7s") # drop all HB splits
-make_denom_table("spt1ch") # drop all HB splits
-make_denom_table("ch30plyg") # drop all HB splits
+make_denom_table("ch_ghq") # drop HB splits, keep totals
+make_denom_table("ch_audit") # drop HB splits, keep totals
+make_denom_table("childpa1hr") # drop HB splits, keep totals
+make_denom_table("sdq_totg") # drop HB splits, keep totals
+make_denom_table("sdq_peeg") # drop HB splits, keep totals
+make_denom_table("sdq_emog") # drop HB splits, keep totals
+make_denom_table("sdq_cong") # drop HB splits, keep totals
+make_denom_table("sdq_hypg") # drop HB splits, keep totals
+make_denom_table("sdq_pro") # drop HB splits, keep totals
+make_denom_table("c00sum7s") # drop HB splits, keep totals
+make_denom_table("spt1ch") # drop HB splits, keep totals
+make_denom_table("ch30plyg") # drop HB splits, keep totals
 
 # Add any new vars to these vectors, depending on which splits you want to drop:
-drop_hb_by_simd_and_lti <- c("gh_qg2", "gen_helf","adt10gp_tw2","porftvg3","rg17a_new",
+drop_hb_by_simd <- c("gh_qg2", "gen_helf","adt10gp_tw2","porftvg3","rg17a_new",
                              "mus_rec","adt10gp_tw_LOW","wemwbs","life_sat","limitill2")
 drop_hb_by_agegp <- c("gh_qg2", "gen_helf","adt10gp_tw2","porftvg3","wemwbs","limitill2")
 drop_scot_by_agegp <- "support1"
-drop_all_hb_data <- c("ch_ghq","ch_audit","childpa1hr","sdq_totg","sdq_peeg",
+drop_hb_splits_keep_totals <- c("ch_ghq","ch_audit","childpa1hr","sdq_totg","sdq_peeg",
                       "sdq_emog","sdq_cong","sdq_hypg","sdq_pro","c00sum7s","spt1ch","ch30plyg")
 
 # drop splits as identified above:
-shes_results <- shes_results %>%
-  filter(!(indicator %in% drop_hb_by_simd_and_lti & (substr(code, 1, 3)=="S08" & split_name %in% c("Deprivation (SIMD)", "Long-term Illness")))) %>%
+shes_results <- shes_results0 %>%
+  filter(!(indicator %in% drop_hb_by_simd & (substr(code, 1, 3)=="S08" & split_name == "Deprivation (SIMD)"))) %>%
   filter(!(indicator %in% drop_hb_by_agegp & (substr(code, 1, 3)=="S08" & split_name == "Age group"))) %>%
   filter(!(indicator %in% drop_scot_by_agegp & (substr(code, 1, 3)=="S00" & split_name =="Age group"))) %>%
-  filter(!(indicator %in% drop_all_hb_data & (substr(code, 1, 3)=="S08"))) 
+  filter(!(indicator %in% drop_hb_splits_keep_totals & (substr(code, 1, 3)=="S08" & split_value!="Total"))) %>%
+  filter(!(indicator %in% drop_hb_splits_keep_totals & (substr(code, 1, 3)=="S08" & split_name!="Sex")))
 
 # drop splits by SIMD if they have data for fewer than three quintiles (+ total = 4)
 shes_results <- shes_results %>%
@@ -327,7 +329,7 @@ shes_results %>%
   filter(is.na(rate)) %>%
   select(indicator, code, trend_axis, split_value) %>%
   print(n=80)
-# March 2026: 31 values suppressed for 10 indicators. All at HB level.
+# March 2026: >1300 values suppressed, now that we've opted to include more splits.
 
 # keep only trend_axis values that are single year or 4-year aggregates (shorter aggregate periods are sometimes available but confuse matters)
 shes_results <- shes_results %>%
