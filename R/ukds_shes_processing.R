@@ -12,7 +12,7 @@
 # 99108 = gen_helf	(also in CWB profile) Percentage of adults who, when asked "How good is your health in general?", selected "good" or "very good". The five possible options ranged from very good to very bad, and the variable was GenHelf. 
 # 99109 = limitill2	(also in CWB profile) Percentage of adults who have a limiting long-term illness. Long-term conditions are defined as a physical or mental health condition or illness lasting, or expected to last, 12 months or more. A long-term condition is defined as limiting if the respondent reported that it limited their activities in any way. The variable used was limitill. 
 # 30001 = wemwbs	Mean score on the WEMWBS scale (adults). WEMWBS stands for Warwick-Edinburgh Mental Wellbeing Scale. N.B. This indicator is also available from the ScotPHO Online Profiles (national, health board, and council area level, but not by SIMD). The questionnaire consists of 14 positively worded items designed to assess: positive affect (optimism, cheerfulness, relaxation) and satisfying interpersonal relationships and positive functioning (energy, clear thinking, self-acceptance, personal development, mastery and autonomy). It is scored by summing the response to each item answered on a 1 to 5 Likert scale ('none of the time', 'rarely', 'some of the time', often', 'all of the time'). The total score ranges from 14 to 70 with higher scores indicating greater wellbeing. The variable used was WEMWBS. 
-# 30002 = life_sat	Mean score on the question "All things considered, how satisfied are you with your life as a whole nowadays?" (variable LifeSat).  N.B. This indicator is also available from the ScotPHO Online Profiles (national and council area level, but not by SIMD). Life satisfaction is measured by asking participants to rate, on a scale of 0 to 10, how satisfied they are with their life in general. On the scale, 0 represented 'extremely dissatisfied' and 10 'extremely satisfied' (the intervening scale points were numbered but not labelled). 
+# 30002 = life_sat	Percentage with the highest levels of life satisfaction: responses above the mode (9 to 10-Extremely satisfied) when asked "All things considered, how satisfied are you with your life as a whole nowadays?"
 # 30052 = work_bal	Mean score for how satisfied adults are with their work-life balance (paid work). Respondents were asked "How satisfied are you with the balance between the time you spend on your paid work and the time you spend on other aspects of your life?" on a scale between 0 (extremely dissatisfied) and 10 (extremely satisfied). The intervening scale points were numbered but not labelled. The variable was WorkBal. 
 # 30003 = gh_qg2	Percentage of adults with a possible common mental health problem. N.B. This indicator is also available from the ScotPHO Online Profiles (national, health board, and council area level, but not by SIMD). A score of four or more on the General Health Questionnaire-12 (GHQ-12) indicates a possible mental health problem over the past few weeks. GHQ-12 is a standardised scale which measures mental distress and mental ill-health. There are 12 questions which cover concentration abilities, sleeping patterns, self-esteem, stress, despair, depression, and confidence in the past few weeks. For each of the 12 questions one point is given if the participant responded 'more than usual' or 'much more than usual'. Scores are then totalled to create an overall score of zero to twelve. A score of four or more (described as a high GHQ-12 score) is indicative of a potential psychiatric disorder. Conversely a score of zero is indicative of psychological wellbeing. As GHQ-12 measures only recent changes to someone's typical functioning it cannot be used to detect chronic conditions. The variable used was GHQg2. 
 # 30013 = porftvg3	Percentage of adults who met the daily fruit and vegetable consumption recommendation - five or more portions - in the previous day (survey variables porftvg3Intake and porftvg3). According to the guidelines, it is recommended for adults to consume at least five varied portions of fruit and vegetables per day. The module includes questions on consumption of the following food types in the 24 hours to midnight preceding the interview: vegetables (fresh, frozen or canned); salads; pulses; vegetables in composites (e.g. vegetable chilli); fruit (fresh, frozen or canned); dried fruit; fruit in composites (e.g. apple pie); fresh fruit juice. Fruit and vegetable consumption figures for 2021 have been calculated from online dietary recalls using INTAKE24. In 2021, less than half a portion of fruit and vegetables is defined as none. This is due to the inclusion of fruit and vegetables from composite dishes which has led to a decrease in the proportion consuming no fruit or vegetables. Data from earlier years were taken from the fruit and vegetable module. Fruit and vegetable consumption data for NHS health boards and council area areas for 2017-2021 combined are not available, as due to the different method of data collection, it was not possible to combine data for these years. Respondents to the INTAKE24 food diary were included if they had provided data for two days. 
@@ -28,6 +28,11 @@
 # 30026 = rg17a_new	Percentage of adults who provide 20 or more hours of care per week to a member of their household or to someone not living with them, excluding help provided in the course of employment. Participants were asked whether they look after, or give any regular help or support to, family members, friends, neighbours or others because of a long-term physical condition, mental ill-health or disability; or problems related to old age. Caring which is done as part of any paid employment is not asked about. From 2014 onwards, this question explicitly instructed respondents to exclude caring as part of paid employment. The variables used to construc this indicator were RG15aNew (Do you provide any regular help or care for any sick, disabled, or frail people?) and RG17aNew (How many hours do you spend each week providing help or unpaid care for him/her/them?). 
 # 14001 - mus_rec - Adults meeting muscle strengthening guidelines. 2011 CMO guidelines recommend 2x 30 minute muscle strengthening sessions per week
 # 14002 - adt10gp_tw_LOW - Adults with very low activity levels. Also in CWB, AMH profiles. 2011 CMO guidelines recommend 150 mins/week MVPA.
+# 99105: Food insecurity
+# 99106: Adult Healthy Weight 
+# 4170: Alcohol consumption: Binge drinking (drinking over (6/8) units in a day (includes non-drinkers): Over 8 units for men, over 6 units for women" (previous indicator definition excluded non-drinkers from denom)
+# 4171: Alcohol consumption: Hazardous/Harmful drinker" (% consuming over 14 units per week) (NB. original ScotPHO indicator excluded non-drinkers from denominator... it's not clear whether they are included here) 
+# 4172: Alcohol consumption (mean weekly units)
 
 # 12 child indicators:
 # 30130 = ch_ghq  Percentage of children aged 15 years or under who have a parent/carer who scores 4 or more on the General Health Questionnaire-12 (GHQ-12)
@@ -38,7 +43,7 @@
 # 30173	Conduct problems - Percentage of children with a 'slightly raised', 'high' or 'very high' score (a score of 3-10) on the conduct problems scale of the Strengths and Difficulties Questionnaire (SDQ)
 # 30174	Hyperactivity/inattention - Percentage of children with a 'slightly raised', 'high' or 'very high' score (a score of 6-10) on the hyperactivity/inattention scale of the Strengths and Difficulties Questionnaire (SDQ)
 # 30175	Prosocial behaviour - Percentage of children with a 'close to average' score (a score of 8-10) on the prosocial scale of the Strengths and Difficulties Questionnaire (SDQ)
-# 30111 % children meeting 1 hour PA per day
+# 30111 % children meeting 1 hour PA per day (INCL. SCHOOL)
 # 14003 - c00sum7s - Children with very low activity levels
 # 14006 - spt1ch - Children participating in sport
 # 14007 - ch30plyg - Children engaging in active play
@@ -136,7 +141,7 @@ derived_data <- "/conf/MHI_Data/derived data/"
 ## B. Get all the variable names and their descriptions from the survey data files
 # N.B. RUNNING THIS WILL TAKE ~5 MINS AND WILL MODIFY THE EXISTING SPREADSHEET:
 save_var_descriptions(survey = "shes", # looks in this folder 
-                       name_pattern = "\\/she?s\\D?(\\d{2,10})") # the regular expression for this survey's filenames that identifies the survey year(s)
+                      name_pattern = "\\/she?s\\D?(\\d{2,10})") # the regular expression for this survey's filenames that identifies the survey year(s)
 # Unpicking the regular expression:
 #    for shes this has to recognise filenames with either shes or shs in them (hence she?s, meaning the e is optional).
 #    the year can be from 2 digits (e.g. 08) to many digits (e.g., 08091011) hence d{2,10}.
@@ -173,6 +178,7 @@ save_var_descriptions(survey = "shes", # looks in this folder
 # 21 JAN 2026: ADDING IN PA PROFILE INDICATORS
 # 14 JAN 2026: ADDING 2023 DATA
 # 12 JAN 2026: ADDITION OF CHILD SDQ VARS
+# 01 APR 2026: ADDING MORE VARS FROM THE SHES DASHBOARD, AND HARMONISING EXISTING VARS WITH THEIRS.
 extracted_survey_data_shes <- extract_survey_data("shes") 
 # What this function is doing:
 #   Uses the file locations saved in the spreadsheet, and opens each file in turn.
@@ -188,7 +194,7 @@ extracted_survey_data_shes <- extract_survey_data("shes")
 extracted_survey_data_shes <- extracted_survey_data_shes %>%
   filter(!str_detect(filename, "she?s\\D?\\d{2,10}h")) %>% # this drops the shes household files ("h" follows the year for these files)
   filter(!str_detect(filename, "intake24"))  # this drops the shes intake24 files (the derived var we need is already in the individual file)
-  
+
 
 ## C. Save the file (do this if new variables/data have been read in)
 # saveRDS(extracted_survey_data_shes, paste0(derived_data, "extracted_survey_data_shes.rds"))
@@ -236,19 +242,31 @@ responses_as_list_shes
 # [1] "Meets recommendations"   "Schedule not applicable" "Very low activity"       "Some activity"           "Low activity"            "Don't know"             
 # [7] "Refused"
 # 
+$ag16g10
+[1] "25-34"               "35-44"               "not applicable"      "45-54"               "16-24"               "55-64"               "65-74"              
+[8] "Kids 0-15"           "75+"                 "Item not applicable" "item not applicable" NA                    "Item Not Applicable" "Not applicable"     
+[15] "Refused"   
+
 # $anxsymp
 # [1] "0"                       "Schedule not applicable" "Item not applicable"     "1"                       "4"                       "2"                      
 # [7] "3"                       "schedule not applicable" "item not applicable"     "Refusal"                 NA                        "Don't know"             
 # [13] "schedule not obtained"   "don't know"              "refused"                 "Not applicable"          "Refused"                 "Schedule not obtained"  
-# 
-# $anxsymp_t20
-# [1] "0"          "1"          "4"          "3"          "2"          "Don't know" "Refused"   
 # 
 # $auditg
 # [1] "0-7"                                      "8 or more (hazardous/harmful drinking"    "Schedule not applicable"                 
 # [4] "Refused"                                  "Schedule not obtained"                    "Refusal"                                 
 # [7] "Refused/not answered"                     "8 or more (hazardous / harmful drinking)" "Not applicable"                          
 # 
+$bmivg5
+[1] "Over 25-30"              "Item not applicable"     "Schedule not applicable" "Over 18.5-25"            "Over 30-40"             
+[6] "Over 40"                 "Under 18.5"              "30 to less than 40"      "25 to less than 30"      "18.5 to less than 25"   
+[11] "40 and over"             "schedule not applicable" "item not applicable"     NA                        "Item Not Applicable"    
+[16] "Not applicable"         
+
+$bmivg5_adj
+[1] "30 to less than 40"      "18.5 to less than 25"    "25 to less than 30"      "40 and over"             "Not applicable"          "Under 18.5"             
+[7] "Schedule not applicable"
+
 # $c00sum7s
 # [1] "Schedule not applicable"          "Group 1:60+min on all 7 days"     "Group 2:30-59min on all 7 days"   "Group 3:Lower level of activity" 
 # [5] "Don't know"                       "Item not applicable"              "schedule not applicable"          "item not applicable"             
@@ -256,6 +274,20 @@ responses_as_list_shes
 # [13] "Age 0-1"                          "Not applicable"                   "Group 1: 60+min on all 7 days"    "Group 2: 30-59min on all 7 days" 
 # [17] "Group 3: Lower level of activity"
 # 
+$cghq214
+[1] "Not applicable"                                "Not living with parent with GHQ12 score of 4+" "Living with parent with GHQ12 score of 4+"    
+[4] "Refused"                                       "Schedule not obtained"                         "No parent/guardian data"                      
+[7] "Item not applicable"                          
+
+$ch30plyg
+[1] "not applicable"          "None"                    "5 or more"               "1 or 2"                  "3 or 4"                 
+[6] "Item not applicable"     "Don't know"              "Schedule not applicable" "schedule not applicable" "don't know"             
+[11] "Dont know"               NA                        "Not applicable"         
+
+$combmivg5_adj
+[1] "Schedule not applicable" "18.5 to less than 25"    "30 to less than 40"      "25 to less than 30"      "Not applicable"         
+[6] "40 and over"             "Under 18.5"              "Don't know"              "Refused"                 "Item not applicable"    
+
 # $contrl
 # [1] "schedule not applicable" "Sometimes"               "Often"                   "Always"                  "Never"                   "don't know"             
 # [7] "Seldom"                  "refused"                 NA                        "Item not applicable"     "Schedule not applicable" "Dont know"              
@@ -267,9 +299,24 @@ responses_as_list_shes
 # [13] "Refusal"                 "Dont know"               NA                        "schdule not obtained"    "Not applicable"          "Refused"                
 # [19] "Schedule not obtained"  
 # 
-# $depsymp_t20
-# [1] "0"          "3"          "2"          "1"          "Refused"    "4"          "Don't know"
+$dnany
+[1] "not applicable"          "Never"                   "Very occasionally"       "schedule not obtained"   "Not applicable"         
+[6] "Schedule not obtained"   "Don't know"              "Schedule not applicable" "Item not applicable"     "Refused"                
+[11] "Refused/not answered"    NA                        "Dont know"               "Refusal"                
+
+$dnnow
+[1] "Yes"                     "not applicable"          "No"                      "Not answered/refused"    "schedule not obtained"  
+[6] "Don't know"              "Not applicable"          "Schedule not obtained"   "No answer/Refused"       "Schedule not applicable"
+[11] "Item not applicable"     "Refused"                 "Refused/not answered"    "Refusal"                 NA                       
+
+$drating
+# values stored as strings, plus "Not answered (999.00)"
 # 
+$drkcat315
+[1] "Moderate (up to and including 14)" "Hazardous/harmful (over 14)"       "Schedule not applicable"           "Non-drinker"                      
+[5] "Don't know"                        "Refused"                           "Schedule obtained"                 "Item not applicable"              
+[9] "Schedule not obtained"             "Not applicable"                    "Hazardous / harmful (over 14)"    
+
 # $dsh5
 # [1] "No"                      "Schedule not applicable" "Item not applicable"     "Yes"                     "Don't know"              "Don't Know"             
 # [7] "Refusal"                 "item not applicable"     "refused"                 "Refused"                 NA                       
@@ -282,13 +329,50 @@ responses_as_list_shes
 # [1] "0"                       "Schedule not applicable" "Item not applicable"     "3"                       "1"                       "2"                      
 # [7] "4"                      
 # 
-# $final_sex22
-# [1] "Male"              "Female"            "Refused"           "Prefer not to say"
-#
 # $dvj12
 # [1] "0"                       "Schedule not applicable" "Item not applicable"     "1"                       "4"                       "2"                      
 # [7] "3"                      
 # 
+$eqv5_15
+[1] "2nd Quintile (> = £25224 < £39157)"       "Top Quintile (> = £39157)"                "3rd Quintile (> = £17063 < £25224)"      
+[4] "Income not known"                         "4th Quintile (> = £10104 < £17063)"       "Bottom quintile (> = £0 < £10104)"       
+[7] "Age of household member refused"          "2nd Quintile (> = £26627 < £41167)"       "4th Quintile (> = £11046 < £17463)"      
+[10] "Bottom quintile (> = £0 < £11046)"        "3rd Quintile (> = £17463 < £26627)"       "Top Quintile (> = £41167)"               
+[13] "2nd Quintile (> = £25071 < £39157)"       "3rd Quintile (> = £17063 < £25071)"       "Bottom quintile (> = £0 < £10935)"       
+[16] "4th Quintile (> = £10935 < £17063)"       "Bottom quintile (> = £0 < £11700)"        "2nd Quintile (> = £27300 < £42484)"      
+[19] "3rd Quintile (> = £17473 < £27300)"       "4th Quintile (> = £11700 < £17473)"       "Top Quintile (> = £42484)"               
+[22] "4th Quintile  ( > = £ 11747  < £ 18012 )" "3rd Quintile  ( > = £ 18012  < £ 29104 )" "2nd Quintile  ( > = £ 29104  < £ 44578 )"
+[25] "Not applicable"                           "Bottom Quintile  ( > = £ 0  < £ 11747 )"  "Top Quintile  ( > = £ 44578 )"           
+[28] "4th Quintile  ( > = £ 12745  < £ 19542 )" "2nd Quintile  ( > = £ 29250  < £ 44828 )" "Bottom Quintile  ( > = £ 0  < £ 12745 )" 
+[31] "3rd Quintile  ( > = £ 19542  < £ 29250 )" "Top Quintile  ( > = £ 44828 )"            "Top Quintile  ( > = £ 48555 )"           
+[34] "Bottom Quintile  ( > = £ 0  < £ 13813 )"  "2nd Quintile  ( > = £ 31571  < £ 48555 )" "3rd Quintile  ( > = £ 21357  < £ 31571 )"
+[37] "4th Quintile  ( > = £ 13813  < £ 21357 )" "4th Quintile  ( > = £ 13722  < £ 21343 )" "3rd Quintile  ( > = £ 21343  < £ 32288 )"
+[40] "2nd Quintile  ( > = £ 32288  < £ 47739 )" "Bottom quintile  ( > = £ 0  < £ 13722 )"  "Top Quintile  ( > = £ 47739 )"           
+[43] "4th Quintile  ( > = £ 13722  < £ 21357 )" "2nd Quintile  ( > = £ 32500  < £ 48872 )" "3rd Quintile  ( > = £ 21357  < £ 32500 )"
+[46] "Top Quintile  ( > = £ 48872 )"            "Bottom quintile  ( > = £ 0  < £ 13929 )"  "4th Quintile  ( > = £ 13929  < £ 21938 )"
+[49] "3rd Quintile  ( > = £ 21938  < £ 32500 )" "2nd Quintile  ( > = £ 32500  < £ 49400 )" "Top Quintile  ( > = £ 49400 )"           
+[52] "Bottom Quintile"                          "4th Quintile"                             "3rd Quintile"                            
+[55] "2nd Quintile"                             "Top Quintile"                             "Bottom Quintile (>=£0 <£14300)"          
+[58] "4th Quintile (>=£14300 <£22750)"          "2nd Quintile (>=£32985 <£49400)"          "Top Quintile (>=£49400)"                 
+[61] "3rd Quintile (>=£22750 <£32985)"          "2nd Quintile (>=£33735 <£52388)"          "3rd Quintile (>=£23214 <£33735)"         
+[64] "Top Quintile (>=£52388)"                  "Bottom Quintile (>=£0 <£14444)"           "4th Quintile (>=£14444 <£23214)"         
+[67] "2nd Quintile (>=£42774 <£61666)"          "Top Quintile (>=£61666)"                  "3rd Quintile (>=£30107 <£42774)"         
+[70] "Bottom Quintile (>=£0 <£19542)"           "4th Quintile (>=£19542<£30107)"           "Bottom Quintile (>=Â£0 <Â£17600)"        
+[73] "4th Quintile (>=Â£17600 <Â£27600)"        "2nd Quintile (>=Â£39100 <Â£59300)"        "Top Quintile (>=Â£59300)"                
+[76] "3rd Quintile (>=Â£27600 <Â£39100)"        "3rd Quintile (>=Â£29000 <Â£40000)"        "Bottom Quintile (>=Â£0 <Â£19500)"        
+[79] "2nd Quintile (>=Â£40000 <Â£59300)"        "4th Quintile (>=Â£19500 <Â£29000)"        "Item not applicable"                     
+[82] "Schedule not applicable"                  "Schedule not obtained"                    "4th Quintile (>=Â£21300 <Â£29900)"       
+[85] "Top Quintile (>=Â£65000)"                 "2nd Quintile (>=Â£44200 <Â£65000)"        "Bottom Quintile (>=Â£0 <Â£21300)"        
+[88] "3rd Quintile (>=Â£29900 <Â£44200)"       
+
+# $final_sex22
+# [1] "Male"              "Female"            "Refused"           "Prefer not to say"
+# 
+$genhelf2 # (used on dashboard)
+[1] "Very good/good"    "Fair"              "Bad/very bad"      "No answer/refused" "Don't know"        "Refused"           "refused"          
+[8] "don't know"        "Refusal"           "Dont know"         NA                  "Don't Know"        "Not answered"      "Very good / good" 
+[15] "Bad / very bad"   
+
 # $gen_helf
 # [1] "Very good"     "Good"          "Bad"           "Fair"          "Very bad"      "Don't know"    "Refused"       "Don't Know"    "Refusal"       "refused"      
 # [11] "don't know"    NA              "Dont know"     "...very good," "good,"         "bad, or"       "fair,"         "very bad?"   "No answer/refused" 
@@ -300,9 +384,6 @@ responses_as_list_shes
 # [1] "Score 1-3"               "Schedule not applicable" "Score 0"                 "Score 4+"                "Schedule not obtained"   "Refused"                
 # [7] "schedule not applicable" "refused"                 "schedule not obtained"   "Refusal"                 "Refused/not answered"    NA                       
 # [13] "Don't know"              "Not applicable"         
-# 
-# $gh_qg2_t20
-# [1] "Score 1-3"  "Score 0"    "Score 4+"   "Don't know" "Refused"   
 # 
 # $ghq2
 # [1] "0"                     "1-3"                   "4 or more"             "Schedule not obtained" "Not answered"         
@@ -357,6 +438,11 @@ responses_as_list_shes
 # [7] "item not applicable"     "don't know"              NA                        "Schedule not applicable" "Refusal"                 "Item not applicable"    
 # [13] "Dont know"               "Don't Know"              "Don't know"              "Refused"                 "Not applicable"         
 # 
+$lifesat2
+[1] "above the mode (9-10)"   "mode (8)"                "below the mode (0 to 7)" "Schedule not applicable" "Don't know"             
+[6] "Refusal"                 NA                        "Refused/not answered"    "Dont know"               "Item not applicable"    
+[11] "Refused"                 "Not applicable"          "Above the mode (9-10)"   "Mode (8)"                "Below the mode (0 to 7)"
+
 # $life_sat
 # [1] "8"                          "Schedule not applicable"    "9"                          "5"                          "6"                         
 # [6] "10 - Extremely satisfied"   "7"                          "3"                          "0 - Extremely dissatisfied" "4"                         
@@ -368,8 +454,33 @@ responses_as_list_shes
 # [1] "No LI"           "Non limiting LI" "Limiting LI"     "Don't know"      "Refused"         "refused"         "don't know"      "Refusal"         "Don't Know"     
 # [10] "-9"              NA                "Dont know"       "Not answered"   "No answer/refused" NA
 # 
+$mus_rec
+[1] "Yes"                     "Schedule not applicable" "No"                     
+
+$musrec
+[1] "No"                      "Schedule not applicable" "Yes"   
+
 # $number_of_recalls
-# [1] "2"              "Not applicable" "1"             
+# [1] "2"              "Not applicable" "1"           
+
+$numberofrecalls
+[1] "Item not applicable" "2"                   "1"                  
+
+$olim_l_wb
+[1] "From 0 up to and including  M8,F6"                             "Schedule not applicable"                                      
+[3] "Over M8,F6"                                                    "Refusal"                                                      
+[5] "Item not applicable"                                           "Dont know"                                                    
+[7] "Schedule not obtained"                                         "Don't know"                                                   
+[9] "Refused/not answered"                                          NA                                                             
+[11] "Refused"                                                       "Not applicable"                                               
+[13] "From 0 up to and including 8 units for men, 6 units for women" "Over 8 units for men, 6 units for women"                      
+
+$olimlwb
+[1] "From 0 up to and including 8 units for men, 6 units for women" "Schedule not applicable"                                      
+[3] "Schedule not obtained"                                         "Over 8 units for men, 6 units for women"                      
+[5] "Don't know"                                                    "Item not applicable"                                          
+[7] "Refused"    
+
 # 
 # $p_crisis
 # [1] "12"                      "schedule not applicable" "4"                       "10"                      "5"                       "6"                      
@@ -393,22 +504,23 @@ responses_as_list_shes
 # [7] "refused"                 "Refusal"                 "Refused/not answered"    NA                       
 # 
 # $porftvg3intake
-# [1] "5 portions or more"          "0.5 to less than 5 portions" "Not applicable"              "None/less than 0.5"         
+# [1] "5 portions or more"          "0.5 to less than 5 portions" "Not applicable"              "None/less than 0.5"    "Item not applicable"       
 # 
 # $region
 # [1] "Lothian & Fife"               "Lanark etc"                   "Argyll etc"                   "Glasgow"                      "Highland & Islands"          
 # [6] "Borders/D & G"                "Grampian & Tayside"           "Borders, Dumfries & Galloway" "Glagow"                       "Lanarkshire,Ayrshire & Arran"
 # [11] "Highlands & Islands"          "Forth Valley, Argyll & Clyde"
 # 
+$respsex
+[1] "Male"   "Female"
+
 # $rg15a_new
 # [1] "Item not applicable"     "No"                      "Schedule not applicable" "Yes"                     "Don't Know"              "Not applicable"         
 # [7] "Don't know"              "Refused"                 "Refusal"                
 # 
-# $rg17a_new
-# [1] "Item not applicable"                    "Schedule not applicable"                "Up to 4 hours a week"                   "5 - 19 hours a week"                   
-# [5] "50 or more hours a week"                "20 - 34 hours a week"                   "Varies (spontaneous - not on showcard)" "35 - 49 hours a week"                  
-# [9] "Not applicable"                         "Don't Know"                             "Varies"                                 "Don't know"                            
-# 
+$rg15anew
+[1] "No"                      "Schedule not applicable" "Yes"                     "Refused"                 "Item not applicable"    
+
 # $rg17a_new
 # [1] "Item not applicable"                    "Schedule not applicable"                "Up to 4 hours a week"                   "5 - 19 hours a week"                   
 # [5] "50 or more hours a week"                "20 - 34 hours a week"                   "Varies (spontaneous - not on showcard)" "35 - 49 hours a week"                  
@@ -481,12 +593,21 @@ responses_as_list_shes
 # [1] "3rd"                  "5th - least deprived" "2nd"                  "4th"                  "1st - most deprived"  NA                     "3"                   
 # [8] "4"                    "1"                    "2"                    "5"                   
 # 
+$spt1ch
+[1] "not applicable"          "No"                      "Yes"                     "Schedule not applicable" "Don't know"             
+[6] "No answer/refused"       "Refused"                 "schedule not applicable" "refused"                 "don't know"             
+[11] "Don't Know"              "Refusal"                 NA                        "Dont know"               "Item not applicable"    
+
 # $str_work2
 # [1] "schedule not applicable"       "moderately stressful"          "not at all/mildly stressful"   "don't know"                    "very/extremely stressful"     
 # [6] "refused"                       NA                              "Item not applicable"           "Schedule not applicable"       "Refusal"                      
 # [11] "Don't know"                    "Moderately stressful"          "Very/extremely stressful"      "Not at all/mildly stressful"   "Refused"                      
 # [16] "Not at all / Mildly stressful" "Very / Extremely stressful"    "Not applicable"                "Not at all / mildly stressful" "Very / extremely stressful"   
 # 
+$strwork2
+[1] "Moderately stressful"          "Schedule not applicable"       "Not at all / mildly stressful" "Very / extremely stressful"   
+[5] "Item not applicable"           "Refused"                       "Don't know"                    "Not applicable"               
+
 # $suicide2
 # [1] "No"                                      "Schedule not applicable"                 "Item not applicable"                    
 # [4] "Yes longer than year"                    "-5"                                      "Yes in last year (inc last week)"       
@@ -507,6 +628,18 @@ responses_as_list_shes
 # [7] "Neutral"                 "Does not apply"          "CAPI routing error"      "Refused"                 "Don't know"              "Item not applicable"    
 # [13] "Not_Apply"               "Don't Know"              "Refusal"                  
 # 
+$urbrur2a
+[1] "Urban"          "Rural"          "Not applicable"
+
+$urbrur2a_16
+[1] "Not applicable" "Rural"          "Urban"         
+
+$urbrur2a_20
+[1] "Not applicable" "Rural"          "Urban"         
+
+$urindsc2
+[1] "Urban" "Rural"
+
 # $wemwbs
 # [1] "39"                      "Schedule not applicable" "50"                      "57"                      "41"                      "56"                     
 # [7] "53"                      "58"                      "33"                      "46"                      "59"                      "54"                     
@@ -520,13 +653,6 @@ responses_as_list_shes
 # [55] "23"                      "14"                      "18"                      "21"                      "19"                      "15"                     
 # [61] "schedule not applicable" "refused"                 "Refusal"                 NA                        "Don't know"              "Not applicable"         
 # 
-# $wemwbs_t20
-# [1] "44"         "49"         "48"         "51"         "Don't know" "65"         "54"         "53"         "57"         "43"         "64"         "56"        
-# [13] "47"         "66"         "24"         "38"         "55"         "35"         "61"         "Refused"    "60"         "39"         "52"         "63"        
-# [25] "23"         "42"         "59"         "69"         "45"         "58"         "67"         "70"         "62"         "41"         "50"         "26"        
-# [37] "68"         "40"         "29"         "37"         "34"         "20"         "36"         "46"         "14"         "28"         "33"         "27"        
-# [49] "21"         "31"         "32"         "22"         "30"         "19"        
-# 
 # $work_bal
 # [1] "schedule not applicable"    "6"                          "5"                          "8"                          "10 - Extremely satisfied"  
 # [6] "7"                          "don't know"                 "4"                          "3"                          "2"                         
@@ -534,22 +660,12 @@ responses_as_list_shes
 # [16] "Item not applicable"        "Schedule not applicable"    "Dont know"                  "Don't Know"                 "Refusal"                   
 # [21] "Don't know"                 "Refused"                    "Not applicable"   
 #
-# $ch30plyg
-# [1] "not applicable"          "None"                    "5 or more"               "1 or 2"                 
-# [5] "3 or 4"                  "Item not applicable"     "Don't know"              "Schedule not applicable"
-# [9] "schedule not applicable" "don't know"              "Dont know"               NA                       
-# [13] "Not applicable"         
-# 
-# $mus_rec
-# [1] "Yes"                     "Schedule not applicable" "No"                     
-# 
-# $musrec
-# [1] "No"                      "Schedule not applicable" "Yes"       
-# 
-# $spt1ch
-# [1] "not applicable"          "No"                      "Yes"                     "Schedule not applicable" "Don't know"              "No answer/refused"      
-# [7] "Refused"                 "schedule not applicable" "refused"                 "don't know"              "Don't Know"              "Refusal"                
-# [13] NA                        "Dont know"               "Item not applicable"   
+$wrfood
+[1] "Schedule not applicable" "No"                      "Yes"                     "Refusal"                 "Refused"                
+[6] "Schedule not obtained"   "Not applicable"          "Don't know"              NA                        "Item not applicable"    
+
+
+
 ###################################
 
 
@@ -685,7 +801,7 @@ lookup_rg17a_new <- list(
   "Don't Know"= "no"
 )
 
-                        
+
 # For recoding sdq_totg
 lookup_sdq_totg <- list(
   "14-16"="yes", 
@@ -839,14 +955,14 @@ shes_years_vars <- extracted_survey_data_shes %>%
   filter(!grepl("^bio|^int|^nurs|^vera|^weight|^cint|serial", var_label))  %>% # drop the weights and serial numbers
   pivot_wider(names_from=year, values_from = value) 
 
-  
+
 # This shows some issues that need to be rectified before the dataframe can be 'unlisted' into a flat file:
 # 1. File years 03, 12, 13, 14, 1214, and 121314 use 2 HB variables. 
- # hboard and hlthbrd used in 03: keep hlthbrd here (text), as hboard contains codes
- # hbcode and hlth_brd used in 12, 1214, 14 data (keep hlth_brd as it is consistently text in these files)
- # hbcode and hlthbrd used in 13 (keep hlthbrd as it's text)
- # hb_code and hlth_brd used in 121314 (keep hlth_brd as it's text)
- # hbcode and hb_code are used inconsistently (see responses_as_list_shes above): don't use when hlth_brd or hlthbrd are also used (i.e., in the years noted above).
+# hboard and hlthbrd used in 03: keep hlthbrd here (text), as hboard contains codes
+# hbcode and hlth_brd used in 12, 1214, 14 data (keep hlth_brd as it is consistently text in these files)
+# hbcode and hlthbrd used in 13 (keep hlthbrd as it's text)
+# hb_code and hlth_brd used in 121314 (keep hlth_brd as it's text)
+# hbcode and hb_code are used inconsistently (see responses_as_list_shes above): don't use when hlth_brd or hlthbrd are also used (i.e., in the years noted above).
 # 2. 2015-18 survey uses two SIMDs (simd5_s_ga for 2015 and simd16_s_ga for 2016-18): harmonise these into "simd_combo" before aggregating
 # 3. 1995 and 1998 don't have SIMD data: exclude
 
@@ -887,7 +1003,7 @@ shes_data <- shes_data %>%
                           year=="2024" ~ "24",
                           TRUE ~ year)) %>%
   filter(nchar(year)==2|nchar(year)==8)
-  
+
 # Harmonise HB variable names and coding: (working within list column, hence use of 'map' function)
 shes_data <- shes_data %>%
   mutate(survey_data = map(survey_data, ~ .x %>% # map() here means this is all being done within the individual items in the list column, while retaining the list format
@@ -898,47 +1014,47 @@ shes_data <- shes_data %>%
                              rename(any_of(hb_lookup)) %>% # apply the lookup defined above to rename all hb vars as 'hb'
                              # Standardise HB names for matching with ScotPHO geo_lookup
                              mutate(spatial.unit = case_match(hb,
-                                                    "1" ~ "Ayrshire and Arran",   
-                                                    "2" ~ "Borders",              
-                                                    "3" ~ "Dumfries and Galloway",
-                                                    "4" ~ "Fife",                 
-                                                    "5" ~ "Forth Valley",         
-                                                    "6" ~ "Grampian",             
-                                                    "7" ~ "Greater Glasgow & Clyde",             
-                                                    "8" ~ "Highland",             
-                                                    "9" ~ "Lanarkshire",          
-                                                    "10" ~ "Lothian",              
-                                                    "11" ~ "Orkney",               
-                                                    "12" ~ "Shetland",             
-                                                    "13" ~ "Tayside",              
-                                                    "14" ~ "Western Isles",
-                                                    "Greater" ~ "Greater Glasgow & Clyde",
-                                                    "Greater Glasgow" ~ "Greater Glasgow & Clyde",
-                                                    "Greater Glascow and Clyde" ~ "Greater Glasgow & Clyde",
-                                                    .default = hb)) %>%
+                                                              "1" ~ "Ayrshire and Arran",   
+                                                              "2" ~ "Borders",              
+                                                              "3" ~ "Dumfries and Galloway",
+                                                              "4" ~ "Fife",                 
+                                                              "5" ~ "Forth Valley",         
+                                                              "6" ~ "Grampian",             
+                                                              "7" ~ "Greater Glasgow & Clyde",             
+                                                              "8" ~ "Highland",             
+                                                              "9" ~ "Lanarkshire",          
+                                                              "10" ~ "Lothian",              
+                                                              "11" ~ "Orkney",               
+                                                              "12" ~ "Shetland",             
+                                                              "13" ~ "Tayside",              
+                                                              "14" ~ "Western Isles",
+                                                              "Greater" ~ "Greater Glasgow & Clyde",
+                                                              "Greater Glasgow" ~ "Greater Glasgow & Clyde",
+                                                              "Greater Glascow and Clyde" ~ "Greater Glasgow & Clyde",
+                                                              .default = hb)) %>%
                              mutate(spatial.unit = gsub(" and ", " & ", spatial.unit),
                                     spatial.unit = case_when(!spatial.unit=="NA" ~ paste0("NHS ", spatial.unit),
-                                                   TRUE ~ as.character(NA)),
+                                                             TRUE ~ as.character(NA)),
                                     spatial.scale = "Health board")))
 
 
 # Harmonise SIMD variable names and coding: 
 shes_data <- shes_data %>%
   mutate(survey_data = map(survey_data, ~ .x %>% # map() here means this is all being done within the individual items in the list column, while retaining the list format
-                           coalesce_simd() %>% # harmonise SIMD so there's just one per survey (function defined in functions file)
+                             coalesce_simd() %>% # harmonise SIMD so there's just one per survey (function defined in functions file)
                              { if (length(grep("simd20_s_ga|simd20_r_pa|simd20_sga", names(.))) > 1) select(., -contains("simd20_s")) else .} %>%
                              rename(any_of(simd_lookup)) %>% # apply the lookup defined above to rename all simd vars as 'quintile'
-                           #Standardise the SIMD var labels (keep numeric for now, for the deprivation analysis. ScotPHO text labels added later)
-                           mutate(quintile = case_when(
-                             quintile %in% c("Most deprived", "1st - most deprived", "most deprived", "(33.5277 - 87.5665) most deprived" ) ~ "1",
-                             quintile %in% c("2nd", "(21.0421 - 33.5214)") ~ "2",
-                             quintile %in% c("3rd", "(13.5303 - 21.0301)") ~ "3",
-                             quintile %in% c("4th", "(7.7354 - 13.5231)") ~ "4",
-                             quintile %in% c(" 5th - least deprived", "Least deprived", "Least deprived (0.5393 - 7.7347)",
-                                             "least deprived", "5th - least deprived") ~ "5",
-                             TRUE ~ quintile)
-                           )
-                           ))
+                             #Standardise the SIMD var labels (keep numeric for now, for the deprivation analysis. ScotPHO text labels added later)
+                             mutate(quintile = case_when(
+                               quintile %in% c("Most deprived", "1st - most deprived", "most deprived", "(33.5277 - 87.5665) most deprived" ) ~ "1",
+                               quintile %in% c("2nd", "(21.0421 - 33.5214)") ~ "2",
+                               quintile %in% c("3rd", "(13.5303 - 21.0301)") ~ "3",
+                               quintile %in% c("4th", "(7.7354 - 13.5231)") ~ "4",
+                               quintile %in% c(" 5th - least deprived", "Least deprived", "Least deprived (0.5393 - 7.7347)",
+                                               "least deprived", "5th - least deprived") ~ "5",
+                               TRUE ~ quintile)
+                             )
+  ))
 
 # Harmonise age, sex, and identifier variable names as required:
 shes_data <- shes_data %>%
@@ -954,7 +1070,7 @@ shes_data <- shes_data %>%
                              mutate(person=substr(indserial, nchar(indserial)-1, nchar(indserial))) %>%
                              # All versions of household serial numbers: rename as hhserial
                              rename(any_of(hhserial_lookup)))) 
-                
+
 # Harmonise the names of the weights (all have the year in them currently):
 shes_data <- shes_data %>%
   mutate(survey_data = map(survey_data, ~ .x %>% # map() here means this is all being done within the individual items in the list column, while retaining the list format
@@ -991,7 +1107,7 @@ shes_data <- shes_data %>%
                                                                age %in% c(5:11) ~ "5 to 11y",
                                                                age %in% c(12:15) ~ "12 to 15y",
                                                                TRUE ~ as.character(NA)))))
-  
+
 
 # Ready to unlist the df to create a flat file:
 shes_data <- shes_data %>%
@@ -1031,7 +1147,7 @@ shes_data <- shes_data %>%
   mutate(across(c(life_sat, work_bal), ~ substr(., 1, 2))) %>% # 0 and 10 have text in them, so this command just selects the numeric part
   mutate(across(c(p_crisis, wemwbs, life_sat, work_bal, sdq_pro), as.numeric))  
 #gives warning for non-numeric data in each (e.g., refused, not applicable...)
-  
+
 
 # Recode the variables
 shes_data <- shes_data %>%  
@@ -1063,7 +1179,7 @@ shes_data <- shes_data %>%
   mutate(spt1ch = recode(spt1ch, !!!lookup_spt1ch, .default = as.character(NA))) %>%
   mutate(ch30plyg = recode(ch30plyg, !!!lookup_ch30plyg, .default = as.character(NA))) %>%
   mutate(limitill_SPLIT = recode(limitill, !!!lookup_limitill_SPLIT, .default = as.character(NA))) %>% # _SPLIT differentiates this split variable from the indicator that uses the same column (limitill)
-
+  
   # Portions of fruit and veg: variable changed in 2021
   mutate(porftvg3 = recode(porftvg3, !!!lookup_porftvg3, .default = as.character(NA))) %>%
   # porftvg3intake data only in 2021 and 2024 so far
@@ -1084,8 +1200,8 @@ shes_data <- shes_data %>%
   # SDQ prosocial score 8-10:
   mutate(sdq_pro = case_when(sdq_pro >= 8 ~ "yes", # no lookup as easier to work with this var as numeric
                              sdq_pro < 8 ~ "no", 
-                              TRUE ~ as.character(NA))) %>%
-
+                             TRUE ~ as.character(NA))) %>%
+  
   # keep only the vars required for the analysis
   select(-c(filename, fileloc, #number_of_recalls, # will be required for future porftvg3intake variable processing (but not currently)
             rg15a_new)) %>%
@@ -1164,7 +1280,7 @@ shes_adult_data <- shes_data %>%
   select(-c(child, contains("serial"), starts_with("par"), 
             cintwt, age, age_group,
             c00sum7s, spt1ch, ch30plyg, childpa1hr, contains("sdq")
-            ))
+  ))
 # save intermediate df:
 #arrow::write_parquet(shes_adult_data, paste0(derived_data, "shes_adult_data.parquet"))
 # read back in if not in memory:
