@@ -9,18 +9,21 @@
 # ENSURE MOST RECENT YEAR'S WEIGHTS ARE ADDED WHEN READING IN NEW DATA
 
 vars_to_keep <- c(
-
-  "age", "age90", "respage",
+  
+  "age", "age90", "respage", 
+  "ag16g10", # adult age groups
   
   "hb_code", "hbcode", "hlth_brd", "hlthbrd",   
   "hboard", #98 and 03
   
   "sex", "respsex", "final_sex22",
+  "eqv5_15", #equivalised income groups (OECD method)
+  "urindsc2", "urbrur2a", "urbrur2a_16", "urbrur2a_20", # urban-rural classification (lots of overlap of these classifications: look into later)
   
   # identifiers needed to work out who are the legal parents of the interviewed child
   "par1", # person number of 1st legal parent
   "par2", # person number of 2nd legal parent
- # "person", # that individual's person number # now derived from cpserial (as not provided in 2023)
+  # "person", # that individual's person number # now derived from cpserial (as not provided in 2023)
   
   "cpseriala", # serial number of individual (looks to be hhd serial number + 2 digit person number)
   "pserial",
@@ -35,7 +38,7 @@ vars_to_keep <- c(
   "chserial_a",
   "hhserial",
   "hserial_a" ,
-
+  
   #Use the SG harmonised SIMD instead of the report (rp) versions, as these are coded more intuitively
   "simd5", #simd2004 used in 03: CHECK CODING. NO 95/98 SIMD.
   "simd5_sg",# SIMD2009 used 08 to 11
@@ -44,38 +47,48 @@ vars_to_keep <- c(
   "simd20_s_ga", #SIMD2020 used 16 to 20
   "simd20_sga", #SIMD2020 used 19 to 21
   "simd20_r_pa", #needed for 2022 data, no SGA available
-
-  "wemwbs", "wemwbs_t20", # mean score variable (FROM 2008)
-  "gh_qg2", "gh_qg2_t20", "ghqg2", "ghq2", #(last 2 in 95, 98 and 03)
-  "depsymp", "depsymp_t20", "dvg11", 
-  "anxsymp", "anxsymp_t20", "dvj12", 
-  "porftvg3", #"porftvg5", #(last one used in 2003)
-  "porftvg3intake", "number_of_recalls", "numberofrecalls",#Intake used in 2021 data: might not be comparable (though SG present in same timeseries). Published intake24 data = only fom those with 2 recalls.
-  "gen_helf", "genhelf",
-  "limitill",
+  
+  "wemwbs", # mean score variable (FROM 2008)
+  "gh_qg2", "ghqg2", "ghq2", #(last 2 in 95, 98 and 03, and since 2019-23 aggd)
+  "depsymp", "dvg11", # dvg11 = CISR - DEPRESSION Sympton score [from G5, G6, G7 and G9]
+  "anxsymp", "dvj12", # dvj12 = (D) CISR - ANXIETY Symptom score [from J6, J7, J8, J9 and J10]
+  "porftvg3", #"porftvg5", #(last one used in 2003) # (D) Grouped portions of fruit (including fruit juice) & veg (5/less than 5/none)
+  "porftvg3intake", "number_of_recalls", "numberofrecalls",#Intake used in 2021 and 2024 data: SG present this data in same timeseries as previous porftvg3 variable). Published intake24 data = only fom those with 2 recalls.
+  # Healthy weight. BMI of higher than 18.5 and lower than 25. 
+  "bmivg5", "bmivg5_adj", "combmivg5_adj",
+  # During the last 12 months, was there a time when you were worried you would run out of food?
+  "wrfood", #from 2017
+  "drating", "dnnow", "dnany", "drkcat315", # used for Alcohol consumption (guidelines) and (mean weekly units) (dnnow and dnany only needed until ~ 2015)
+  "olimlwb", "olim_l_wb", # (D) Drinking over  (6/8) units in day  (includes non-drinkers) (2008-2024)
+  "genhelf2", # used for adults and children
+  "limitill", # now called long-term conditions
   "involve", "involv19",
   "pcris19", "p_crisis",  
   "rg17a_new", "rg15a_new", "rg17anew", "rg15anew",# need rg15a_new to identify those who give no caring per week (0 hrs not included in rg17a_new)
-  "str_work2",
+  "str_work2", "strwork2",
   "work_bal", # mean score variable 
   "contrl", 
   "support1", "support1_19", 
   "suicide2", 
-  "dsh5", "dsh5sc", 
+  "dsh5", "dsh5sc", # DSH Ever deliberately self-harmed (suicide not intended)
   "adt10gp_tw", "adt10gptw", 
-  "life_sat", # mean score variable
+  #"life_sat", # mean score variable
+  "lifesat2", # grouped variable
+  "mus_rec", #adults meeting the muscle strengthening guideline
+  "musrec", #used in 2023 and 2024
+  
+  # children
+  "cghq214", # (D) Child living with a parent with a GHQ12 score of 4+
   "sdq_totg", "sdq_pro", "sdq_emog", "sdq_cong", "sdq_hypg", "sdq_peeg", #child sdq variables 
- "mus_rec", #adults meeting the muscle strengthening guideline
- "musrec", #used in 2023 and 2024
- "spt1ch", #children participating in sport
- "ch30plyg", #children engaging in active play
-
+  "spt1ch", #children participating in sport
+  "ch30plyg", #children engaging in active play
+  
   # child physical activity
   "c00sum7s", # Summary classification activity levels - All activities, INCLUDING SCHOOL no lower limits
-
- # needed for CYP MHIs:
-  "auditg", # banded AUDIT score (for CYP indicator)
-
+  
+  # needed for CYP MHIs:
+  "auditg", # banded AUDIT score (for CYP indicator) (every other year)
+  
   #survey design
   "psu", 
   "strata", 
@@ -121,10 +134,10 @@ vars_to_keep <- c(
   "int20wt", 
   "int21wt", 
   "int22wt",
- "int19212223wt",
- "int23wt",
- "int21222324wt",
- "int24wt",
+  "int19212223wt",
+  "int23wt",
+  "int21222324wt",
+  "int24wt",
   # version a (vera) weights (22 files have vera weights: annual and ~3yr)
   "vera08wt", 
   "vera0810wt", 
@@ -151,9 +164,9 @@ vars_to_keep <- c(
   "vera19wt", 
   "vera21wt",
   "vera22wt",
- "vera23wt",
- "vera24wt",
- # version b (verb) biol module weights (22 files have bio weights: annual, ~3yr and ~4yr, from 1213)
+  "vera23wt",
+  "vera24wt",
+  # version b (verb) biol module weights (22 files have bio weights: annual, ~3yr and ~4yr, from 1213)
   "bio12131415wt",
   "bio121314wt",
   "bio1213wt",
@@ -178,11 +191,11 @@ vars_to_keep <- c(
   "bio19wt",
   "bio21wt",
   "bio22wt",
- "bio19212223wt",
- "bio23wt",
- "bio21222324wt",
- "bio24wt",
- 
+  "bio19212223wt",
+  "bio23wt",
+  "bio21222324wt",
+  "bio24wt",
+  
   #nurse weights: (pre-dated introduction of bioweights, 2008-11, and are used for self-harm/suicide/anxiety/depression questions)
   "nurs08wt",
   "nurs0809_wt",
@@ -197,47 +210,47 @@ vars_to_keep <- c(
   "weighta", #93 and 98
   "int_wt", #03
   # child weights
- "cint_wt",
- "cint0809_wt",
- "cint08091011_wt",
- "cint08wt",
- "cint09wt",
- "cint1011_wt",
- "cint10wt",
- "cint11wt",
- "cint12131415wt",
- "cint121314wt",
- "cint1213wt",
- "cint12wt",
- "cint13141516wt",
- "cint13wt",
- "cint14151617wt",
- "cint1415wt",
- "cint14wt",
- "cint15161718wt",
- "cint1516wt",
- "cint15wt",
- "cint16171819wt",
- "cint1617wt",
- "cint16wt",
- "cint17181921wt",
- "cint1718wt",
- "cint1719wt",
- "cint17wt",
- "cint18192122wt",
- "cint1819wt",
- "cint18wt",
- "cint1921wt",
- "cint19wt",
- "cint21wt",
- "cint22wt",
- "cint19212223wt",
- "cint23wt",
- "cint21222324wt",
- "cint24wt"
- 
- 
- 
+  "cint_wt",
+  "cint0809_wt",
+  "cint08091011_wt",
+  "cint08wt",
+  "cint09wt",
+  "cint1011_wt",
+  "cint10wt",
+  "cint11wt",
+  "cint12131415wt",
+  "cint121314wt",
+  "cint1213wt",
+  "cint12wt",
+  "cint13141516wt",
+  "cint13wt",
+  "cint14151617wt",
+  "cint1415wt",
+  "cint14wt",
+  "cint15161718wt",
+  "cint1516wt",
+  "cint15wt",
+  "cint16171819wt",
+  "cint1617wt",
+  "cint16wt",
+  "cint17181921wt",
+  "cint1718wt",
+  "cint1719wt",
+  "cint17wt",
+  "cint18192122wt",
+  "cint1819wt",
+  "cint18wt",
+  "cint1921wt",
+  "cint19wt",
+  "cint21wt",
+  "cint22wt",
+  "cint19212223wt",
+  "cint23wt",
+  "cint21222324wt",
+  "cint24wt"
+  
+  
+  
   
 )
 
