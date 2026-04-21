@@ -8,6 +8,7 @@
 # serv3a - satisfaction with local sports and leisure facilities
 # serv3e - satisfaction with local parks and open spaces
 # outdoor - adults visiting the outdoors at least once a week
+# greenfar - adults living within a 5 min walk of nearest green space
 
 # Denominators = Total number of respondents (all were 16+) answering the question. 
 # Excluding don't knows
@@ -348,10 +349,6 @@ uniqidnew_lut <- extracted_survey_data_shs %>%
 # save the file
 saveRDS(uniqidnew_lut, paste0(derived_data, "uniqidnew_lut_pa.rds"))
 
-######################################################################################################
-# Remainder of processing not required now that SHoS team are providing the indicator data for us:
-######################################################################################################
-
 # # 6. Process the survey data to produce the indicator(s)
 # # =================================================================================================================
 # 
@@ -542,10 +539,6 @@ shs_data6 <- bind_rows(shs_data5, age_totals)
 #   mutate(base = n()) |>
 #   ungroup()
 
-
-shs_orkney <- shs_bases |> 
-  filter(spatial.unit == "Orkney Islands")
-
 # # Function to aggregate the data for a single variable, with weightings and complex survey design effects applied
 shs_percent_analysis <- function (df, var, wt) {
   
@@ -571,10 +564,10 @@ shs_percent_analysis <- function (df, var, wt) {
     mutate(lowci = ifelse(lowci<0, 0, lowci), #constrain the CIs
            upci = ifelse(upci>100, 100, upci)) %>%
     select(year, starts_with("spatial"), numerator = yes_unwted, denominator, rate, lowci, upci, split_name, split_value) %>%
-    mutate(indicator = var) |> 
+    mutate(indicator = var) |>
     filter(!is.na(split_value)) |> #filter out rows where the split variable is na
     mutate(split_name = case_when(split_name == "long_term_illness" ~ "Long-term Illness (LTI)",
-                                  split_name == "sex" ~ "Sex", 
+                                  split_name == "sex" ~ "Sex",
                                   split_name == "simd5" ~ "Deprivation",
                                   split_name == "age_grp" ~ "Age Group"))
   
