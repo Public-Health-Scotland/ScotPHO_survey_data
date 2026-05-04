@@ -242,11 +242,11 @@ responses_as_list_shes
 # [1] "Meets recommendations"   "Schedule not applicable" "Very low activity"       "Some activity"           "Low activity"            "Don't know"             
 # [7] "Refused"
 # 
-$ag16g10
-[1] "25-34"               "35-44"               "not applicable"      "45-54"               "16-24"               "55-64"               "65-74"              
-[8] "Kids 0-15"           "75+"                 "Item not applicable" "item not applicable" NA                    "Item Not Applicable" "Not applicable"     
-[15] "Refused"   
-
+# $ag16g10
+# [1] "25-34"               "35-44"               "not applicable"      "45-54"               "16-24"               "55-64"               "65-74"              
+# [8] "Kids 0-15"           "75+"                 "Item not applicable" "item not applicable" NA                    "Item Not Applicable" "Not applicable"     
+# [15] "Refused"   
+# 
 # $anxsymp
 # [1] "0"                       "Schedule not applicable" "Item not applicable"     "1"                       "4"                       "2"                      
 # [7] "3"                       "schedule not applicable" "item not applicable"     "Refusal"                 NA                        "Don't know"             
@@ -257,16 +257,16 @@ $ag16g10
 # [4] "Refused"                                  "Schedule not obtained"                    "Refusal"                                 
 # [7] "Refused/not answered"                     "8 or more (hazardous / harmful drinking)" "Not applicable"                          
 # 
-$bmivg5
-[1] "Over 25-30"              "Item not applicable"     "Schedule not applicable" "Over 18.5-25"            "Over 30-40"             
-[6] "Over 40"                 "Under 18.5"              "30 to less than 40"      "25 to less than 30"      "18.5 to less than 25"   
-[11] "40 and over"             "schedule not applicable" "item not applicable"     NA                        "Item Not Applicable"    
-[16] "Not applicable"         
-
-$bmivg5_adj
-[1] "30 to less than 40"      "18.5 to less than 25"    "25 to less than 30"      "40 and over"             "Not applicable"          "Under 18.5"             
-[7] "Schedule not applicable"
-
+# $bmivg5
+# [1] "Over 25-30"              "Item not applicable"     "Schedule not applicable" "Over 18.5-25"            "Over 30-40"             
+# [6] "Over 40"                 "Under 18.5"              "30 to less than 40"      "25 to less than 30"      "18.5 to less than 25"   
+# [11] "40 and over"             "schedule not applicable" "item not applicable"     NA                        "Item Not Applicable"    
+# [16] "Not applicable"         
+# 
+# $bmivg5_adj
+# [1] "30 to less than 40"      "18.5 to less than 25"    "25 to less than 30"      "40 and over"             "Not applicable"          "Under 18.5"             
+# [7] "Schedule not applicable"
+# 
 # $c00sum7s
 # [1] "Schedule not applicable"          "Group 1:60+min on all 7 days"     "Group 2:30-59min on all 7 days"   "Group 3:Lower level of activity" 
 # [5] "Don't know"                       "Item not applicable"              "schedule not applicable"          "item not applicable"             
@@ -274,20 +274,20 @@ $bmivg5_adj
 # [13] "Age 0-1"                          "Not applicable"                   "Group 1: 60+min on all 7 days"    "Group 2: 30-59min on all 7 days" 
 # [17] "Group 3: Lower level of activity"
 # 
-$cghq214
-[1] "Not applicable"                                "Not living with parent with GHQ12 score of 4+" "Living with parent with GHQ12 score of 4+"    
-[4] "Refused"                                       "Schedule not obtained"                         "No parent/guardian data"                      
-[7] "Item not applicable"                          
-
-$ch30plyg
-[1] "not applicable"          "None"                    "5 or more"               "1 or 2"                  "3 or 4"                 
-[6] "Item not applicable"     "Don't know"              "Schedule not applicable" "schedule not applicable" "don't know"             
-[11] "Dont know"               NA                        "Not applicable"         
-
-$combmivg5_adj
-[1] "Schedule not applicable" "18.5 to less than 25"    "30 to less than 40"      "25 to less than 30"      "Not applicable"         
-[6] "40 and over"             "Under 18.5"              "Don't know"              "Refused"                 "Item not applicable"    
-
+# $cghq214
+# [1] "Not applicable"                                "Not living with parent with GHQ12 score of 4+" "Living with parent with GHQ12 score of 4+"    
+# [4] "Refused"                                       "Schedule not obtained"                         "No parent/guardian data"                      
+# [7] "Item not applicable"                          
+# 
+# $ch30plyg
+# [1] "not applicable"          "None"                    "5 or more"               "1 or 2"                  "3 or 4"                 
+# [6] "Item not applicable"     "Don't know"              "Schedule not applicable" "schedule not applicable" "don't know"             
+# [11] "Dont know"               NA                        "Not applicable"         
+# 
+# $combmivg5_adj
+# [1] "Schedule not applicable" "18.5 to less than 25"    "30 to less than 40"      "25 to less than 30"      "Not applicable"         
+# [6] "40 and over"             "Under 18.5"              "Don't know"              "Refused"                 "Item not applicable"    
+# 
 # $contrl
 # [1] "schedule not applicable" "Sometimes"               "Often"                   "Always"                  "Never"                   "don't know"             
 # [7] "Seldom"                  "refused"                 NA                        "Item not applicable"     "Schedule not applicable" "Dont know"              
@@ -299,24 +299,24 @@ $combmivg5_adj
 # [13] "Refusal"                 "Dont know"               NA                        "schdule not obtained"    "Not applicable"          "Refused"                
 # [19] "Schedule not obtained"  
 # 
-$dnany
-[1] "not applicable"          "Never"                   "Very occasionally"       "schedule not obtained"   "Not applicable"         
-[6] "Schedule not obtained"   "Don't know"              "Schedule not applicable" "Item not applicable"     "Refused"                
-[11] "Refused/not answered"    NA                        "Dont know"               "Refusal"                
-
-$dnnow
-[1] "Yes"                     "not applicable"          "No"                      "Not answered/refused"    "schedule not obtained"  
-[6] "Don't know"              "Not applicable"          "Schedule not obtained"   "No answer/Refused"       "Schedule not applicable"
-[11] "Item not applicable"     "Refused"                 "Refused/not answered"    "Refusal"                 NA                       
-
-$drating
+# $dnany
+# [1] "not applicable"          "Never"                   "Very occasionally"       "schedule not obtained"   "Not applicable"         
+# [6] "Schedule not obtained"   "Don't know"              "Schedule not applicable" "Item not applicable"     "Refused"                
+# [11] "Refused/not answered"    NA                        "Dont know"               "Refusal"                
+# 
+# $dnnow
+# [1] "Yes"                     "not applicable"          "No"                      "Not answered/refused"    "schedule not obtained"  
+# [6] "Don't know"              "Not applicable"          "Schedule not obtained"   "No answer/Refused"       "Schedule not applicable"
+# [11] "Item not applicable"     "Refused"                 "Refused/not answered"    "Refusal"                 NA                       
+# 
+# $drating
 # values stored as strings, plus "Not answered (999.00)"
 # 
-$drkcat315
-[1] "Moderate (up to and including 14)" "Hazardous/harmful (over 14)"       "Schedule not applicable"           "Non-drinker"                      
-[5] "Don't know"                        "Refused"                           "Schedule obtained"                 "Item not applicable"              
-[9] "Schedule not obtained"             "Not applicable"                    "Hazardous / harmful (over 14)"    
-
+# $drkcat315
+# [1] "Moderate (up to and including 14)" "Hazardous/harmful (over 14)"       "Schedule not applicable"           "Non-drinker"                      
+# [5] "Don't know"                        "Refused"                           "Schedule obtained"                 "Item not applicable"              
+# [9] "Schedule not obtained"             "Not applicable"                    "Hazardous / harmful (over 14)"    
+# 
 # $dsh5
 # [1] "No"                      "Schedule not applicable" "Item not applicable"     "Yes"                     "Don't know"              "Don't Know"             
 # [7] "Refusal"                 "item not applicable"     "refused"                 "Refused"                 NA                       
@@ -333,52 +333,13 @@ $drkcat315
 # [1] "0"                       "Schedule not applicable" "Item not applicable"     "1"                       "4"                       "2"                      
 # [7] "3"                      
 # 
-$eqv5_15
-[1] "2nd Quintile (> = £25224 < £39157)"       "Top Quintile (> = £39157)"                "3rd Quintile (> = £17063 < £25224)"      
-[4] "Income not known"                         "4th Quintile (> = £10104 < £17063)"       "Bottom quintile (> = £0 < £10104)"       
-[7] "Age of household member refused"          "2nd Quintile (> = £26627 < £41167)"       "4th Quintile (> = £11046 < £17463)"      
-[10] "Bottom quintile (> = £0 < £11046)"        "3rd Quintile (> = £17463 < £26627)"       "Top Quintile (> = £41167)"               
-[13] "2nd Quintile (> = £25071 < £39157)"       "3rd Quintile (> = £17063 < £25071)"       "Bottom quintile (> = £0 < £10935)"       
-[16] "4th Quintile (> = £10935 < £17063)"       "Bottom quintile (> = £0 < £11700)"        "2nd Quintile (> = £27300 < £42484)"      
-[19] "3rd Quintile (> = £17473 < £27300)"       "4th Quintile (> = £11700 < £17473)"       "Top Quintile (> = £42484)"               
-[22] "4th Quintile  ( > = £ 11747  < £ 18012 )" "3rd Quintile  ( > = £ 18012  < £ 29104 )" "2nd Quintile  ( > = £ 29104  < £ 44578 )"
-[25] "Not applicable"                           "Bottom Quintile  ( > = £ 0  < £ 11747 )"  "Top Quintile  ( > = £ 44578 )"           
-[28] "4th Quintile  ( > = £ 12745  < £ 19542 )" "2nd Quintile  ( > = £ 29250  < £ 44828 )" "Bottom Quintile  ( > = £ 0  < £ 12745 )" 
-[31] "3rd Quintile  ( > = £ 19542  < £ 29250 )" "Top Quintile  ( > = £ 44828 )"            "Top Quintile  ( > = £ 48555 )"           
-[34] "Bottom Quintile  ( > = £ 0  < £ 13813 )"  "2nd Quintile  ( > = £ 31571  < £ 48555 )" "3rd Quintile  ( > = £ 21357  < £ 31571 )"
-[37] "4th Quintile  ( > = £ 13813  < £ 21357 )" "4th Quintile  ( > = £ 13722  < £ 21343 )" "3rd Quintile  ( > = £ 21343  < £ 32288 )"
-[40] "2nd Quintile  ( > = £ 32288  < £ 47739 )" "Bottom quintile  ( > = £ 0  < £ 13722 )"  "Top Quintile  ( > = £ 47739 )"           
-[43] "4th Quintile  ( > = £ 13722  < £ 21357 )" "2nd Quintile  ( > = £ 32500  < £ 48872 )" "3rd Quintile  ( > = £ 21357  < £ 32500 )"
-[46] "Top Quintile  ( > = £ 48872 )"            "Bottom quintile  ( > = £ 0  < £ 13929 )"  "4th Quintile  ( > = £ 13929  < £ 21938 )"
-[49] "3rd Quintile  ( > = £ 21938  < £ 32500 )" "2nd Quintile  ( > = £ 32500  < £ 49400 )" "Top Quintile  ( > = £ 49400 )"           
-[52] "Bottom Quintile"                          "4th Quintile"                             "3rd Quintile"                            
-[55] "2nd Quintile"                             "Top Quintile"                             "Bottom Quintile (>=£0 <£14300)"          
-[58] "4th Quintile (>=£14300 <£22750)"          "2nd Quintile (>=£32985 <£49400)"          "Top Quintile (>=£49400)"                 
-[61] "3rd Quintile (>=£22750 <£32985)"          "2nd Quintile (>=£33735 <£52388)"          "3rd Quintile (>=£23214 <£33735)"         
-[64] "Top Quintile (>=£52388)"                  "Bottom Quintile (>=£0 <£14444)"           "4th Quintile (>=£14444 <£23214)"         
-[67] "2nd Quintile (>=£42774 <£61666)"          "Top Quintile (>=£61666)"                  "3rd Quintile (>=£30107 <£42774)"         
-[70] "Bottom Quintile (>=£0 <£19542)"           "4th Quintile (>=£19542<£30107)"           "Bottom Quintile (>=Â£0 <Â£17600)"        
-[73] "4th Quintile (>=Â£17600 <Â£27600)"        "2nd Quintile (>=Â£39100 <Â£59300)"        "Top Quintile (>=Â£59300)"                
-[76] "3rd Quintile (>=Â£27600 <Â£39100)"        "3rd Quintile (>=Â£29000 <Â£40000)"        "Bottom Quintile (>=Â£0 <Â£19500)"        
-[79] "2nd Quintile (>=Â£40000 <Â£59300)"        "4th Quintile (>=Â£19500 <Â£29000)"        "Item not applicable"                     
-[82] "Schedule not applicable"                  "Schedule not obtained"                    "4th Quintile (>=Â£21300 <Â£29900)"       
-[85] "Top Quintile (>=Â£65000)"                 "2nd Quintile (>=Â£44200 <Â£65000)"        "Bottom Quintile (>=Â£0 <Â£21300)"        
-[88] "3rd Quintile (>=Â£29900 <Â£44200)"       
-
 # $final_sex22
 # [1] "Male"              "Female"            "Refused"           "Prefer not to say"
 # 
-$genhelf2 # (used on dashboard)
-[1] "Very good/good"    "Fair"              "Bad/very bad"      "No answer/refused" "Don't know"        "Refused"           "refused"          
-[8] "don't know"        "Refusal"           "Dont know"         NA                  "Don't Know"        "Not answered"      "Very good / good" 
-[15] "Bad / very bad"   
-
-# $gen_helf
-# [1] "Very good"     "Good"          "Bad"           "Fair"          "Very bad"      "Don't know"    "Refused"       "Don't Know"    "Refusal"       "refused"      
-# [11] "don't know"    NA              "Dont know"     "...very good," "good,"         "bad, or"       "fair,"         "very bad?"   "No answer/refused" 
-# 
-# $genhelf
-# [1] "Very good"     "Fair"          "Good"          "Bad"           "Very bad"      "good,"         "...very good," "fair,"         "bad, or"       "very bad?"    
+# $genhelf2 # (used on dashboard)
+# [1] "Very good/good"    "Fair"              "Bad/very bad"      "No answer/refused" "Don't know"        "Refused"           "refused"          
+# [8] "don't know"        "Refusal"           "Dont know"         NA                  "Don't Know"        "Not answered"      "Very good / good" 
+# [15] "Bad / very bad"   
 # 
 # $gh_qg2
 # [1] "Score 1-3"               "Schedule not applicable" "Score 0"                 "Score 4+"                "Schedule not obtained"   "Refused"                
@@ -438,12 +399,20 @@ $genhelf2 # (used on dashboard)
 # [7] "item not applicable"     "don't know"              NA                        "Schedule not applicable" "Refusal"                 "Item not applicable"    
 # [13] "Dont know"               "Don't Know"              "Don't know"              "Refused"                 "Not applicable"         
 # 
-$lifesat2
-[1] "above the mode (9-10)"   "mode (8)"                "below the mode (0 to 7)" "Schedule not applicable" "Don't know"             
-[6] "Refusal"                 NA                        "Refused/not answered"    "Dont know"               "Item not applicable"    
-[11] "Refused"                 "Not applicable"          "Above the mode (9-10)"   "Mode (8)"                "Below the mode (0 to 7)"
-
-# $life_sat
+# $la_code
+# [1] "West Lothian"          "Glasgow City"          "North Lanarkshire"     "Orkney Islands"        "Falkirk"               "Scottish Borders"     
+# [7] "Stirling"              "West Dunbartonshire"   "Dumfries and Galloway" "East Lothian"          "South Lanarkshire"     "Clackmannanshire"     
+# [13] "Midlothian"            "Edinburgh City"        "Shetland Islands"      "Highland"              "Angus"                 "Argyll and Bute"      
+# [19] "Inverclyde"            "Dundee City"           "Perth and Kinross"     "Renfrewshire"          "Aberdeenshire"         "East Ayrshire"        
+# [25] "East Renfrewshire"     "North Ayrshire"        "Fife"                  "South Ayrshire"        "Aberdeen City"         "East Dunbartonshire"  
+# [31] "Na h-Eileanan Siar"    "Moray"                
+# 
+# $lifesat2
+# [1] "above the mode (9-10)"   "mode (8)"                "below the mode (0 to 7)" "Schedule not applicable" "Don't know"             
+# [6] "Refusal"                 NA                        "Refused/not answered"    "Dont know"               "Item not applicable"    
+# [11] "Refused"                 "Not applicable"          "Above the mode (9-10)"   "Mode (8)"                "Below the mode (0 to 7)"
+# 
+# $life_sat (previous var: for mean score)
 # [1] "8"                          "Schedule not applicable"    "9"                          "5"                          "6"                         
 # [6] "10 - Extremely satisfied"   "7"                          "3"                          "0 - Extremely dissatisfied" "4"                         
 # [11] "2"                          "1"                          "Don't know"                 "Refused"                    "Don't Know"                
@@ -454,33 +423,32 @@ $lifesat2
 # [1] "No LI"           "Non limiting LI" "Limiting LI"     "Don't know"      "Refused"         "refused"         "don't know"      "Refusal"         "Don't Know"     
 # [10] "-9"              NA                "Dont know"       "Not answered"   "No answer/refused" NA
 # 
-$mus_rec
-[1] "Yes"                     "Schedule not applicable" "No"                     
-
-$musrec
-[1] "No"                      "Schedule not applicable" "Yes"   
-
+# $mus_rec
+# [1] "Yes"                     "Schedule not applicable" "No"                     
+# 
+# $musrec
+# [1] "No"                      "Schedule not applicable" "Yes"   
+# 
 # $number_of_recalls
 # [1] "2"              "Not applicable" "1"           
-
-$numberofrecalls
-[1] "Item not applicable" "2"                   "1"                  
-
-$olim_l_wb
-[1] "From 0 up to and including  M8,F6"                             "Schedule not applicable"                                      
-[3] "Over M8,F6"                                                    "Refusal"                                                      
-[5] "Item not applicable"                                           "Dont know"                                                    
-[7] "Schedule not obtained"                                         "Don't know"                                                   
-[9] "Refused/not answered"                                          NA                                                             
-[11] "Refused"                                                       "Not applicable"                                               
-[13] "From 0 up to and including 8 units for men, 6 units for women" "Over 8 units for men, 6 units for women"                      
-
-$olimlwb
-[1] "From 0 up to and including 8 units for men, 6 units for women" "Schedule not applicable"                                      
-[3] "Schedule not obtained"                                         "Over 8 units for men, 6 units for women"                      
-[5] "Don't know"                                                    "Item not applicable"                                          
-[7] "Refused"    
-
+# 
+# $numberofrecalls
+# [1] "Item not applicable" "2"                   "1"                  
+# 
+# $olim_l_wb
+# [1] "From 0 up to and including  M8,F6"                             "Schedule not applicable"                                      
+# [3] "Over M8,F6"                                                    "Refusal"                                                      
+# [5] "Item not applicable"                                           "Dont know"                                                    
+# [7] "Schedule not obtained"                                         "Don't know"                                                   
+# [9] "Refused/not answered"                                          NA                                                             
+# [11] "Refused"                                                       "Not applicable"                                               
+# [13] "From 0 up to and including 8 units for men, 6 units for women" "Over 8 units for men, 6 units for women"                      
+# 
+# $olimlwb
+# [1] "From 0 up to and including 8 units for men, 6 units for women" "Schedule not applicable"                                      
+# [3] "Schedule not obtained"                                         "Over 8 units for men, 6 units for women"                      
+# [5] "Don't know"                                                    "Item not applicable"                                          
+# [7] "Refused"    
 # 
 # $p_crisis
 # [1] "12"                      "schedule not applicable" "4"                       "10"                      "5"                       "6"                      
@@ -511,16 +479,16 @@ $olimlwb
 # [6] "Borders/D & G"                "Grampian & Tayside"           "Borders, Dumfries & Galloway" "Glagow"                       "Lanarkshire,Ayrshire & Arran"
 # [11] "Highlands & Islands"          "Forth Valley, Argyll & Clyde"
 # 
-$respsex
-[1] "Male"   "Female"
-
+# $respsex
+# [1] "Male"   "Female"
+# 
 # $rg15a_new
 # [1] "Item not applicable"     "No"                      "Schedule not applicable" "Yes"                     "Don't Know"              "Not applicable"         
 # [7] "Don't know"              "Refused"                 "Refusal"                
 # 
-$rg15anew
-[1] "No"                      "Schedule not applicable" "Yes"                     "Refused"                 "Item not applicable"    
-
+# $rg15anew
+# [1] "No"                      "Schedule not applicable" "Yes"                     "Refused"                 "Item not applicable"    
+# 
 # $rg17a_new
 # [1] "Item not applicable"                    "Schedule not applicable"                "Up to 4 hours a week"                   "5 - 19 hours a week"                   
 # [5] "50 or more hours a week"                "20 - 34 hours a week"                   "Varies (spontaneous - not on showcard)" "35 - 49 hours a week"                  
@@ -564,7 +532,6 @@ $rg15anew
 # [7] "Refused"                 "schedule not applicable" "schedule not obtained"   NA                        "Not applicable"          "17-19"                  
 # [13] "Item not applicable"     "20-40"                  
 # 
-# 
 # $sex
 # [1] "Male"              "Female"            NA                  "Refused"           "Prefer not to say"
 # 
@@ -593,21 +560,21 @@ $rg15anew
 # [1] "3rd"                  "5th - least deprived" "2nd"                  "4th"                  "1st - most deprived"  NA                     "3"                   
 # [8] "4"                    "1"                    "2"                    "5"                   
 # 
-$spt1ch
-[1] "not applicable"          "No"                      "Yes"                     "Schedule not applicable" "Don't know"             
-[6] "No answer/refused"       "Refused"                 "schedule not applicable" "refused"                 "don't know"             
-[11] "Don't Know"              "Refusal"                 NA                        "Dont know"               "Item not applicable"    
-
+# $spt1ch
+# [1] "not applicable"          "No"                      "Yes"                     "Schedule not applicable" "Don't know"             
+# [6] "No answer/refused"       "Refused"                 "schedule not applicable" "refused"                 "don't know"             
+# [11] "Don't Know"              "Refusal"                 NA                        "Dont know"               "Item not applicable"    
+# 
 # $str_work2
 # [1] "schedule not applicable"       "moderately stressful"          "not at all/mildly stressful"   "don't know"                    "very/extremely stressful"     
 # [6] "refused"                       NA                              "Item not applicable"           "Schedule not applicable"       "Refusal"                      
 # [11] "Don't know"                    "Moderately stressful"          "Very/extremely stressful"      "Not at all/mildly stressful"   "Refused"                      
 # [16] "Not at all / Mildly stressful" "Very / Extremely stressful"    "Not applicable"                "Not at all / mildly stressful" "Very / extremely stressful"   
 # 
-$strwork2
-[1] "Moderately stressful"          "Schedule not applicable"       "Not at all / mildly stressful" "Very / extremely stressful"   
-[5] "Item not applicable"           "Refused"                       "Don't know"                    "Not applicable"               
-
+# $strwork2
+# [1] "Moderately stressful"          "Schedule not applicable"       "Not at all / mildly stressful" "Very / extremely stressful"   
+# [5] "Item not applicable"           "Refused"                       "Don't know"                    "Not applicable"               
+# 
 # $suicide2
 # [1] "No"                                      "Schedule not applicable"                 "Item not applicable"                    
 # [4] "Yes longer than year"                    "-5"                                      "Yes in last year (inc last week)"       
@@ -628,18 +595,18 @@ $strwork2
 # [7] "Neutral"                 "Does not apply"          "CAPI routing error"      "Refused"                 "Don't know"              "Item not applicable"    
 # [13] "Not_Apply"               "Don't Know"              "Refusal"                  
 # 
-$urbrur2a
-[1] "Urban"          "Rural"          "Not applicable"
-
-$urbrur2a_16
-[1] "Not applicable" "Rural"          "Urban"         
-
-$urbrur2a_20
-[1] "Not applicable" "Rural"          "Urban"         
-
-$urindsc2
-[1] "Urban" "Rural"
-
+# $urbrur2a
+# [1] "Urban"          "Rural"          "Not applicable"
+# 
+# $urbrur2a_16
+# [1] "Not applicable" "Rural"          "Urban"         
+# 
+# $urbrur2a_20
+# [1] "Not applicable" "Rural"          "Urban"         
+# 
+# $urindsc2
+# [1] "Urban" "Rural"
+# 
 # $wemwbs
 # [1] "39"                      "Schedule not applicable" "50"                      "57"                      "41"                      "56"                     
 # [7] "53"                      "58"                      "33"                      "46"                      "59"                      "54"                     
@@ -660,14 +627,13 @@ $urindsc2
 # [16] "Item not applicable"        "Schedule not applicable"    "Dont know"                  "Don't Know"                 "Refusal"                   
 # [21] "Don't know"                 "Refused"                    "Not applicable"   
 #
-$wrfood
-[1] "Schedule not applicable" "No"                      "Yes"                     "Refusal"                 "Refused"                
-[6] "Schedule not obtained"   "Not applicable"          "Don't know"              NA                        "Item not applicable"    
+# $wrfood
+# [1] "Schedule not applicable" "No"                      "Yes"                     "Refusal"                 "Refused"                
+# [6] "Schedule not obtained"   "Not applicable"          "Don't know"              NA                        "Item not applicable"    
 
 
 
 ###################################
-
 
 
 # 5. How should the responses be coded?
