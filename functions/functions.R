@@ -61,12 +61,12 @@ extract_var_desc <- function(file_loc, source_dir, encoding=NULL){
 #' @export
 #'
 #' @examples
-read_select <- function(file_loc, source_dir, vars_to_keep, 
+read_select <- function(file_loc, source_dir, vars_to_keep, additional=NULL,
                         verbose = FALSE, encoding=NULL){
   dta_full <-  read_and_clean_dta(file_loc, source_dir, encoding)
   
   dta_reduced <- dta_full %>% 
-    select(any_of(vars_to_keep))
+    select(any_of(vars_to_keep), any_of(matches(additional)))
   
   if (verbose){
     message("data contains ", ncol(dta_full), " variables")
@@ -237,7 +237,7 @@ save_var_descriptions <- function (survey, name_pattern) {
 #' @return The dataframe is written to a rds file called "extracted_survey_data_", survey, ".rds" 
 #'
 #' @examples
-extract_survey_data <- function (survey, pa = FALSE) {
+extract_survey_data <- function (survey, pa = FALSE, additional = NULL) {
   
   # Set the directory containing the data (assumes it is a folder within /conf/MHI_Data/big/big_mhi_data/unzipped/)
   
@@ -272,6 +272,7 @@ extract_survey_data <- function (survey, pa = FALSE) {
                  ~ read_select(.x, 
                                source_dir = source_dir, 
                                vars_to_keep = vars_to_keep,
+                               additional = ifelse(is.null(additional), NULL, additional),
                                encoding = encoding, 
                                verbose = FALSE) %>% 
                    mutate_if(~"haven_labelled" %in% class(.), as_factor))) %>% # this turns all labelled variables into factors
