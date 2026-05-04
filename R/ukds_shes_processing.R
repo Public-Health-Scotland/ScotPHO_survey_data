@@ -6,10 +6,10 @@
 
 # Notes on SHeS
 
-# 20 adult indicators: 
+# 25 adult indicators: 
 
 # 99107 = adt10gp_tw2	(also in CWB and PA profiles) Percentage of adults who met the recommended moderate or vigorous physical activity guideline in the previous four weeks. In July 2011, the Chief Medical Officers of each of the four UK countries agreed and introduced revised guidelines on physical activity. Adults are recommended to accumulate 150 minutes of moderate activity or 75 minutes of vigorous activity per week, or an equivalent combination of both, in bouts of 10 minutes or more. The variable used was adt10gpTW. This bandings used for this variable include the new walking definition for those aged 65 years and over. 
-# 99108 = gen_helf	(also in CWB profile) Percentage of adults who, when asked "How good is your health in general?", selected "good" or "very good". The five possible options ranged from very good to very bad, and the variable was GenHelf. 
+# 99108 = gen_helf	(also in CWB profile) Percentage of adults who, when asked "How good is your health in general?", selected "good" or "very good". The five possible options ranged from very good to very bad, and the variable was GenHelf2. 
 # 99109 = limitill2	(also in CWB profile) Percentage of adults who have a limiting long-term illness. Long-term conditions are defined as a physical or mental health condition or illness lasting, or expected to last, 12 months or more. A long-term condition is defined as limiting if the respondent reported that it limited their activities in any way. The variable used was limitill. 
 # 30001 = wemwbs	Mean score on the WEMWBS scale (adults). WEMWBS stands for Warwick-Edinburgh Mental Wellbeing Scale. N.B. This indicator is also available from the ScotPHO Online Profiles (national, health board, and council area level, but not by SIMD). The questionnaire consists of 14 positively worded items designed to assess: positive affect (optimism, cheerfulness, relaxation) and satisfying interpersonal relationships and positive functioning (energy, clear thinking, self-acceptance, personal development, mastery and autonomy). It is scored by summing the response to each item answered on a 1 to 5 Likert scale ('none of the time', 'rarely', 'some of the time', often', 'all of the time'). The total score ranges from 14 to 70 with higher scores indicating greater wellbeing. The variable used was WEMWBS. 
 # 30002 = life_sat	Percentage with the highest levels of life satisfaction: responses above the mode (9 to 10-Extremely satisfied) when asked "All things considered, how satisfied are you with your life as a whole nowadays?"
@@ -179,7 +179,8 @@ save_var_descriptions(survey = "shes", # looks in this folder
 # 14 JAN 2026: ADDING 2023 DATA
 # 12 JAN 2026: ADDITION OF CHILD SDQ VARS
 # 01 APR 2026: ADDING MORE VARS FROM THE SHES DASHBOARD, AND HARMONISING EXISTING VARS WITH THEIRS.
-extracted_survey_data_shes <- extract_survey_data("shes") 
+#extracted_survey_data_shes <- extract_survey_data("shes") 
+extracted_survey_data_shes <- extract_survey_data("shes", additional="^int.*wt$|^cint.*wt$|^bio.*wt$|^vera.*wt$|^nurs.*wt$") 
 # What this function is doing:
 #   Uses the file locations saved in the spreadsheet, and opens each file in turn.
 #   Runs the function read_select() to read in the data for any variable listed in the vars_to_extract_xxx file.
@@ -697,20 +698,6 @@ lookup_dsh5sc <- list(
   "No"="no"
 )
 
-# general health
-lookup_gen_helf <- list( 
-  "...very good,"="yes", 
-  "Good"="yes", 
-  "good,"="yes", 
-  "Very good"="yes",
-  "Bad"="no", 
-  "bad, or"="no", 
-  "Fair"="no", 
-  "fair,"="no", 
-  "Very bad"="no", 
-  "very bad?"="no"
-)
-
 # GHQ caseness
 # For recoding gh_qg2, ghqg2 and ghq2
 lookup_gh_qg2 <- list( # trying to recreate the published data (SHeS dashboard) confirmed that 'don't know' and refused/not answered are excluded from calcs
@@ -722,6 +709,14 @@ lookup_gh_qg2 <- list( # trying to recreate the published data (SHeS dashboard) 
   "Score 1-3"="no"
 )
 
+# general health (genhelf2)
+lookup_genhelf2 <- list( 
+  "Very good/good" ="yes",   
+  "Very good / good" ="yes",
+  "Fair" ="yes",             
+  "Bad/very bad" ="yes",     
+  "Bad / very bad" ="no"
+)
 
 # For recoding involve and involv19
 lookup_involve <- list(
@@ -849,6 +844,47 @@ lookup_support1 <- list(
   "Tend to disagree"="no" 
 )
 
+# Healthy weight (for bmivg5, bmivg5_adj, combmivg5_adj)
+lookup_healthyweight <- list(
+  "18.5 to less than 25"="yes",
+  "Under 18.5" ="no",              
+  "Over 25-30" ="no",              
+  "25 to less than 30" ="no",         
+  "Over 18.5-25" ="no",            
+  "Over 30-40" ="no",             
+  "30 to less than 40" ="no",      
+  "Over 40" ="no",                 
+  "40 and over"="no"   )
+
+# life satisfaction as % (lifesat2)
+lookup_lifesat2 <- list(
+  "above the mode (9-10)"="yes",
+  "Above the mode (9-10)" = "yes",
+  "mode (8)" ="no",               
+  "Mode (8)" ="no",               
+  "below the mode (0 to 7)" ="no",
+  "Below the mode (0 to 7)"="no"   )
+
+# binge drinking (olim_l_wb and olimlwb)
+lookup_binge <- list(
+  "Over M8,F6" ="yes",
+  "Over 8 units for men, 6 units for women" ="yes",                     
+  "From 0 up to and including  M8,F6" ="no",                            
+  "From 0 up to and including 8 units for men, 6 units for women"  ="no"   )
+
+# drinking over rec limits (drkcat315)
+lookup_alcoholguidelines <- list(
+  "Hazardous / harmful (over 14)" ="yes",   
+  "Hazardous/harmful (over 14)" ="yes",      
+  "Moderate (up to and including 14)" ="no", 
+  "Non-drinker" ="no" )
+
+# food insecurity (wrfood)
+lookup_foodinsecure <- list(
+  "Yes" ="yes",
+  "No"  ="no"   )
+
+
 # CYP MHI indicators:
 
 # For recoding auditg
@@ -863,6 +899,12 @@ lookup_sex <- list(
   "Female"="Female",
   "Male"="Male" 
 )
+
+# children living with parent with GHQ12 score of 4+ (cghq214)
+lookup_childghq12 <- list(
+  "Living with parent with GHQ12 score of 4+"="yes",
+  "Not living with parent with GHQ12 score of 4+"="no"   )
+
 
 # PA profile indicators:
 
@@ -894,7 +936,7 @@ lookup_c00sum7s <- list(
   "Group 3:Lower level of activity" = "yes",
   "Group 3: Lower level of activity" = "yes")
 
-#Adults meeting muscle strengthening recommedation
+#Adults meeting muscle strengthening recommendation (musrec and mus_rec)
 lookup_mus_rec <- list(
   "No" = "no",
   "Yes" = "yes")
@@ -907,6 +949,9 @@ lookup_limitill_SPLIT <- list(
 
 # 6. Initial processing of the survey data: creating a flat file with harmonised variable names.
 # =================================================================================================================
+
+## Read the data back in if not in memory:
+# extracted_survey_data_shes <- readRDS(paste0(derived_data, "extracted_survey_data_shes.rds"))
 
 ## A: How are grouping variables (geogs and SIMD) coded in each survey file? Need standardising?
 
