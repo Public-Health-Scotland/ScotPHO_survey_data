@@ -10,15 +10,16 @@
 
 vars_to_keep <- c(
   
-  "age", "age90", "respage", 
-  "ag16g10", # adult age groups
+  "age", 
+  "ag16g10", # adult age groups (is this used?)
   
   "hb_code", "hbcode", "hlth_brd", "hlthbrd",   
-  "hboard", #98 and 03
+
+  "la_code",
   
-  "sex", "respsex", "final_sex22",
+  "sex", "final_sex22",
   "eqv5_15", #equivalised income groups (OECD method)
-  "urindsc2", "urbrur2a", "urbrur2a_16", "urbrur2a_20", # urban-rural classification (lots of overlap of these classifications: look into later)
+  "urindsc2", "urbrur2a", "urbrur2a_16", "urbrur2a_20", # urban-rural classification (lots of overlap of these classifications: look into later) (2012 onwards)
   
   # identifiers needed to work out who are the legal parents of the interviewed child
   "par1", # person number of 1st legal parent
@@ -26,21 +27,17 @@ vars_to_keep <- c(
   # "person", # that individual's person number # now derived from cpserial (as not provided in 2023)
   
   "cpseriala", # serial number of individual (looks to be hhd serial number + 2 digit person number)
-  "pserial",
   "pserial_a",
   "cpserial_a",
   "cp_serial_a",
-  "serialx",
-  
+
   "chh_serial_a", # serial number of the hhd 
   "chhserial_a",
   "chhseriala",
   "chserial_a",
-  "hhserial",
   "hserial_a" ,
   
   #Use the SG harmonised SIMD instead of the report (rp) versions, as these are coded more intuitively
-  "simd5", #simd2004 used in 03: CHECK CODING. NO 95/98 SIMD.
   "simd5_sg",# SIMD2009 used 08 to 11
   "simd5_s_ga", #SIMD2012 used 12 to 15 *
   "simd16_s_ga", #SIMD2016 used 13 to 18 * (* both used in 15161718 file, keep simd16)
@@ -49,9 +46,9 @@ vars_to_keep <- c(
   "simd20_r_pa", #needed for 2022 data, no SGA available
   
   "wemwbs", # mean score variable (FROM 2008)
-  "gh_qg2", "ghqg2", "ghq2", #(last 2 in 95, 98 and 03, and since 2019-23 aggd)
-  "depsymp", "dvg11", # dvg11 = CISR - DEPRESSION Sympton score [from G5, G6, G7 and G9]
-  "anxsymp", "dvj12", # dvj12 = (D) CISR - ANXIETY Symptom score [from J6, J7, J8, J9 and J10]
+  "gh_qg2", "ghqg2", 
+  "depsymp", "dvg11", # dvg11 (2008 and 0809) = CISR - DEPRESSION Symptom score [from G5, G6, G7 and G9]
+  "anxsymp", "dvj12", # dvj12 (2008 and 0809) = (D) CISR - ANXIETY Symptom score [from J6, J7, J8, J9 and J10]
   "porftvg3", #"porftvg5", #(last one used in 2003) # (D) Grouped portions of fruit (including fruit juice) & veg (5/less than 5/none)
   "porftvg3intake", "number_of_recalls", "numberofrecalls",#Intake used in 2021 and 2024 data: SG present this data in same timeseries as previous porftvg3 variable). Published intake24 data = only fom those with 2 recalls.
   # Healthy weight. BMI of higher than 18.5 and lower than 25. 
@@ -91,166 +88,7 @@ vars_to_keep <- c(
   
   #survey design
   "psu", 
-  "strata", 
-  "region", #use for strata in 98
-  
-  # weights
-  # main sample weights (35 survey files, excluding 0810, 0911, 1214):
-  "int08wt",
-  "int0809_wt", 
-  "int08091011_wt", 
-  "int09wt", 
-  "int1011_wt", 
-  "int10wt", 
-  "int11wt", 
-  "int12131415wt", 
-  "int121314wt", 
-  "int1213wt", 
-  "int12wt", 
-  "int13141516wt", 
-  "int1315wt", 
-  "int13wt", 
-  "int14151617wt", 
-  "int1415wt", 
-  "int1416wt", 
-  "int14wt", 
-  "int15161718wt", 
-  "int1516wt", 
-  "int1517wt", 
-  "int15wt", 
-  "int16171819wt", 
-  "int1617wt", 
-  "int1618wt", 
-  "int16wt", 
-  "int17181921wt", 
-  "int1718wt", 
-  "int1719wt", 
-  "int17wt", 
-  "int18192122wt",
-  "int1819wt", 
-  "int18wt", 
-  "int1921wt", 
-  "int19wt", 
-  "int20wt", 
-  "int21wt", 
-  "int22wt",
-  "int19212223wt",
-  "int23wt",
-  "int21222324wt",
-  "int24wt",
-  # version a (vera) weights (22 files have vera weights: annual and ~3yr)
-  "vera08wt", 
-  "vera0810wt", 
-  "vera0911wt", 
-  "vera09wt", 
-  "vera10wt", 
-  "vera11wt", 
-  "vera1213wt", 
-  "vera1214wt", 
-  "vera12wt", 
-  "vera1315wt", 
-  "vera13wt", 
-  "vera1416wt", 
-  "vera14wt", 
-  "vera1517wt", 
-  "vera15wt", 
-  "vera1618wt", 
-  "vera16wt", 
-  "vera1719wt", 
-  "vera17wt", 
-  "vera18192122wt",
-  "vera18wt", 
-  "vera1921wt", 
-  "vera19wt", 
-  "vera21wt",
-  "vera22wt",
-  "vera23wt",
-  "vera24wt",
-  # version b (verb) biol module weights (22 files have bio weights: annual, ~3yr and ~4yr, from 1213)
-  "bio12131415wt",
-  "bio121314wt",
-  "bio1213wt",
-  "bio13141516wt",
-  "bio13wt",
-  "bio14151617wt",
-  "bio1415wt",
-  "bio14wt",
-  "bio15161718wt",
-  "bio1516wt",
-  "bio15wt",
-  "bio16171819wt",
-  "bio1617wt",
-  "bio16wt",
-  "bio17181921wt",
-  "bio1718wt",
-  "bio17wt",
-  "bio18192122wt",
-  "bio1819wt",
-  "bio18wt",
-  "bio1921wt",
-  "bio19wt",
-  "bio21wt",
-  "bio22wt",
-  "bio19212223wt",
-  "bio23wt",
-  "bio21222324wt",
-  "bio24wt",
-  
-  #nurse weights: (pre-dated introduction of bioweights, 2008-11, and are used for self-harm/suicide/anxiety/depression questions)
-  "nurs08wt",
-  "nurs0809_wt",
-  "nurs09wt",
-  "nurs10wt",
-  "nurs08091011_wt",
-  "nurs1011_wt",
-  "nurs11wt",
-  # Intake24 weight (only in 2021 so far)
-  "s_he_s_intake24_wt_sc",
-  # early surveys:
-  "weighta", #93 and 98
-  "int_wt", #03
-  # child weights
-  "cint_wt",
-  "cint0809_wt",
-  "cint08091011_wt",
-  "cint08wt",
-  "cint09wt",
-  "cint1011_wt",
-  "cint10wt",
-  "cint11wt",
-  "cint12131415wt",
-  "cint121314wt",
-  "cint1213wt",
-  "cint12wt",
-  "cint13141516wt",
-  "cint13wt",
-  "cint14151617wt",
-  "cint1415wt",
-  "cint14wt",
-  "cint15161718wt",
-  "cint1516wt",
-  "cint15wt",
-  "cint16171819wt",
-  "cint1617wt",
-  "cint16wt",
-  "cint17181921wt",
-  "cint1718wt",
-  "cint1719wt",
-  "cint17wt",
-  "cint18192122wt",
-  "cint1819wt",
-  "cint18wt",
-  "cint1921wt",
-  "cint19wt",
-  "cint21wt",
-  "cint22wt",
-  "cint19212223wt",
-  "cint23wt",
-  "cint21222324wt",
-  "cint24wt"
-  
-  
-  
+  "strata"
   
 )
 
