@@ -113,17 +113,17 @@ pacman::p_load(
 
 source(here("functions", "functions.R")) # sources the file "functions/functions.R" within this project/repo
 
-# # Source functions/packages from ScotPHO's scotpho-indicator-production repo 
-# # (works if you've stored the ScotPHO repo in same location as the current repo)
-# #source("../scotpho-indicator-production/1.indicator_analysis.R")
-# #source("../scotpho-indicator-production/2.deprivation_analysis.R")
-# # change wd first
-# setwd("../scotpho-indicator-production/")
-# source("functions/main_analysis.R") # for packages and QA function 
-# source("functions/deprivation_analysis.R") # for packages and QA function (and path to lookups)
-# 
-# # move back to the ScotPHO_survey_data repo
-# setwd("/conf/MHI_Data/Liz/repos/ScotPHO_survey_data")
+# Source functions/packages from ScotPHO's scotpho-indicator-production repo
+# (works if you've stored the ScotPHO repo in same location as the current repo)
+#source("../scotpho-indicator-production/1.indicator_analysis.R")
+#source("../scotpho-indicator-production/2.deprivation_analysis.R")
+# change wd first
+setwd("../scotpho-indicator-production/")
+source("functions/main_analysis.R") # for packages and QA function
+source("functions/deprivation_analysis.R") # for packages and QA function (and path to lookups)
+
+# move back to the ScotPHO_survey_data repo
+setwd("/conf/MHI_Data/Liz/repos/ScotPHO_survey_data")
 
 ## C. Path to the data derived by this script
 
@@ -179,8 +179,7 @@ save_var_descriptions(survey = "shes", # looks in this folder
 # 14 JAN 2026: ADDING 2023 DATA
 # 12 JAN 2026: ADDITION OF CHILD SDQ VARS
 # 01 APR 2026: ADDING MORE VARS FROM THE SHES DASHBOARD, AND HARMONISING EXISTING VARS WITH THEIRS.
-#extracted_survey_data_shes <- extract_survey_data("shes") 
-extracted_survey_data_shes <- extract_survey_data("shes", additional="^int.*wt$|^cint.*wt$|^bio.*wt$|^vera.*wt$|^nurs.*wt$") 
+extracted_survey_data_shes <- extract_survey_data("shes", additional="^int.*wt$|^cint.*wt$|^bio.*wt$|^vera.*wt$|^nurs.*wt$|intake24_wt_sc") 
 # What this function is doing:
 #   Uses the file locations saved in the spreadsheet, and opens each file in turn.
 #   Runs the function read_select() to read in the data for any variable listed in the vars_to_extract_xxx file.
@@ -195,6 +194,8 @@ extracted_survey_data_shes <- extract_survey_data("shes", additional="^int.*wt$|
 extracted_survey_data_shes <- extracted_survey_data_shes %>%
   filter(!str_detect(filename, "she?s\\D?\\d{2,10}h")) %>% # this drops the shes household files ("h" follows the year for these files)
   filter(!str_detect(filename, "intake24")) %>% # this drops the shes intake24 files (the derived var we need is already in the individual file)
+# Drop years we don't want:
+# drop 2020 survey as experimental and not comparable. 1995 and 1998 don't have SIMD, and have old HBs. 2003 has old HBs too.
   filter(!year %in% c("95", "98", "03", "20")) # Not used
 
 
@@ -218,7 +219,7 @@ extracted_survey_data_shes <- extracted_survey_data_shes %>%
 # responses_as_list_shes  # examine the output
 # 2nd run to exclude the numeric vars that don't need codings and/or muck up the output:
 extract_responses(survey = "shes", #survey acronym
-                  chars_to_exclude = c("wt", "age", "psu", "strata", "weighta", "par", "serial")) #we don't need to work out codings for these numeric vars (and they muck up the output)
+                  chars_to_exclude = c("wt", "age", "psu", "strata", "par", "serial")) #we don't need to work out codings for these numeric vars (and they muck up the output)
 # What this function does: 
 #   Runs get_valid_responses() function for each variable in each survey file.
 #   This extracts any character/factor data, converts to character, stores in a dataframe.
@@ -688,8 +689,8 @@ lookup_gh_qg2 <- list( # trying to recreate the published data (SHeS dashboard) 
 lookup_genhelf2 <- list( 
   "Very good/good" ="yes",   
   "Very good / good" ="yes",
-  "Fair" ="yes",             
-  "Bad/very bad" ="yes",     
+  "Fair" ="no",             
+  "Bad/very bad" ="no",     
   "Bad / very bad" ="no"
 )
 
@@ -876,7 +877,7 @@ lookup_sex <- list(
 )
 
 # children living with parent with GHQ12 score of 4+ (cghq214)
-lookup_childghq12 <- list(
+lookup_childghq <- list(
   "Living with parent with GHQ12 score of 4+"="yes",
   "Not living with parent with GHQ12 score of 4+"="no"   )
 
@@ -943,31 +944,28 @@ shes_years_vars <- extracted_survey_data_shes %>%
 
 
 # This shows some issues that need to be rectified before the dataframe can be 'unlisted' into a flat file:
-# 1. File years 03, 12, 13, 14, 1214, and 121314 use 2 HB variables. 
-# hboard and hlthbrd used in 03: keep hlthbrd here (text), as hboard contains codes
+# 1. File years 12, 13, 14, 1214, and 121314 use 2 HB variables. 
 # hbcode and hlth_brd used in 12, 1214, 14 data (keep hlth_brd as it is consistently text in these files)
 # hbcode and hlthbrd used in 13 (keep hlthbrd as it's text)
 # hb_code and hlth_brd used in 121314 (keep hlth_brd as it's text)
 # hbcode and hb_code are used inconsistently (see responses_as_list_shes above): don't use when hlth_brd or hlthbrd are also used (i.e., in the years noted above).
 # 2. 2015-18 survey uses two SIMDs (simd5_s_ga for 2015 and simd16_s_ga for 2016-18): harmonise these into "simd_combo" before aggregating
-# 3. 1995 and 1998 don't have SIMD data: exclude
 
 
 ## B. Create lookups for harmonising var names and coding:
 
 # lookups:
-hb_lookup <- c(hb = "hboard", hb = "hbcode", hb = "hb_code", hb = "hlth_brd", hb = "hlthbrd")
-simd_lookup <- c(quintile = "simd5", quintile = "simd20_s_ga", quintile = "simd16_s_ga", quintile = "simd5_sg", 
+hb_lookup <- c(hb = "hbcode", hb = "hb_code", hb = "hlth_brd", hb = "hlthbrd")
+simd_lookup <- c(quintile = "simd20_s_ga", quintile = "simd16_s_ga", quintile = "simd5_sg", 
                  quintile = "simd5_s_ga", quintile = "simd20_sga", quintile = "simd_combo", quintile = "simd20_r_pa") # r_pa needed for 2022. check its coding.
-age_lookup <- c(age = "age", age = "respage") # respage used in 1995
-sex_lookup <- c(sex = "sex", sex = "final_sex22", sex = "respsex") # respsex used in 1995, final_sex22 used in 2022
-indserial_lookup <- c(indserial="cpseriala",  indserial="pserial", indserial="pserial_a", indserial="cpserial_a", indserial="cp_serial_a", indserial="serialx")
-hhserial_lookup <- c(hhserial="chh_serial_a", hhserial="chhserial_a", hhserial="chhseriala", hhserial="chserial_a", hhserial="hhserial", hhserial="hserial_a")
+sex_lookup <- c(sex = "sex", sex = "final_sex22") # final_sex22 used from 2022
+indserial_lookup <- c(indserial="cpseriala",  indserial="pserial_a", indserial="cpserial_a", indserial="cp_serial_a")
+hhserial_lookup <- c(hhserial="chh_serial_a", hhserial="chhserial_a", hhserial="chhseriala", hhserial="chserial_a", hhserial="hserial_a")
 
 # derive lookup for years where only a numeric hbcode is provided (hbcode in 1213 and 1618, hb_code in 1921):
 # checked when hbcode/hb_code is provided alongside a character hb field, and all code the same: alphabetically
 # extract codings from 2014 file: 
-hbcodes <- extracted_survey_data_shes[[4]][[18]] %>%
+hbcodes <- extracted_survey_data_shes[[4]][[15]] %>%
   group_by(hbcode, hlth_brd) %>%
   summarise() %>%
   ungroup()  
@@ -978,12 +976,8 @@ hbcodes <- extracted_survey_data_shes[[4]][[18]] %>%
 # Lots of steps here. If not processing new data the files shes_adult_data and shes_child_data can be read in after these 
 # (currently around lines 912 and 951)
 
-# Drop years we don't want:
-# drop 2020 survey as experimental and not comparable. 1995 and 1998 don't have SIMD, and have old HBs. 2003 has old HBs too.
-shes_data <- extracted_survey_data_shes %>%
-  filter(!year %in% c("95", "98", "03", "20")) 
 # keep only single year and 4-year aggregations:
-shes_data <- shes_data %>% 
+shes_data <- extracted_survey_data_shes %>% 
   mutate(year = case_when(year=="2022" ~ "22", 
                           year=="2023" ~ "23",
                           year=="2024" ~ "24",
@@ -995,11 +989,11 @@ shes_data <- shes_data %>%
   mutate(survey_data = map(survey_data, ~ .x %>% # map() here means this is all being done within the individual items in the list column, while retaining the list format
                              mutate(across(.cols = everything(), as.character)) %>% # some factors muck up the processing otherwise. Will convert some vars back to numeric eventually. 
                              # ensure there's only a single HB variable each year
-                             { if (length(grep("hlth_brd|hbcode|hlthbrd|hb_code|hboard", names(.))) > 1) select(., -starts_with("hb")) else .} %>% # drop hb* when there are two hb vars (see logic above)
-                             { if (length(grep("hlth_brd|hbcode|hlthbrd|hb_code|hboard", names(.))) ==0) mutate(., hb=strata) else .} %>% # when there's no hb var use strata instead (could actually probably be done for every year, if consistently coded...)
+                             { if (length(grep("hlth_brd|hbcode|hlthbrd|hb_code", names(.))) > 1) select(., -starts_with("hb")) else .} %>% # drop hb* when there are two hb vars (see logic above)
+                             { if (length(grep("hlth_brd|hbcode|hlthbrd|hb_code", names(.))) ==0) mutate(., hb=strata) else .} %>% # when there's no hb var use strata instead (could actually probably be done for every year, if consistently coded...)
                              rename(any_of(hb_lookup)) %>% # apply the lookup defined above to rename all hb vars as 'hb'
                              # Standardise HB names for matching with ScotPHO geo_lookup
-                             mutate(spatial.unit = case_match(hb,
+                             mutate(hb = case_match(hb,
                                                               "1" ~ "Ayrshire and Arran",   
                                                               "2" ~ "Borders",              
                                                               "3" ~ "Dumfries and Galloway",
@@ -1018,10 +1012,15 @@ shes_data <- shes_data %>%
                                                               "Greater Glasgow" ~ "Greater Glasgow & Clyde",
                                                               "Greater Glascow and Clyde" ~ "Greater Glasgow & Clyde",
                                                               .default = hb)) %>%
-                             mutate(spatial.unit = gsub(" and ", " & ", spatial.unit),
-                                    spatial.unit = case_when(!spatial.unit=="NA" ~ paste0("NHS ", spatial.unit),
-                                                             TRUE ~ as.character(NA)),
-                                    spatial.scale = "Health board") 
+                             mutate(hb = gsub(" and ", " & ", hb),
+                                    hb = case_when(!hb=="NA" ~ paste0("NHS ", hb),
+                                                             TRUE ~ as.character(NA))) %>%
+                             # When there's a la_code variable, standardise CA names for matching with ScotPHO geo_lookup
+                             { if (length(grep("la_code", names(.)))==1) 
+                               mutate(., la_code = case_when(la_code == "Edinburgh City" ~ "City of Edinburgh", 
+                                                             str_detect(la_code, " and ") ~ gsub(" and ", " & ", la_code),
+                                                             TRUE ~ la_code))
+                               else .} 
                            ))
 
 
@@ -1033,11 +1032,11 @@ shes_data <- shes_data %>%
                              rename(any_of(simd_lookup)) %>% # apply the lookup defined above to rename all simd vars as 'quintile'
                              #Standardise the SIMD var labels (keep numeric for now, for the deprivation analysis. ScotPHO text labels added later)
                              mutate(quintile = case_when(
-                               quintile %in% c("Most deprived", "1st - most deprived", "most deprived", "(33.5277 - 87.5665) most deprived" ) ~ "1",
-                               quintile %in% c("2nd", "(21.0421 - 33.5214)") ~ "2",
-                               quintile %in% c("3rd", "(13.5303 - 21.0301)") ~ "3",
-                               quintile %in% c("4th", "(7.7354 - 13.5231)") ~ "4",
-                               quintile %in% c(" 5th - least deprived", "Least deprived", "Least deprived (0.5393 - 7.7347)",
+                               quintile %in% c("Most deprived", "1st - most deprived", "most deprived") ~ "1",
+                               quintile %in% c("2nd") ~ "2",
+                               quintile %in% c("3rd") ~ "3",
+                               quintile %in% c("4th") ~ "4",
+                               quintile %in% c(" 5th - least deprived", "Least deprived", 
                                                "least deprived", "5th - least deprived") ~ "5",
                                TRUE ~ quintile)
                              )
@@ -1046,7 +1045,6 @@ shes_data <- shes_data %>%
 # Harmonise age, sex, and identifier variable names as required:
 shes_data <- shes_data %>%
   mutate(survey_data = map(survey_data, ~ .x %>% # map() here means this is all being done within the individual items in the list column, while retaining the list format
-                             rename(any_of(age_lookup)) %>% # apply the lookup defined above to rename all age vars to "age"
                              rename(any_of(sex_lookup)) %>% # apply the lookup defined above to rename all sex vars to "sex"
                              mutate(sex = recode(sex, !!!lookup_sex, .default = as.character(NA))) %>% # the 'Refused' and 'Prefer not to say' cats from 2022 get stored as NA here
                              # All versions of individual serial numbers: rename as indserial
@@ -1061,10 +1059,11 @@ shes_data <- shes_data %>%
 # Harmonise the names of the weights (all have the year in them currently):
 shes_data <- shes_data %>%
   mutate(survey_data = map(survey_data, ~ .x %>% # map() here means this is all being done within the individual items in the list column, while retaining the list format
+                             select(-any_of(starts_with(c("intsc", "biophy")))) %>% 
                              rename(intwt = starts_with("int") ) %>% 
                              rename(verawt = starts_with("vera")) %>%
                              rename(bio_wt = starts_with("bio") |  starts_with("nurs")) %>% # biowt called nurswt in early years
-                             rename(intakewt = starts_with("s") & ends_with("wt_sc")) %>%
+                             rename(intakewt = contains("intake24_wt")) %>%
                              rename(cintwt = starts_with("cint")))) # child interview weight
 
 # Add age groups: for the SIMD age-standardisation, and for identification of children (0-15y)
@@ -1072,14 +1071,8 @@ shes_data <- shes_data %>%
   mutate(survey_data = map(survey_data, ~ .x %>% # map() here means this is all being done within the individual items in the list column, while retaining the list format
                              filter(!is.na(age)) %>% # 0911 file has a lot of missing data rows in it, so this clear this up
                              mutate(age = as.numeric(age)) %>%
-                             mutate(agegp7 = case_when(between(age, 16, 24) ~ "16-24", 
-                                                       between(age, 25, 34) ~ "25-34",
-                                                       between(age, 35, 44) ~ "35-44",
-                                                       between(age, 45, 54) ~ "45-54",
-                                                       between(age, 55, 64) ~ "55-64",
-                                                       between(age, 65, 74) ~ "65-74",
-                                                       age >=75 ~ "75+",
-                                                       TRUE ~ as.character(NA))) %>% # 0-15y 
+                             mutate(agegp7 = case_when(!ag16g10 %in% c("25-34","45-54","55-64","16-24","35-44","75+","65-74") ~ as.character(NA), # 0-15y 
+                                                       TRUE ~ ag16g10)) %>% 
                              mutate(age65plus = case_when(age >= 65 ~ "65y and over",
                                                           age < 65 ~ "16 to 64y")) %>%
                              mutate(child = between(age, 0, 15)) %>%
@@ -1106,7 +1099,7 @@ shes_data <- shes_data %>%
 # Do some data checks, now unnested:
 table(shes_data$sex, shes_data$year, useNA = "always") # Female/Male; some NA from 2022 (include in Totals)
 table(shes_data$quintile, shes_data$year, useNA = "always") # 5 bands; no NAs
-table(shes_data$spatial.unit, useNA = "always") # 14 HBs as expected, no NA
+table(shes_data$hb, useNA = "always") # 14 HBs as expected, no NA
 table(shes_data$age, useNA = "always") # 0 to 103y; 6 NAs from ~2023 (refused to answer)
 
 
@@ -1188,12 +1181,12 @@ shes_data <- shes_data %>%
   mutate(sdq_cong = recode(sdq_cong, !!!lookup_sdq_cong, .default = as.character(NA))) %>%
   mutate(sdq_hypg = recode(sdq_hypg, !!!lookup_sdq_hypg, .default = as.character(NA))) %>%
   mutate(sdq_emog = recode(sdq_emog, !!!lookup_sdq_emog, .default = as.character(NA))) %>%
+  mutate(cghq214 = recode(cghq214, !!!lookup_childghq, .default = as.character(NA))) %>%
   mutate(childpa1hr = recode(c00sum7s, !!!lookup_childpa1hr, .default = as.character(NA))) %>%
   mutate(healthyweight = recode(bmi, !!!lookup_healthyweight, .default = as.character(NA))) %>%
   mutate(foodinsecure = recode(wrfood, !!!lookup_foodinsecure, .default = as.character(NA))) %>%
   mutate(binge = recode(olimlwb, !!!lookup_binge, .default = as.character(NA))) %>%
   mutate(hazharmful = recode(drkcat315, !!!lookup_alcoholguidelines, .default = as.character(NA))) %>% # make sure all years have this var before now
-  mutate(lifesat2 = recode(lifesat2, !!!lookup_lifesat2, .default = as.character(NA))) %>%
   # PA profile vars with simple recoding:
   mutate(adt10gp_tw_LOW = recode(adt10gp_tw, !!!lookup_adt10gp_tw_LOW, .default = as.character(NA))) %>%
   mutate(mus_rec = recode(mus_rec, !!!lookup_mus_rec, .default = as.character(NA))) %>%
@@ -1202,8 +1195,8 @@ shes_data <- shes_data %>%
   mutate(ch30plyg = recode(ch30plyg, !!!lookup_ch30plyg, .default = as.character(NA))) %>%
   mutate(limitill_SPLIT = recode(limitill, !!!lookup_limitill_SPLIT, .default = as.character(NA))) %>% # _SPLIT differentiates this split variable from the indicator that uses the same column (limitill)
   
-  # Portions of fruit and veg: variable changed in 2021
-  mutate(porftvg3 = recode(porftvg3, !!!lookup_porftvg3, .default = as.character(NA))) %>%
+  # Portions of fruit and veg: variable changed in 2021 (to a food diary), but SHeS present as a continuous indicator. 
+  mutate(porftvg3 = recode(porftvg3, !!!lookup_porftvg3, .default = as.character(NA))) %>% # variable derived from survey questions
   # porftvg3intake data only in 2021 and 2024 so far
   mutate(porftvg3intake = recode(porftvg3intake, !!!lookup_porftvg3, .default = as.character(NA))) %>% # porftvg3intake variable (from food diary) only used if number_of_recalls == 2
   mutate(porftvg3intake = case_when(number_of_recalls %in% c("1", "Not applicable", "Item not applicable") ~ as.character(NA),
@@ -1227,14 +1220,12 @@ shes_data <- shes_data %>%
   # keep only the vars required for the analysis
   select(-c(filename, fileloc, #number_of_recalls, # will be required for future porftvg3intake variable processing (but not currently)
             rg15a_new)) %>%
-  select(year, ends_with("wt"), psu, strata, sex, agegp7, age, spatial.unit, spatial.scale, quintile, everything())
+  select(year, ends_with("wt"), psu, strata, sex, agegp7, age, hb, quintile, everything())
 
 
 # Add trend_axis (character) and numeric year variables 
 shes_data <- shes_data %>%  
   mutate(trend_axis = case_when(nchar(year)==2 ~ paste0("20", year), # e.g., "08" -> "2008"
-                                nchar(year)==4 ~ paste0("20", substr(year, 1, 2), "-", "20", substr(year, 3, 4)), # e.g., "1516" -> "2015-2016"
-                                nchar(year)==6 ~ paste0("20", substr(year, 1, 2), "-", "20", substr(year, 5, 6)), # e.g., "151617" -> "2015-2017"
                                 nchar(year)==8 ~ paste0("20", substr(year, 1, 2), "-", "20", substr(year, 7, 8)), # e.g., "15161718" -> "2015-2018"
                                 TRUE ~ as.character(NA)), # shouldn't be any...
          # Replicating the standard used elsewhere in ScotPHO: year = the midpoint of the year range, rounded up if decimal
@@ -1246,27 +1237,12 @@ shes_data <- shes_data %>%
 ## D. Load the population data for the age-standardisation of SIMD results:
 
 # Age-standardisation requires mid-year private household population estimates (see methodology note on the SHeS dashboard)
-# (downloaded from https://scotland.shinyapps.io/sg-scottish-health-survey/_w_4523e40893ec40a5b3860eef4fcb525e/Private%20household%20population%20estimates,%202008-2021,%20Scotland.xlsx)
-# (updated data 2018-21 obtained by request from NRS statisticscustomerservices@nrscotland.gov.uk, and Stefania.Sechi@nrscotland.gov.uk in the household estimates department)
+# (downloaded from https://scotland.shinyapps.io/sg-scottish-health-survey/_w_484e5f010383450eb01c2d335adf1b4a/Private%20household%20population%20estimates,%202008-2022,%20Scotland.xlsx
 
 # Read in the data from spreadsheets
 shes_source_dir <- "/conf/MHI_Data/big/big_mhi_data/unzipped/shes"
-private_pops_2008to18 <- read.xlsx(here(shes_source_dir, "Private household population estimates, 2008-2018, Scotland.xlsx"),
-                                   startRow = 3, rows = c(3:17)) 
-private_pops_2019to21 <- read.xlsx(here(shes_source_dir, "NRS-private-population-scotland-2018-21.xlsx"),
-                                   sheet = "private population 2018-21",
-                                   startRow = 2, rows = c(2:16)) %>%
-  select(-"2018") # duplicates data in the 2008to18 spreadsheet, so can drop here
-private_pops_2022to23 <- read.xlsx(here(shes_source_dir, "NRS - 2025 - 047 - Private household population estimates - 28 August 2025.xlsx"),
-                                   sheet = "Private hhold pop",
-                                   startRow = 4, rows = c(4:18)) 
-
-# Combine the data, and manipulate so it can be merged into the SHeS respondent data
-private_pops <- private_pops_2008to18 %>%
-  merge(y = private_pops_2019to21) %>%
-  merge(y = private_pops_2022to23) %>%
-  # repeat 2023 for 2024 until 2024 data received
-  mutate(`2024` = `2023`) %>%
+private_pops <- read.xlsx(here(shes_source_dir, "Private household population estimates, 2008-2022, Scotland.xlsx"), rows = c(3:17)) %>%
+  # manipulate data so it can be merged into the SHeS respondent data
   rename(sex=Sex,
          agegp7 = Age.group) %>%
   pivot_longer(cols = c(-sex, -agegp7), names_to = "year", values_to = "scotpop", names_transform = list(year = as.integer)) %>%
@@ -1275,47 +1251,73 @@ private_pops <- private_pops_2008to18 %>%
   ungroup() %>%
   mutate(prop_pop = rnd4dp(scotpop / totpop)) %>% # the proportion of the population in each age group, by year and sex
   select(year, sex, agegp7, prop_pop) 
-# Inconsistency in which year's pop data were used for which year's SIMD standardisation by the SHeS team:
-# SHeS team used the pop from the same year for the 2008 to 2011 surveys, and pop from the previous year thereafter. 
-# I have opted to match consistently to the year in each survey file's year column (rounded-up midpoint if multi-year)
 
+# Inconsistency in which year's pop data were used for which year's SIMD standardisation by the SHeS team, as described in the spreadsheet:
+# 1. For the 2008-2011 Scottish Health Survey reports, the population estimates for years 2008-2011 were used respectively.
+# 2. For each of the 2012-2019 and 2021-2022 Scottish Health Survey reports, the population estimates for the previous year were used respectively. For example, for the 2012 report the 2011 estimates were used and so on. 
+# 3. For the 2023 Scottish Health Survey report, the 2021 population estimates were used.
+# 4. For the 2024 Scottish Health Survey report, the 2022 population estimates were used.
+# 5. For combined years' analysis, the latest year's report estimates were used. For example, for 2021/2022 combined years' analysis, the estimates that were used for the 2022 report were used and so on.
+
+# replicate this:
+trend_axis <- unique(shes_data$trend_axis) # from 2008 to 2021-2024
+use_private_pop_year <- c(2008,2009,2010,
+                          2011,2011,2011,
+                          2012,2013,
+                          2014,2014, 
+                          2015,2015, 
+                          2016,2016,     
+                          2017,2017,
+                          2018,2018,
+                          2020,2020,
+                          2021,2021,2021,2021,
+                          2022,2022)
+private_pops_lookup <- data.frame(trend_axis, use_private_pop_year)
 
 # merge in the private household pops for age standardisation purposes
 shes_data <- shes_data %>%  
-  merge(y=private_pops, by = c("agegp7", "year", "sex"), all.x=TRUE) # keeps even those without sex=m/f, for completeness
+  merge(y=private_pops_lookup, by="trend_axis") %>%
+  merge(y=private_pops, 
+        by.x = c("agegp7", "use_private_pop_year", "sex"), 
+        by.y = c("agegp7", "year", "sex"), 
+        all.x=TRUE) # keeps even those without sex=m/f, for completeness
+
+# save intermediate df:
+#arrow::write_parquet(shes_data, paste0(derived_data, "shes_data_int.parquet"))
+# read back in if not in memory:
+#shes_data <- arrow::read_parquet(paste0(derived_data, "shes_data_int.parquet"))
 
 
-## Get CA codes and their aggregated geogs (PDs, HSCPs, ADPs) using the new la_code variable 
-# LA codes: currently just available for 2 files (19212223 and 21222324) 
-
-# Read in geography lookup
+# Read in geography lookup (based on area names and types -> code)
 geo_lookup <- readRDS(file.path(profiles_lookups, "Geography", "opt_geo_lookup.rds")) %>% 
   select(!c(parent_area, areaname_full))
 
-# LAs to higher geog lookup
-higher_lookup <- readRDS(file.path(profiles_lookups, "Geography", "DataZone11_All_Geographies_Lookup.rds")) %>%
-  select(ca2019, hb2019, hscp2019, adp, pd) %>%
-  distinct(.)
-
+# Add HB codes
 shes_data <- shes_data %>%
-  select(-hb, -spatial.scale) %>%
-  rename(hb = spatial.unit) %>%
-  mutate(ca = case_when(la_code == "Edinburgh City" ~ "City of Edinburgh",
-                                  TRUE ~ la_code),
-         ca = gsub(" and ", " & ", ca)) %>%
-  mutate(ca_type = "Council area") %>% 
-  merge(y=geo_lookup, by.x=c("ca", "ca_type"), by.y=c("areaname", "areatype"), all.x=TRUE) %>%
-  merge(y=higher_lookup, by.x="code", by.y= "ca2019", all.x=TRUE) %>%
-  merge(y = geo_lookup, by.x="hscp2019", by.y="code", all.x=TRUE) %>%
-  rename(hscp = areaname) %>%
-  select(-areatype, -hb2019, -hscp2019, -code, -ca_type) %>%
-  merge(y = geo_lookup, by.x="adp", by.y="code", all.x=TRUE) %>%
-  select(-areatype, -adp) %>%
-  rename(adp = areaname) %>%
-  merge(y = geo_lookup, by.x="pd", by.y="code", all.x=TRUE) %>%
-  select(-areatype, -pd) %>%
-  rename(pd = areaname) 
-  
+  mutate(hb_type = "Health board") %>%
+  left_join(y = geo_lookup, join_by(hb == areaname, hb_type == areatype)) %>%
+  select(-hb_type, -hb) %>%
+  rename(hb = code) 
+
+# Add CA codes
+# NB la_code: currently just available for 2 files (19212223 and 21222324) 
+# Have asked SHES team if they can provide lookup for older data too
+shes_data <- shes_data %>%
+  mutate(ca_type = "Council area") %>%
+  left_join(y = geo_lookup, join_by(la_code == areaname, ca_type == areatype)) %>%
+  select(-ca_type, -la_code) %>%
+  rename(ca = code) 
+
+# Add geogs that are aggregates of CA
+
+# lookup of all required geog codes
+geography_lookup <- readRDS(file.path(profiles_lookups, "/Geography/DataZone11_All_Geographies_Lookup.rds")) |>
+  select(ca2019, hscp=hscp2019, adp, pd) |>
+  unique()
+
+# join the geography lookup to the data so there is a column for each geography level
+shes_data <- shes_data %>%
+  left_join(y = geography_lookup, join_by(ca == ca2019))
 
 
 # save intermediate df:
