@@ -706,6 +706,10 @@ add_totals <- function (df, split_col) {
 }
 
 # Function for calling the required functions to produce indicator data for Scotland (by sex), lower geographies, and various splits (including SIMD quintiles):
+# May 2026: used on the SHeS update. See data format in 
+# shes_adult_data <- arrow::read_parquet(paste0(derived_data, "shes_adult_data.parquet"))
+# e.g. function call = 
+# svy_percent_mus_rec <- calc_indicator_data(shes_adult_data, "mus_rec", "intwt", ind_id = 14001, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age65plus"))
 
 calc_indicator_data <- function (df, var, wt, ind_id, type, split_cols=NULL) {
   
