@@ -2,8 +2,7 @@
 # NEW STUFF:
 
 # new lifesat2 as % rather than score
-# NEW genhelf VAR
-# $eqv5_15: recode str_detect("Bottom" ~ "Q1 (lowest)"), etc. 2nd, 3rd, 4th, Top
+# NEW gen_helf VAR
 # add: healthyweight, food insecurity, binge, alc recommended, weekly alc units
 # splits: equivinc, urb, limitill...
 # add LA code in last 2 aggd dfs
@@ -134,10 +133,8 @@ derived_data <- "/conf/MHI_Data/derived data/"
 # =================================================================================================================
 
 
-shes_adult_data <- arrow::read_parquet(paste0(derived_data, "shes_adult_data.parquet")) %>%
-  mutate(spatial.unit = paste0(spatial.scale, "; ", spatial.unit))
-shes_child_data <- arrow::read_parquet(paste0(derived_data, "shes_child_data.parquet")) %>%
-  mutate(spatial.unit = paste0(spatial.scale, "; ", spatial.unit))
+shes_adult_data <- arrow::read_parquet(paste0(derived_data, "shes_adult_data.parquet")) 
+shes_child_data <- arrow::read_parquet(paste0(derived_data, "shes_child_data.parquet")) 
 
 # Read in lookup for harmonising area names
 geo_lookup <- readRDS(paste0(profiles_lookups,"/Geography/opt_geo_lookup.rds")) %>% 
@@ -151,256 +148,250 @@ geo_lookup <- readRDS(paste0(profiles_lookups,"/Geography/opt_geo_lookup.rds")) 
 # There are some warnings that appear: a deprecated bit (I can't find where to change this) and some 'NAs introduced by coercion'. These are OK.
 # optional code to write out the svy_ files after each run: I added this when Posit kept falling over mid-runs, even with 64GB session. Shouldn't be necessary...
 
+# CAN BE WORTH SAVING EACH SVY_ FILE AS YOU GO ALONG (THE COMMENTED OUT BITS), IN CASE POSIT RUNS OUT OF MEMORY
+# df = shes_adult_data
+# var = "gh_qg2"
+# wt = "intwt"
+# ind_id = 30003
+# type= "percent"
+# split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")
+
+setwd(here("data"))
+
 # ADULT
 
 # percents:
 
 # 1. intwt used with main sample variables 
-svy_percent_gh_qg2 <- calc_indicator_data(df = shes_adult_data, var = "gh_qg2", wt = "intwt", ind_id = 30003, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "agegp7")) 
-#arrow::write_parquet(svy_percent_gh_qg2, "svy_percent_gh_qg2.parquet")
-svy_percent_gen_helf <- calc_indicator_data(shes_adult_data, "gen_helf", "intwt", ind_id=99108, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "agegp7")) 
-#arrow::write_parquet(svy_percent_gen_helf, "svy_percent_gen_helf.parquet")
-svy_percent_limitill <- calc_indicator_data(shes_adult_data, "limitill2", "intwt", ind_id=99109, type= "percent", split_cols=c("quintile", "agegp7"))  
-#arrow::write_parquet(svy_percent_limitill, "svy_percent_limitill.parquet")
-svy_percent_adt10gp_tw <- calc_indicator_data(shes_adult_data, "adt10gp_tw2", "intwt", ind_id=99107, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "agegp7")) 
-#arrow::write_parquet(svy_percent_adt10gp_tw, "svy_percent_adt10gp_tw.parquet")
-svy_percent_porftvg3 <- calc_indicator_data(shes_adult_data, "porftvg3", "intwt", ind_id=30013, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "agegp7")) 
-#arrow::write_parquet(svy_percent_porftvg3, "svy_percent_porftvg3.parquet")
-svy_percent_rg17a_new <- calc_indicator_data(shes_adult_data, "rg17a_new", "intwt", ind_id=30026, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
-#arrow::write_parquet(svy_percent_rg17a_new, "svy_percent_rg17a_new.parquet")
-svy_percent_mus_rec <- calc_indicator_data(shes_adult_data, "mus_rec", "intwt", ind_id = 14001, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "age65plus"))
-#arrow::write_parquet(svy_percent_mus_rec, "svy_percent_mus_rec.parquet")
-svy_percent_adt10gp_tw_LOW <- calc_indicator_data(shes_adult_data, "adt10gp_tw_LOW", "intwt", ind_id= 14002, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
-#arrow::write_parquet(svy_percent_adt10gp_tw_LOW, "svy_percent_adt10gp_tw_LOW.parquet")
+svy_percent_gh_qg2 <- calc_indicator_data(df = shes_adult_data, var = "gh_qg2", wt = "intwt", ind_id = 30003, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
+arrow::write_parquet(svy_percent_gh_qg2, "svy_percent_gh_qg2.parquet")
+svy_percent_gen_helf <- calc_indicator_data(shes_adult_data, "gen_helf", "intwt", ind_id=99108, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
+arrow::write_parquet(svy_percent_gen_helf, "svy_percent_gen_helf.parquet")
+svy_percent_lifesat2 <- calc_indicator_data(shes_adult_data, "lifesat2", "intwt", ind_id=30002, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
+arrow::write_parquet(svy_percent_lifesat2, "svy_percent_lifesat2.parquet")
+svy_percent_limitill <- calc_indicator_data(shes_adult_data, "limitill2", "intwt", ind_id=99109, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "agegp7"))  
+arrow::write_parquet(svy_percent_limitill, "svy_percent_limitill.parquet")
+svy_percent_adt10gp_tw <- calc_indicator_data(shes_adult_data, "adt10gp_tw2", "intwt", ind_id=99107, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
+arrow::write_parquet(svy_percent_adt10gp_tw, "svy_percent_adt10gp_tw.parquet")
+svy_percent_porftvg3 <- calc_indicator_data(shes_adult_data, "porftvg3", "intwt", ind_id=30013, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
+arrow::write_parquet(svy_percent_porftvg3, "svy_percent_porftvg3.parquet")
+svy_percent_rg17a_new <- calc_indicator_data(shes_adult_data, "rg17a_new", "intwt", ind_id=30026, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age65plus")) 
+arrow::write_parquet(svy_percent_rg17a_new, "svy_percent_rg17a_new.parquet")
+svy_percent_mus_rec <- calc_indicator_data(shes_adult_data, "mus_rec", "intwt", ind_id = 14001, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age65plus"))
+arrow::write_parquet(svy_percent_mus_rec, "svy_percent_mus_rec.parquet")
+svy_percent_adt10gp_tw_LOW <- calc_indicator_data(shes_adult_data, "adt10gp_tw_LOW", "intwt", ind_id= 14002, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age65plus")) 
+arrow::write_parquet(svy_percent_adt10gp_tw_LOW, "svy_percent_adt10gp_tw_LOW.parquet")
+svy_percent_healthyweight <- calc_indicator_data(shes_adult_data, "healthyweight", "intwt", ind_id=99106, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
+arrow::write_parquet(svy_percent_healthyweight, "svy_percent_healthyweight.parquet")
+svy_percent_foodinsecure <- calc_indicator_data(shes_adult_data, "foodinsecure", "intwt", ind_id=99105, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
+arrow::write_parquet(svy_percent_foodinsecure, "svy_percent_foodinsecure.parquet")
+svy_percent_binge <- calc_indicator_data(shes_adult_data, "binge", "intwt", ind_id = 4170, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7"))
+arrow::write_parquet(svy_percent_binge, "svy_percent_binge.parquet")
+svy_percent_hazharmful <- calc_indicator_data(shes_adult_data, "hazharmful", "intwt", ind_id= 4171, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
+arrow::write_parquet(svy_percent_hazharmful, "svy_percent_hazharmful.parquet")
 
 
 # 2. verawt used for vera vars: National and SIMD only (samples too small for HB) 
-svy_percent_involve <- calc_indicator_data(shes_adult_data, "involve", "verawt", ind_id=30021, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
-#arrow::write_parquet(svy_percent_involve, "svy_percent_involve.parquet")
-svy_percent_p_crisis <- calc_indicator_data(shes_adult_data, "p_crisis", "verawt", ind_id=30023, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
-#arrow::write_parquet(svy_percent_p_crisis, "svy_percent_p_crisis.parquet")
-svy_percent_str_work2 <- calc_indicator_data(shes_adult_data, "str_work2", "verawt", ind_id=30051, type= "percent", split_cols=c("quintile", "limitill_SPLIT")) 
-#arrow::write_parquet(svy_percent_str_work2, "svy_percent_str_work2.parquet")
-svy_percent_contrl <- calc_indicator_data(shes_adult_data, "contrl", "verawt", ind_id=30053, type= "percent", split_cols=c("quintile", "limitill_SPLIT")) 
-#arrow::write_parquet(svy_percent_contrl, "svy_percent_contrl.parquet")
-svy_percent_support1 <- calc_indicator_data(shes_adult_data, "support1", "verawt", ind_id=30054, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
-#arrow::write_parquet(svy_percent_support1, "svy_percent_support1.parquet")
+svy_percent_involve <- calc_indicator_data(shes_adult_data, "involve", "verawt", ind_id=30021, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age65plus")) 
+arrow::write_parquet(svy_percent_involve, "svy_percent_involve.parquet")
+svy_percent_p_crisis <- calc_indicator_data(shes_adult_data, "p_crisis", "verawt", ind_id=30023, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age65plus")) 
+arrow::write_parquet(svy_percent_p_crisis, "svy_percent_p_crisis.parquet")
+svy_percent_str_work2 <- calc_indicator_data(shes_adult_data, "str_work2", "verawt", ind_id=30051, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15")) 
+arrow::write_parquet(svy_percent_str_work2, "svy_percent_str_work2.parquet")
+svy_percent_contrl <- calc_indicator_data(shes_adult_data, "contrl", "verawt", ind_id=30053, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15")) 
+arrow::write_parquet(svy_percent_contrl, "svy_percent_contrl.parquet")
+svy_percent_support1 <- calc_indicator_data(shes_adult_data, "support1", "verawt", ind_id=30054, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age65plus")) 
+arrow::write_parquet(svy_percent_support1, "svy_percent_support1.parquet")
 
 # 3. biowt used with verb/bio sample variables (earlier surveys have nursxxwt not bioxxwt):
-# National and SIMD only (samples too small for HB) (use single or 2y agg data?)
-svy_percent_depsymp <- calc_indicator_data(shes_adult_data, "depsymp", "bio_wt", ind_id=30004, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
-#arrow::write_parquet(svy_percent_depsymp, "svy_percent_depsymp.parquet")
-svy_percent_anxsymp <- calc_indicator_data(shes_adult_data, "anxsymp", "bio_wt", ind_id=30005, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
-#arrow::write_parquet(svy_percent_anxsymp, "svy_percent_anxsymp.parquet")
-svy_percent_dsh5sc <- calc_indicator_data(shes_adult_data, "dsh5sc", "bio_wt", ind_id=30010, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
-#arrow::write_parquet(svy_percent_dsh5sc, "svy_percent_dsh5sc.parquet")
-svy_percent_suicide2 <- calc_indicator_data(shes_adult_data, "suicide2", "bio_wt", ind_id=30009, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
-#arrow::write_parquet(svy_percent_suicide2, "svy_percent_suicide2.parquet")
+# National and SIMD only (samples too small for HB) 
+svy_percent_depsymp <- calc_indicator_data(shes_adult_data, "depsymp", "bio_wt", ind_id=30004, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age65plus")) 
+arrow::write_parquet(svy_percent_depsymp, "svy_percent_depsymp.parquet")
+svy_percent_anxsymp <- calc_indicator_data(shes_adult_data, "anxsymp", "bio_wt", ind_id=30005, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age65plus")) 
+arrow::write_parquet(svy_percent_anxsymp, "svy_percent_anxsymp.parquet")
+svy_percent_dsh5sc <- calc_indicator_data(shes_adult_data, "dsh5sc", "bio_wt", ind_id=30010, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age65plus")) 
+arrow::write_parquet(svy_percent_dsh5sc, "svy_percent_dsh5sc.parquet")
+svy_percent_suicide2 <- calc_indicator_data(shes_adult_data, "suicide2", "bio_wt", ind_id=30009, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age65plus")) 
+arrow::write_parquet(svy_percent_suicide2, "svy_percent_suicide2.parquet")
 
 # # 4. intake24 wt used with intake24 porftvg3 variable (from 2021)
-# svy_percent_porftvg3intake <- calc_indicator_data(shes_adult_data, "porftvg3intake", "intakewt") 
+svy_percent_porftvg3intake <- calc_indicator_data(shes_adult_data, "porftvg3intake", "intakewt", ind_id=30013, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
+arrow::write_parquet(svy_percent_porftvg3intake, "svy_percent_porftvg3intake.parquet")
 
 # scores:
 
 # 1. intwts used with main sample variables 
-svy_score_wemwbs <- calc_indicator_data(shes_adult_data, "wemwbs", "intwt", ind_id=30001, type= "score", split_cols=c("quintile", "limitill_SPLIT", "agegp7")) 
-#arrow::write_parquet(svy_score_wemwbs, "svy_score_wemwbs.parquet")
-svy_score_life_sat <- calc_indicator_data(shes_adult_data, "life_sat", "intwt", ind_id=30002, type= "score", split_cols=c("quintile", "limitill_SPLIT", "age65plus")) 
-#arrow::write_parquet(svy_score_life_sat, "svy_score_life_sat.parquet")
+svy_score_wemwbs <- calc_indicator_data(shes_adult_data, "wemwbs", "intwt", ind_id=30001, type= "score", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
+arrow::write_parquet(svy_score_wemwbs, "svy_score_wemwbs.parquet")
+svy_score_alcunits <- calc_indicator_data(shes_adult_data, "drating", "intwt", ind_id=4172, type= "score", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
+arrow::write_parquet(svy_score_alcunits, "svy_score_alcunits.parquet")
 
 # 2. verawt used for vera vars: National and SIMD only (samples too small for HB) 
-svy_score_work_bal <- calc_indicator_data(shes_adult_data, "work_bal", "verawt", ind_id=30052, type= "score", split_cols=c("quintile", "limitill_SPLIT")) 
-#arrow::write_parquet(svy_score_work_bal, "svy_score_work_bal.parquet")
+svy_score_work_bal <- calc_indicator_data(shes_adult_data, "work_bal", "verawt", ind_id=30052, type= "score", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15")) 
+arrow::write_parquet(svy_score_work_bal, "svy_score_work_bal.parquet")
 
 
 # CHILDREN
 
 # 1. cintwt used with main sample variables 
-svy_percent_ch_ghq <- calc_indicator_data(shes_child_data, "ch_ghq", "cintwt", ind_id=30130, type= "percent", split_cols=c("quintile", "age_group"))  
-#arrow::write_parquet(svy_percent_ch_ghq, "svy_percent_ch_ghq.parquet")
-svy_percent_ch_audit <- calc_indicator_data(shes_child_data, "ch_audit", "cintwt", ind_id=30129, type= "percent", split_cols=c("quintile", "age_group"))  
-#arrow::write_parquet(svy_percent_ch_audit, "svy_percent_ch_audit.parquet")
-svy_percent_childpa1hr <- calc_indicator_data(shes_child_data, "childpa1hr", "cintwt", ind_id=30111, type= "percent", split_cols=c("quintile", "age_group_chpa"))  %>% 
+svy_percent_ch_ghq <- calc_indicator_data(shes_child_data, "ch_ghq", "cintwt", ind_id=30130, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group"))
+arrow::write_parquet(svy_percent_ch_ghq, "svy_percent_ch_ghq.parquet")
+svy_percent_cghq214 <- calc_indicator_data(shes_child_data, "cghq214", "cintwt", ind_id=30130, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group"))  
+arrow::write_parquet(svy_percent_cghq214, "svy_percent_cghq214.parquet")
+svy_percent_ch_audit <- calc_indicator_data(shes_child_data, "ch_audit", "cintwt", ind_id=30129, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group"))  
+arrow::write_parquet(svy_percent_ch_audit, "svy_percent_ch_audit.parquet")
+svy_percent_childpa1hr <- calc_indicator_data(shes_child_data, "childpa1hr", "cintwt", ind_id=30111, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_chpa"))  %>% 
   mutate(split_value = ifelse(split_value=="0 to 4y", "2-4y", split_value))
-#arrow::write_parquet(svy_percent_childpa1hr, "svy_percent_childpa1hr.parquet")
-svy_percent_sdq <- calc_indicator_data(shes_child_data, "sdq_totg", "cintwt", ind_id=99117, type= "percent", split_cols=c("quintile", "age_group_sdq"))  
-#arrow::write_parquet(svy_percent_sdq, "svy_percent_sdq.parquet")
-svy_percent_sdq_peer <- calc_indicator_data(shes_child_data, "sdq_peeg", "cintwt", ind_id=30170, type= "percent", split_cols=c("quintile", "age_group_sdq"))  
-#arrow::write_parquet(svy_percent_sdq_peer, "svy_percent_sdq_peer.parquet")
-svy_percent_sdq_emo <- calc_indicator_data(shes_child_data, "sdq_emog", "cintwt", ind_id=30172, type= "percent", split_cols=c("quintile", "age_group_sdq"))  
-#arrow::write_parquet(svy_percent_sdq_emo, "svy_percent_sdq_emo.parquet")
-svy_percent_sdq_cond <- calc_indicator_data(shes_child_data, "sdq_cong", "cintwt", ind_id=30173, type= "percent", split_cols=c("quintile", "age_group_sdq"))  
-#arrow::write_parquet(svy_percent_sdq_cond, "svy_percent_sdq_cond.parquet")
-svy_percent_sdq_hyp <- calc_indicator_data(shes_child_data, "sdq_hypg", "cintwt", ind_id=30174, type= "percent", split_cols=c("quintile", "age_group_sdq"))  
-#arrow::write_parquet(svy_percent_sdq_hyp, "svy_percent_sdq_hyp.parquet")
-svy_percent_sdq_pro <- calc_indicator_data(shes_child_data, "sdq_pro", "cintwt", ind_id=30175, type= "percent", split_cols=c("quintile", "age_group_sdq"))  
-#arrow::write_parquet(svy_percent_sdq_pro, "svy_percent_sdq_pro.parquet")
-svy_percent_c00sum7s <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "c00sum7s", "cintwt", ind_id = 14003, type = "percent", split_cols=c("quintile", "age_group_chpa"))
-#arrow::write_parquet(svy_percent_c00sum7s, "svy_percent_c00sum7s.parquet")
-svy_percent_spt1ch <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "spt1ch", "cintwt", ind_id = 14006, type = "percent", split_cols=c("quintile", "age_group_chpa"))
-#arrow::write_parquet(svy_percent_spt1ch, "svy_percent_spt1ch.parquet")
-svy_percent_ch30plyg <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "ch30plyg", "cintwt", ind_id = 14007, type = "percent", split_cols=c("quintile", "age_group_chpa"))
-#arrow::write_parquet(svy_percent_ch30plyg, "svy_percent_ch30plyg.parquet")
+arrow::write_parquet(svy_percent_childpa1hr, "svy_percent_childpa1hr.parquet")
+svy_percent_sdq <- calc_indicator_data(shes_child_data, "sdq_totg", "cintwt", ind_id=99117, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_sdq"))  
+arrow::write_parquet(svy_percent_sdq, "svy_percent_sdq.parquet")
+svy_percent_sdq_peer <- calc_indicator_data(shes_child_data, "sdq_peeg", "cintwt", ind_id=30170, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_sdq"))  
+arrow::write_parquet(svy_percent_sdq_peer, "svy_percent_sdq_peer.parquet")
+svy_percent_sdq_emo <- calc_indicator_data(shes_child_data, "sdq_emog", "cintwt", ind_id=30172, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_sdq"))  
+arrow::write_parquet(svy_percent_sdq_emo, "svy_percent_sdq_emo.parquet")
+svy_percent_sdq_cond <- calc_indicator_data(shes_child_data, "sdq_cong", "cintwt", ind_id=30173, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_sdq"))  
+arrow::write_parquet(svy_percent_sdq_cond, "svy_percent_sdq_cond.parquet")
+svy_percent_sdq_hyp <- calc_indicator_data(shes_child_data, "sdq_hypg", "cintwt", ind_id=30174, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_sdq"))  
+arrow::write_parquet(svy_percent_sdq_hyp, "svy_percent_sdq_hyp.parquet")
+svy_percent_sdq_pro <- calc_indicator_data(shes_child_data, "sdq_pro", "cintwt", ind_id=30175, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_sdq"))  
+arrow::write_parquet(svy_percent_sdq_pro, "svy_percent_sdq_pro.parquet")
+svy_percent_c00sum7s <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "c00sum7s", "cintwt", ind_id = 14003, type = "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_chpa"))
+arrow::write_parquet(svy_percent_c00sum7s, "svy_percent_c00sum7s.parquet")
+svy_percent_spt1ch <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "spt1ch", "cintwt", ind_id = 14006, type = "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_chpa"))
+arrow::write_parquet(svy_percent_spt1ch, "svy_percent_spt1ch.parquet")
+svy_percent_ch30plyg <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "ch30plyg", "cintwt", ind_id = 14007, type = "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_chpa"))
+arrow::write_parquet(svy_percent_ch30plyg, "svy_percent_ch30plyg.parquet")
 
-
+setwd(here())
 
 
 # 9. Combine all the resulting indicator data into a single file
 ###############################################################################
 
-shes_results0 <- mget(ls(pattern = "^svy_"), .GlobalEnv) %>% # finds all the dataframes produced by the functions above
-  bind_rows(.)
+# IF READING IN FROM FILE:
+#*set up the 'svy_results' variable to contain all the svy_ parquet files in the data directory
+svy_results <- list.files(pattern = "svy_.*\\.parquet$", recursive=TRUE, full.names=TRUE) 
+
+# Read in the files and join them
+shes_results0 <- lapply(svy_results, arrow::read_parquet) %>% #read all the files in and store in a list
+  bind_rows() # May 2026: n=497441
+
+# # BUT IF ALL DATA ARE IN THE GLOBAL ENVIRONMENT:
+# shes_results0 <- mget(ls(pattern = "^svy_"), .GlobalEnv) %>% # finds all the dataframes produced by the functions above
+#   bind_rows(.)
+
+#check <- arrow::read_parquet("./data/svy_percent_limitill.parquet")
+
 # save intermediate df:
 arrow::write_parquet(shes_results0, paste0(derived_data, "shes_results0.parquet"))
 shes_results0 <- arrow::read_parquet(paste0(derived_data, "shes_results0.parquet")) 
 
 #rm(list=ls(pattern="^svy_"))
 
-# Let's check whether there are denominators under 30 for each of the splits.
-# SHeS suppress any figures derived from denoms <30
-make_denom_table <- function(ind) {
+# Check out vars requiring it:
+# May 2025 = 
+# cghq214 (compare with ch_ghq): very close, use the official cghq214 var when available (2019, 2022, 2023 and 2024) and our derived var ch_ghq otherwise
+# porftvg3 and porftvg3intake: porftvg3 stops at 2019-23, so use porftvg3intake after this
+
+shes_results1 <- shes_results0 %>% #n=497441
+  unique() %>% # get rid of duplicates. still n=497441
+  mutate(indicator = ifelse(indicator=="porftvg3intake", "porftvg3", indicator)) %>% # harmonise the indicator name
+  group_by(trend_axis, sex, code, ind_id, year, def_period, split_name, split_value) %>%
+  mutate(count = n()) %>%
+  ungroup() %>%
+  filter(!(indicator=="ch_ghq" & count==2)) %>% # drop our derived data when there's cghq214 data available.
+  mutate(indicator = ifelse(indicator=="ch_ghq", "cghq214", indicator)) %>% # harmonise the indicator name
+  select(-count) #n=495934
   
-  shes_results0 %>%
-    filter(indicator==ind) %>%
-    mutate(split_name = ifelse(split_value=="Total", "Total", split_name)) %>%
-    mutate(areatype = case_when(substr(code, 1, 3)=="S00" ~ "Scotland",
-                                substr(code, 1, 3)=="S08" ~ "Health board",
-                                TRUE ~ "NA")) %>%
-    unique() %>%
-    select(trend_axis, areatype, split_name, denominator) %>%
-    group_by(areatype, split_name) %>%
-    summarise(mean_denom = mean(denominator),
-              min_denom = min(denominator),
-              total = n(),
-              n_under_30 = sum(denominator<30),
-              pc_under_30 = 100 * n_under_30 / total) %>%
-    ungroup()  
-}
+  
 
-make_denom_table("gh_qg2")# drop HB * SIMD/agegp, suppress others
-make_denom_table("gen_helf") # drop HB * SIMD/agegp, suppress others
-make_denom_table("adt10gp_tw2") # drop HB * SIMD/agegp, suppress others
-make_denom_table("porftvg3") # drop HB * SIMD/agegp, suppress others
-make_denom_table("rg17a_new") # drop HB * SIMD, suppress others
-make_denom_table("mus_rec") # drop HB * SIMD, suppress others
-make_denom_table("adt10gp_tw_LOW") # drop HB * SIMD, suppress others
-make_denom_table("wemwbs") # drop HB * SIMD/agegp, suppress others
-make_denom_table("life_sat") # drop HB * SIMD, suppress others
-make_denom_table("limitill2") # drop HB * SIMD/agegp, suppress others
-make_denom_table("support1") # drop scot x age group
-make_denom_table("involve") # nothing to drop
-make_denom_table("p_crisis") # nothing to drop
-make_denom_table("str_work2")# nothing to drop
-make_denom_table("contrl") # nothing to drop
-make_denom_table("depsymp") # nothing to drop
-make_denom_table("anxsymp") # nothing to drop
-make_denom_table("dsh5sc") # nothing to drop
-make_denom_table("suicide2")  # nothing to drop
-make_denom_table("work_bal") # nothing to drop
 
-make_denom_table("ch_ghq") # drop HB splits, keep totals
-make_denom_table("ch_audit") # drop HB splits, keep totals
-make_denom_table("childpa1hr") # drop HB splits, keep totals
-make_denom_table("sdq_totg") # drop HB splits, keep totals
-make_denom_table("sdq_peeg") # drop HB splits, keep totals
-make_denom_table("sdq_emog") # drop HB splits, keep totals
-make_denom_table("sdq_cong") # drop HB splits, keep totals
-make_denom_table("sdq_hypg") # drop HB splits, keep totals
-make_denom_table("sdq_pro") # drop HB splits, keep totals
-make_denom_table("c00sum7s") # drop HB splits, keep totals
-make_denom_table("spt1ch") # drop HB splits, keep totals
-make_denom_table("ch30plyg") # drop HB splits, keep totals
+# SHeS suppress any figures derived from denoms <30, so we apply the same threshold.
+# Let's check whether there are denominators under 30 for each of the splits.
+# And decide if we want to present a split that contains some suppressed values, or just remove that split altogether.
+# I've arbitrarily set the threshold at 3%: meaning we can cope with 3% (~1 in 30) data points being suppressed, but not more. 
 
-# Add any new vars to these vectors, depending on which splits you want to drop:
-drop_hb_by_simd <- c("gh_qg2", "gen_helf","adt10gp_tw2","porftvg3","rg17a_new",
-                             "mus_rec","adt10gp_tw_LOW","wemwbs","life_sat","limitill2")
-drop_hb_by_agegp <- c("gh_qg2", "gen_helf","adt10gp_tw2","porftvg3","wemwbs","limitill2")
-drop_scot_by_agegp <- "support1"
-drop_hb_splits_keep_totals <- c("ch_ghq","ch_audit","childpa1hr","sdq_totg","sdq_peeg",
-                      "sdq_emog","sdq_cong","sdq_hypg","sdq_pro","c00sum7s","spt1ch","ch30plyg")
+drop_these_splits <- shes_results1 %>%
+  mutate(split_name = ifelse(split_value=="Total", "Total", split_name)) %>%
+  mutate(area = substr(code, 1, 3)) %>%
+  mutate(areatype = case_when(area=="S00" ~ "Scot",
+                              area=="S08" ~ "HB",
+                              area=="S12" ~ "CA",
+                              area=="S11" ~ "ADP",
+                              area=="S32" ~ "PD",
+                              area=="S37" ~ "HSCP",
+                              TRUE ~ "NA")) %>%
+  unique() %>%
+  select(indicator, trend_axis, areatype, area, split_name, denominator) %>%
+  group_by(indicator, areatype, area, split_name) %>%
+  summarise(mean_denom = mean(denominator),
+            min_denom = min(denominator),
+            total = n(),
+            n_under_30 = sum(denominator<30),
+            pc_under_30 = 100 * n_under_30 / total) %>%
+  ungroup()  %>%
+  mutate(drop = ifelse(pc_under_30>3, 1, 0))
+  
+
 
 # drop splits as identified above:
-shes_results <- shes_results0 %>%
-  filter(!(indicator %in% drop_hb_by_simd & (substr(code, 1, 3)=="S08" & split_name == "Deprivation (SIMD)"))) %>%
-  filter(!(indicator %in% drop_hb_by_agegp & (substr(code, 1, 3)=="S08" & split_name == "Age group"))) %>%
-  filter(!(indicator %in% drop_scot_by_agegp & (substr(code, 1, 3)=="S00" & split_name =="Age group"))) %>%
-  filter(!(indicator %in% drop_hb_splits_keep_totals & (substr(code, 1, 3)=="S08" & split_value!="Total"))) %>%
-  filter(!(indicator %in% drop_hb_splits_keep_totals & (substr(code, 1, 3)=="S08" & split_name!="Sex")))
+shes_results1 <- shes_results1 %>% # 495,934 rows
+  mutate(area = substr(code, 1, 3)) %>%
+  merge(y=drop_these_splits, by=c("area", "indicator", "split_name"), all.x=TRUE) %>%
+  filter(drop==0) %>% # now n=83,475
+  select(-c(area, areatype:drop)) 
+
+
 
 # drop splits by SIMD if they have data for fewer than three quintiles (+ total = 4)
-shes_results <- shes_results %>%
+shes_results1 <- shes_results1 %>% # n=83,475
   group_by(trend_axis, sex, indicator, ind_id, code, year, def_period, split_name) %>%
   mutate(count = n()) %>% # count all the values within each split, including the total
   ungroup() %>%
-  filter(!(split_name=="Deprivation (SIMD)" & count<4)) %>% 
-  select(-count) # none dropped in this case because all SIMD data are Scotland only
+  filter(!(split_name=="Deprivation (SIMD)" & count<4)) %>% # case where e.g., and island board has 3 quintiles + a total
+  select(-count) # now 83,439
 
 # Suppress values where necessary:
 # SHeS suppress values where denominator (unweighted base) is <30
-shes_results <- shes_results %>%
+shes_results1 <- shes_results1 %>%
   mutate(across(.cols = c(numerator, rate, lowci, upci),
                 .fns = ~case_when(denominator < 30 ~ as.numeric(NA),
                                   TRUE ~ as.numeric(.x)))) 
 
 # check: where has suppression occurred?
-shes_results %>% 
+shes_results1 %>% 
   filter(is.na(rate)) %>%
   select(indicator, code, trend_axis, split_value) %>%
-  print(n=80)
-# March 2026: >1300 values suppressed, now that we've opted to include more splits.
-
-# keep only trend_axis values that are single year or 4-year aggregates (shorter aggregate periods are sometimes available but confuse matters)
-shes_results <- shes_results %>%
-  filter(nchar(trend_axis)==4 | #single year
-           (as.numeric(substr(trend_axis, 6, 9)) - as.numeric(substr(trend_axis, 1, 4)) > 2)) # aggregations like 2017-2021
-# no rows dropped: all trend_axis are single/4-yr
+  arrange(indicator) %>%
+  print(n=300)
+# May 2026: 173 values suppressed.
 
 # save intermediate df:
-arrow::write_parquet(shes_results, paste0(derived_data, "shes_results.parquet"))
+arrow::write_parquet(shes_results1, paste0(derived_data, "shes_results1.parquet"))
 # read back in if not in memory:
-shes_results <- arrow::read_parquet(paste0(derived_data, "shes_results.parquet"))
+shes_results1 <- arrow::read_parquet(paste0(derived_data, "shes_results1.parquet"))
 
 # Check the splits are ok:
-table(shes_results$split_name, shes_results$split_value, useNA="always")
-# Four splits (age group, SIMD, LTI and sex) available
+table(shes_results1$split_name, shes_results1$split_value, useNA="always")
+# Six splits (age group, SIMD, LTI, income, urb/rural, and sex) available
 # No split_names or split_values are blank.
 # Each split_name has a Total category.
 # This is correct
 
-# ### 2026 update: 2024 data not available on statistics.scot.gov yet, so keep all from the UKDS microdata
-# # 6 adult vars from SHeS main sample are available from the published data (statistics.gov.scot, see SHeS script in the ScotPHO-indicator-production repo).
-# # The UKDS data can supplement those published data with SIMD x sex data (Scotland). 
-# published_vars <- c("gh_qg2", "gen_helf", "limitill2",
-#                     "adt10gp_tw2", "porftvg3", "wemwbs")
-# 
-# # Keep SIMD x sex for Scotland:
-# published_to_keep_1 <- shes_results %>%
-#   filter(indicator %in% published_vars & 
-#            substr(code, 1, 3)=="S00" & 
-#            split_name=="Deprivation (SIMD)" & 
-#            sex %in% c("Male", "Female")) 
-# # and also keep data for the coarser Age groups we have created here (don't use the finer ones in the published data as these aren't as usable for HBs)
-# published_to_keep_2 <- shes_results %>%
-#   filter(indicator %in% published_vars & 
-#            split_name=="Age group") 
-# 
-# shes_results <- shes_results %>%
-#   filter(!indicator %in% published_vars) %>% 
-#   rbind(published_to_keep_1, published_to_keep_2) 
-
 
 # data checks:
-table(shes_results$trend_axis, useNA = "always") # 2008 to 2024, no NA
-table(shes_results$sex, useNA = "always") # Male, Female, Total 
-table(shes_results$indicator, useNA = "always") # 32 vars (20 adult, 12 child), no NA
-table(shes_results$year, useNA = "always") # 2008 to 2024
-table(shes_results$def_period, useNA = "always") # Aggregated years () and Survey year (), no NA
-table(shes_results$split_name, useNA = "always") # Deprivation, Age group, LTI or Sex, no NA
-table(shes_results$split_value, useNA = "always") # SIMD 1 to 5, M/F, age groups, LTI cats, no NA
+table(shes_results1$trend_axis, useNA = "always") # 2008 to 2024, no NA
+table(shes_results1$sex, useNA = "always") # Male, Female, Total 
+table(shes_results1$indicator, useNA = "always") # 37 vars (25 adult, 12 child), no NA
+table(shes_results1$year, useNA = "always") # 2008 to 2024
+table(shes_results1$def_period, useNA = "always") # Aggregated years () and Survey year (), no NA
+table(shes_results1$split_name, useNA = "always") # Deprivation, Age group, LTI, inc, urb/rur, or Sex, no NA
+table(shes_results1$split_value, useNA = "always") # SIMD 1 to 5, income Q1 to Q5, M/F, age groups, LTI cats, urb/rur, no NA
 # all good
 
+
 # get indicator names into more informative names for using as filenames
-shes_raw_data <- shes_results %>%
+shes_raw_data <- shes_results1 %>%
   mutate(indicator = case_when( indicator == "gh_qg2" ~ "common_mh_probs",    
                                 indicator == "gen_helf" ~ "self_assessed_health",  
                                 indicator == "limitill2" ~ "limiting_long_term_condition",  
@@ -408,8 +399,8 @@ shes_raw_data <- shes_results %>%
                                 indicator == "porftvg3" ~ "fruit_veg_consumption",  
                                 indicator == "rg17a_new" ~ "unpaid_caring", 
                                 indicator == "wemwbs" ~ "mental_wellbeing",    
-                                indicator == "life_sat" ~ "life_satisfaction",  
-                                indicator == "ch_ghq" ~ "cyp_parent_w_ghq4",    
+                                indicator == "lifesat2" ~ "life_satisfaction",  
+                                indicator == "cghq214" ~ "cyp_parent_w_ghq4",    
                                 indicator == "ch_audit" ~ "cyp_parent_w_harmful_alc",
                                 indicator == "involve" ~ "involved_locally",  
                                 indicator == "p_crisis" ~ "support_network", 
@@ -434,6 +425,11 @@ shes_raw_data <- shes_results %>%
                                 indicator == "c00sum7s" ~ "children_very_low_activity",
                                 indicator == "spt1ch" ~ "children_participating_sport",
                                 indicator == "ch30plyg" ~ "children_active_play",
+                                indicator == "healthyweight" ~ "adult_healthy_weight",
+                                indicator == "foodinsecure" ~ "food_insecurity",
+                                indicator == "binge" ~ "alc_binge_drinking",
+                                indicator == "hazharmful" ~ "haz_or_harmful_drinker",
+                                indicator == "drating" ~ "alc_consumption_units",
                                 TRUE ~ as.character(NA)  )) %>%
   select(-denominator) 
 
@@ -445,7 +441,31 @@ saveRDS(shes_raw_data, file = paste0(profiles_data_folder, '/Prepared Data/shes_
 # 10. Import into the SHeS script in scotpho-indicator-production repo and prepare final files there. 
 ###############################################################################
 
-
-
-
 ## END
+
+
+
+
+# ### 2026 update: 2024 data not available on statistics.scot.gov yet, so keep all from the UKDS microdata
+# # 6 adult vars from SHeS main sample are available from the published data (statistics.gov.scot, see SHeS script in the ScotPHO-indicator-production repo).
+# # The UKDS data can supplement those published data with SIMD x sex data (Scotland). 
+# published_vars <- c("gh_qg2", "gen_helf", "limitill2",
+#                     "adt10gp_tw2", "porftvg3", "wemwbs")
+# 
+# # Keep SIMD x sex for Scotland:
+# published_to_keep_1 <- shes_results %>%
+#   filter(indicator %in% published_vars & 
+#            substr(code, 1, 3)=="S00" & 
+#            split_name=="Deprivation (SIMD)" & 
+#            sex %in% c("Male", "Female")) 
+# # and also keep data for the coarser Age groups we have created here (don't use the finer ones in the published data as these aren't as usable for HBs)
+# published_to_keep_2 <- shes_results %>%
+#   filter(indicator %in% published_vars & 
+#            split_name=="Age group") 
+# 
+# shes_results <- shes_results %>%
+#   filter(!indicator %in% published_vars) %>% 
+#   rbind(published_to_keep_1, published_to_keep_2) 
+
+
+
