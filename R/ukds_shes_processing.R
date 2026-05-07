@@ -194,7 +194,9 @@ extracted_survey_data_shes <- extract_survey_data("shes", additional="^int.*wt$|
 # (These files could probably be avoided initially using a more complex reg expression in the save_var_descriptions() function call above)
 extracted_survey_data_shes <- extracted_survey_data_shes %>%
   filter(!str_detect(filename, "she?s\\D?\\d{2,10}h")) %>% # this drops the shes household files ("h" follows the year for these files)
-  filter(!str_detect(filename, "intake24"))  # this drops the shes intake24 files (the derived var we need is already in the individual file)
+  filter(!str_detect(filename, "intake24")) %>% # this drops the shes intake24 files (the derived var we need is already in the individual file)
+  filter(!year %in% c("95", "98", "03", "20")) # Not used
+
 
 
 ## C. Save the file (do this if new variables/data have been read in)
@@ -244,9 +246,8 @@ responses_as_list_shes
 # [7] "Refused"
 # 
 # $ag16g10
-# [1] "25-34"               "35-44"               "not applicable"      "45-54"               "16-24"               "55-64"               "65-74"              
-# [8] "Kids 0-15"           "75+"                 "Item not applicable" "item not applicable" NA                    "Item Not Applicable" "Not applicable"     
-# [15] "Refused"   
+# [1] "25-34"               "Item not applicable" "45-54"               "55-64"               "16-24"               "35-44"               "75+"                
+# [8] "65-74"               "item not applicable" NA                    "Item Not Applicable" "Not applicable"      "Refused"            
 # 
 # $anxsymp
 # [1] "0"                       "Schedule not applicable" "Item not applicable"     "1"                       "4"                       "2"                      
@@ -373,13 +374,6 @@ responses_as_list_shes
 # [21] "4"                         "2"                         "1"                         "6"                         "3"                        
 # [26] "13"                        "8"                         "14"                        "11"                        "Greater Glasgow and Clyde"
 # 
-# $hboard
-# [1] "Dumfries & Galloway" "Fife"                "Greater Glasgow"     "Ayreshire & Arran"   "Borders"             "Tayside"             "Grampian"           
-# [8] "Orkney"              "Forth Valley"        "Lothian"             "Argyll & Clyde"      "Highland"            "Lanarkshire"         "Western Isles"      
-# [15] "Shetland"            "SF9"                 "SH9"                 "SC9"                 "SG9"                 "SS9"                 "SL9"                
-# [22] "SV9"                 "SZ9"                 "SA9"                 "ST9"                 "SN9"                 "SB9"                 "SY9"                
-# [29] "SW9"                 "SR9"                
-# 
 # $hlth_brd
 # [1] "Fife"                    "Forth Valley"            "Lothian"                 "Borders"                 "Orkney"                  "Greater Glasgow & Clyde"
 # [7] "Tayside"                 "Grampian"                "Ayrshire & Arran"        "Western Isles"           "Highland"                "Lanarkshire"            
@@ -412,13 +406,6 @@ responses_as_list_shes
 # [1] "above the mode (9-10)"   "mode (8)"                "below the mode (0 to 7)" "Schedule not applicable" "Don't know"             
 # [6] "Refusal"                 NA                        "Refused/not answered"    "Dont know"               "Item not applicable"    
 # [11] "Refused"                 "Not applicable"          "Above the mode (9-10)"   "Mode (8)"                "Below the mode (0 to 7)"
-# 
-# $life_sat (previous var: for mean score)
-# [1] "8"                          "Schedule not applicable"    "9"                          "5"                          "6"                         
-# [6] "10 - Extremely satisfied"   "7"                          "3"                          "0 - Extremely dissatisfied" "4"                         
-# [11] "2"                          "1"                          "Don't know"                 "Refused"                    "Don't Know"                
-# [16] "Refusal"                    "schedule not applicable"    "don't know"                 "refused"                    NA                          
-# [21] "Dont know"                  "Item not applicable"       
 # 
 # $limitill
 # [1] "No LI"           "Non limiting LI" "Limiting LI"     "Don't know"      "Refused"         "refused"         "don't know"      "Refusal"         "Don't Know"     
@@ -474,14 +461,6 @@ responses_as_list_shes
 # 
 # $porftvg3intake
 # [1] "5 portions or more"          "0.5 to less than 5 portions" "Not applicable"              "None/less than 0.5"    "Item not applicable"       
-# 
-# $region
-# [1] "Lothian & Fife"               "Lanark etc"                   "Argyll etc"                   "Glasgow"                      "Highland & Islands"          
-# [6] "Borders/D & G"                "Grampian & Tayside"           "Borders, Dumfries & Galloway" "Glagow"                       "Lanarkshire,Ayrshire & Arran"
-# [11] "Highlands & Islands"          "Forth Valley, Argyll & Clyde"
-# 
-# $respsex
-# [1] "Male"   "Female"
 # 
 # $rg15a_new
 # [1] "Item not applicable"     "No"                      "Schedule not applicable" "Yes"                     "Don't Know"              "Not applicable"         
@@ -547,10 +526,6 @@ responses_as_list_shes
 # 
 # $simd20_sga
 # [1] "4"              "3"              "Most deprived"  "2"              "Least deprived"
-# 
-# $simd5
-# [1] "Least deprived (0.5393 - 7.7347)"  "(7.7354 - 13.5231)"                "(13.5303 - 21.0301)"               "(21.0421 - 33.5214)"              
-# [5] "(33.5277 - 87.5665) most deprived"
 # 
 # $simd5_s_ga
 # [1] "3rd"                   "2nd"                   " 5th - least deprived" "4th"                   "1st - most deprived"   "3"                    
@@ -1046,7 +1021,8 @@ shes_data <- shes_data %>%
                              mutate(spatial.unit = gsub(" and ", " & ", spatial.unit),
                                     spatial.unit = case_when(!spatial.unit=="NA" ~ paste0("NHS ", spatial.unit),
                                                              TRUE ~ as.character(NA)),
-                                    spatial.scale = "Health board")))
+                                    spatial.scale = "Health board") 
+                           ))
 
 
 # Harmonise SIMD variable names and coding: 
@@ -1147,27 +1123,57 @@ shes_data <- shes_data %>%
   mutate(mus_rec = coalesce(mus_rec, musrec)) %>%
   mutate(rg17a_new = coalesce(rg17a_new, rg17anew)) %>%
   mutate(rg15a_new = coalesce(rg15a_new, rg15anew)) %>%
-  #mutate(gen_helf = coalesce(gen_helf, genhelf)) %>% # years with genhelf now excluded before this point
-  #mutate(gh_qg2 = coalesce(ghqg2, gh_qg2)) %>% # years with ghqg2 now excluded before this point
+  mutate(str_work2 = coalesce(str_work2, strwork2)) %>%
+  mutate(number_of_recalls = coalesce(numberofrecalls, number_of_recalls)) %>%
+  mutate(urban_rural = coalesce(urbrur2a, urbrur2a_16, urbrur2a_20, urindsc2)) %>%
+  mutate(urban_rural = ifelse(urban_rural=="Not applicable", as.character(NA), urban_rural)) %>%
+  mutate(gh_qg2 = coalesce(ghqg2, gh_qg2)) %>% 
+  mutate(olimlwb = coalesce(olimlwb, olim_l_wb)) %>%
+  mutate(bmi = coalesce(bmivg5, bmivg5_adj, combmivg5_adj)) %>%
   # delete the redundant vars now
-  select(-c(involv19, support1_19, pcris19, dsh5, dvg11, dvj12, musrec, adt10gptw, rg17anew, rg15anew)) 
+  select(-c(involv19, support1_19, pcris19, dsh5, dvg11, dvj12, musrec, adt10gptw, rg17anew, rg15anew, 
+            strwork2, numberofrecalls, ghqg2, urbrur2a, urbrur2a_16, urbrur2a_20, urindsc2, olim_l_wb,
+            bmivg5, bmivg5_adj, combmivg5_adj)) 
 
+# standardise the equivalised income column
+shes_data <- shes_data %>%
+  mutate(eqv5_15 = case_when(str_detect(eqv5_15, "Bottom") ~ "Q1 (lowest)",
+                             str_detect(eqv5_15, "2nd") ~ "Q2",
+                             str_detect(eqv5_15, "3rd") ~ "Q3",
+                             str_detect(eqv5_15, "4th") ~ "Q4",
+                             str_detect(eqv5_15, "Top") ~ "Q5 (highest)",
+                             TRUE ~ as.character(NA)))
 
 # Convert some variables to numeric where appropriate
 shes_data <- shes_data %>%
-  mutate(across(c(life_sat, work_bal), ~ substr(., 1, 2))) %>% # 0 and 10 have text in them, so this command just selects the numeric part
-  mutate(across(c(p_crisis, wemwbs, life_sat, work_bal, sdq_pro), as.numeric))  
+  mutate(across(c(work_bal), ~ substr(., 1, 2))) %>% # 0 and 10 have text in them, so this command just selects the numeric part
+  mutate(across(c(p_crisis, wemwbs, work_bal, sdq_pro), as.numeric)) %>%
+  mutate(drating = as.numeric(as.character(drating))) # starts as factor
 #gives warning for non-numeric data in each (e.g., refused, not applicable...)
+
+# Create the drkcat315 var when it's NA (prior to files containing 2015 data)
+shes_data <- shes_data %>% 
+  mutate(drkcat315 = case_when(!is.na(drkcat315) ~ drkcat315,
+                               drating<=14 ~ "Moderate (up to and including 14)", # use the units reported first,
+                               drating>14 ~ "Hazardous/harmful (over 14)",
+                               dnany %in% c("Never", "Very occasionally") ~ "Moderate (up to and including 14)", # then include any without units who have answered dnany or dnnow in the denominator
+                               dnnow %in% c("Yes", "No") ~ "Moderate (up to and including 14)",
+                               TRUE ~ as.character(NA))) %>%
+  mutate(drating = case_when(!is.na(drating) ~ drating, # in cases where units are missing, but resp has said they don't drink now, or very occasionally, replace NA with 0, so that these are included in the denom.
+                             dnnow == "No" ~ 0,
+                             dnany %in% c("Never", "Very occasionally") ~ 0, 
+                             TRUE ~ as.numeric(NA)))
 
 
 # Recode the variables
 shes_data <- shes_data %>%  
-  
+
   # Variables with simple recoding:
   mutate(adt10gp_tw2 = recode(adt10gp_tw, !!!lookup_adt10gp_tw, .default = as.character(NA))) %>% # recodes into a copy, so that the var can also be used for another indicator (adt10gp_tw_LOW)
   mutate(contrl = recode(contrl, !!!lookup_contrl, .default = as.character(NA))) %>%
-  mutate(gen_helf = recode(gen_helf, !!!lookup_gen_helf, .default = as.character(NA))) %>%
+  mutate(gen_helf = recode(genhelf2, !!!lookup_genhelf2, .default = as.character(NA))) %>%
   mutate(gh_qg2 = recode(gh_qg2, !!!lookup_gh_qg2, .default = as.character(NA))) %>%
+  mutate(lifesat2 = recode(lifesat2, !!!lookup_lifesat2, .default = as.character(NA))) %>%
   mutate(limitill2 = recode(limitill, !!!lookup_limitill, .default = as.character(NA))) %>% # recodes into a copy, so that the var can also be used for a split column (limitill_SPLIT)
   mutate(str_work2 = recode(str_work2, !!!lookup_str_work2, .default = as.character(NA))) %>%
   mutate(suicide2 = recode(suicide2, !!!lookup_suicide2, .default = as.character(NA))) %>%
@@ -1183,6 +1189,11 @@ shes_data <- shes_data %>%
   mutate(sdq_hypg = recode(sdq_hypg, !!!lookup_sdq_hypg, .default = as.character(NA))) %>%
   mutate(sdq_emog = recode(sdq_emog, !!!lookup_sdq_emog, .default = as.character(NA))) %>%
   mutate(childpa1hr = recode(c00sum7s, !!!lookup_childpa1hr, .default = as.character(NA))) %>%
+  mutate(healthyweight = recode(bmi, !!!lookup_healthyweight, .default = as.character(NA))) %>%
+  mutate(foodinsecure = recode(wrfood, !!!lookup_foodinsecure, .default = as.character(NA))) %>%
+  mutate(binge = recode(olimlwb, !!!lookup_binge, .default = as.character(NA))) %>%
+  mutate(hazharmful = recode(drkcat315, !!!lookup_alcoholguidelines, .default = as.character(NA))) %>% # make sure all years have this var before now
+  mutate(lifesat2 = recode(lifesat2, !!!lookup_lifesat2, .default = as.character(NA))) %>%
   # PA profile vars with simple recoding:
   mutate(adt10gp_tw_LOW = recode(adt10gp_tw, !!!lookup_adt10gp_tw_LOW, .default = as.character(NA))) %>%
   mutate(mus_rec = recode(mus_rec, !!!lookup_mus_rec, .default = as.character(NA))) %>%
@@ -1195,9 +1206,9 @@ shes_data <- shes_data %>%
   mutate(porftvg3 = recode(porftvg3, !!!lookup_porftvg3, .default = as.character(NA))) %>%
   # porftvg3intake data only in 2021 and 2024 so far
   mutate(porftvg3intake = recode(porftvg3intake, !!!lookup_porftvg3, .default = as.character(NA))) %>% # porftvg3intake variable (from food diary) only used if number_of_recalls == 2
-  mutate(porftvg3intake = case_when(number_of_recalls %in% c("1", "Not applicable") ~ as.character(NA),
-                                    TRUE ~ porftvg3intake)) %>% # in 2021 porftvg3 is only valid if number_of_recalls == 2, so recode other options as NA. Earlier years won't have anything but NA for the recall var. 
-  
+  mutate(porftvg3intake = case_when(number_of_recalls %in% c("1", "Not applicable", "Item not applicable") ~ as.character(NA),
+                                    TRUE ~ porftvg3intake)) %>% # porftvg3intake is only valid if number_of_recalls == 2, so recode other options as NA. Earlier years won't have anything but NA for the recall var. 
+
   # Hours of unpaid caring needs coding from 2 vars:
   mutate(rg17a_new = recode(rg17a_new, !!!lookup_rg17a_new, .default = as.character(NA))) %>%
   mutate(rg17a_new = case_when(is.na(rg17a_new) & rg15a_new %in% c("Yes", "No", "Don't know", "Don't Know") ~ "no", # need rg15a_new (Do you provide any regular help or care for any sick, disabled or frail person?) to identify those who give no caring per week (0 hrs not included in rg17a_new)
@@ -1273,6 +1284,40 @@ private_pops <- private_pops_2008to18 %>%
 shes_data <- shes_data %>%  
   merge(y=private_pops, by = c("agegp7", "year", "sex"), all.x=TRUE) # keeps even those without sex=m/f, for completeness
 
+
+## Get CA codes and their aggregated geogs (PDs, HSCPs, ADPs) using the new la_code variable 
+# LA codes: currently just available for 2 files (19212223 and 21222324) 
+
+# Read in geography lookup
+geo_lookup <- readRDS(file.path(profiles_lookups, "Geography", "opt_geo_lookup.rds")) %>% 
+  select(!c(parent_area, areaname_full))
+
+# LAs to higher geog lookup
+higher_lookup <- readRDS(file.path(profiles_lookups, "Geography", "DataZone11_All_Geographies_Lookup.rds")) %>%
+  select(ca2019, hb2019, hscp2019, adp, pd) %>%
+  distinct(.)
+
+shes_data <- shes_data %>%
+  select(-hb, -spatial.scale) %>%
+  rename(hb = spatial.unit) %>%
+  mutate(ca = case_when(la_code == "Edinburgh City" ~ "City of Edinburgh",
+                                  TRUE ~ la_code),
+         ca = gsub(" and ", " & ", ca)) %>%
+  mutate(ca_type = "Council area") %>% 
+  merge(y=geo_lookup, by.x=c("ca", "ca_type"), by.y=c("areaname", "areatype"), all.x=TRUE) %>%
+  merge(y=higher_lookup, by.x="code", by.y= "ca2019", all.x=TRUE) %>%
+  merge(y = geo_lookup, by.x="hscp2019", by.y="code", all.x=TRUE) %>%
+  rename(hscp = areaname) %>%
+  select(-areatype, -hb2019, -hscp2019, -code, -ca_type) %>%
+  merge(y = geo_lookup, by.x="adp", by.y="code", all.x=TRUE) %>%
+  select(-areatype, -adp) %>%
+  rename(adp = areaname) %>%
+  merge(y = geo_lookup, by.x="pd", by.y="code", all.x=TRUE) %>%
+  select(-areatype, -pd) %>%
+  rename(pd = areaname) 
+  
+
+
 # save intermediate df:
 #arrow::write_parquet(shes_data, paste0(derived_data, "shes_data.parquet"))
 # read back in if not in memory:
@@ -1309,8 +1354,8 @@ parent_data <- shes_data %>%
 shes_child_data <- shes_data %>%
   filter(child) %>% # keep 0-15
   select(year, trend_axis, contains("serial"), par1, par2, 
-         cintwt, psu, strata, sex, age, starts_with("age_group"), spatial.unit, spatial.scale, quintile, 
-         c00sum7s, spt1ch, ch30plyg, childpa1hr, contains("sdq")) %>%
+         cintwt, psu, strata, sex, age, starts_with("age_group"), hb, ca, hscp, adp, pd, quintile, 
+         cghq214, c00sum7s, spt1ch, ch30plyg, childpa1hr, contains("sdq"), urban_rural, eqv5_15) %>%
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par1"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #1st parent/carer in hhd
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par2"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #2nd parent/carer in hhd
   # calculate the new child MHIs using the data for both parents (.x and .y)
@@ -1320,8 +1365,8 @@ shes_child_data <- shes_data %>%
          ch_audit = case_when(auditg.x=="yes" | auditg.y=="yes" ~ "yes", # yes if either parent has harmful/hazardous (8+) AUDIT score
                               auditg.x=="no" | auditg.y=="no" ~ "no", # otherwise no (if the data were collected)
                               TRUE ~ as.character(NA))) %>%  # NA if no data (question not asked / 'don't know'/refused/not answered)
-  select(year, trend_axis, cintwt, spatial.unit, spatial.scale, quintile, psu, strata, sex, starts_with("age_group"),  
-         ch_ghq, ch_audit, contains("sdq"), childpa1hr, c00sum7s, spt1ch, ch30plyg)
+  select(year, trend_axis, cintwt, hb, ca, hscp, adp, pd, quintile, psu, strata, sex, starts_with("age_group"),  
+         cghq214, ch_ghq, ch_audit, contains("sdq"), childpa1hr, c00sum7s, spt1ch, ch30plyg, urban_rural, eqv5_15)
 
 # save intermediate df:
 #arrow::write_parquet(shes_child_data, paste0(derived_data, "shes_child_data.parquet"))
