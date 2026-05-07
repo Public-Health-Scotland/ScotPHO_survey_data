@@ -6,13 +6,13 @@
 
 # Notes on SHeS
 
-# 20 adult indicators: 
+# 25 adult indicators: 
 
 # 99107 = adt10gp_tw2	(also in CWB and PA profiles) Percentage of adults who met the recommended moderate or vigorous physical activity guideline in the previous four weeks. In July 2011, the Chief Medical Officers of each of the four UK countries agreed and introduced revised guidelines on physical activity. Adults are recommended to accumulate 150 minutes of moderate activity or 75 minutes of vigorous activity per week, or an equivalent combination of both, in bouts of 10 minutes or more. The variable used was adt10gpTW. This bandings used for this variable include the new walking definition for those aged 65 years and over. 
-# 99108 = gen_helf	(also in CWB profile) Percentage of adults who, when asked "How good is your health in general?", selected "good" or "very good". The five possible options ranged from very good to very bad, and the variable was GenHelf. 
+# 99108 = gen_helf	(also in CWB profile) Percentage of adults who, when asked "How good is your health in general?", selected "good" or "very good". The five possible options ranged from very good to very bad, and the variable was GenHelf2. 
 # 99109 = limitill2	(also in CWB profile) Percentage of adults who have a limiting long-term illness. Long-term conditions are defined as a physical or mental health condition or illness lasting, or expected to last, 12 months or more. A long-term condition is defined as limiting if the respondent reported that it limited their activities in any way. The variable used was limitill. 
 # 30001 = wemwbs	Mean score on the WEMWBS scale (adults). WEMWBS stands for Warwick-Edinburgh Mental Wellbeing Scale. N.B. This indicator is also available from the ScotPHO Online Profiles (national, health board, and council area level, but not by SIMD). The questionnaire consists of 14 positively worded items designed to assess: positive affect (optimism, cheerfulness, relaxation) and satisfying interpersonal relationships and positive functioning (energy, clear thinking, self-acceptance, personal development, mastery and autonomy). It is scored by summing the response to each item answered on a 1 to 5 Likert scale ('none of the time', 'rarely', 'some of the time', often', 'all of the time'). The total score ranges from 14 to 70 with higher scores indicating greater wellbeing. The variable used was WEMWBS. 
-# 30002 = life_sat	Mean score on the question "All things considered, how satisfied are you with your life as a whole nowadays?" (variable LifeSat).  N.B. This indicator is also available from the ScotPHO Online Profiles (national and council area level, but not by SIMD). Life satisfaction is measured by asking participants to rate, on a scale of 0 to 10, how satisfied they are with their life in general. On the scale, 0 represented 'extremely dissatisfied' and 10 'extremely satisfied' (the intervening scale points were numbered but not labelled). 
+# 30002 = life_sat	Percentage with the highest levels of life satisfaction: responses above the mode (9 to 10-Extremely satisfied) when asked "All things considered, how satisfied are you with your life as a whole nowadays?"
 # 30052 = work_bal	Mean score for how satisfied adults are with their work-life balance (paid work). Respondents were asked "How satisfied are you with the balance between the time you spend on your paid work and the time you spend on other aspects of your life?" on a scale between 0 (extremely dissatisfied) and 10 (extremely satisfied). The intervening scale points were numbered but not labelled. The variable was WorkBal. 
 # 30003 = gh_qg2	Percentage of adults with a possible common mental health problem. N.B. This indicator is also available from the ScotPHO Online Profiles (national, health board, and council area level, but not by SIMD). A score of four or more on the General Health Questionnaire-12 (GHQ-12) indicates a possible mental health problem over the past few weeks. GHQ-12 is a standardised scale which measures mental distress and mental ill-health. There are 12 questions which cover concentration abilities, sleeping patterns, self-esteem, stress, despair, depression, and confidence in the past few weeks. For each of the 12 questions one point is given if the participant responded 'more than usual' or 'much more than usual'. Scores are then totalled to create an overall score of zero to twelve. A score of four or more (described as a high GHQ-12 score) is indicative of a potential psychiatric disorder. Conversely a score of zero is indicative of psychological wellbeing. As GHQ-12 measures only recent changes to someone's typical functioning it cannot be used to detect chronic conditions. The variable used was GHQg2. 
 # 30013 = porftvg3	Percentage of adults who met the daily fruit and vegetable consumption recommendation - five or more portions - in the previous day (survey variables porftvg3Intake and porftvg3). According to the guidelines, it is recommended for adults to consume at least five varied portions of fruit and vegetables per day. The module includes questions on consumption of the following food types in the 24 hours to midnight preceding the interview: vegetables (fresh, frozen or canned); salads; pulses; vegetables in composites (e.g. vegetable chilli); fruit (fresh, frozen or canned); dried fruit; fruit in composites (e.g. apple pie); fresh fruit juice. Fruit and vegetable consumption figures for 2021 have been calculated from online dietary recalls using INTAKE24. In 2021, less than half a portion of fruit and vegetables is defined as none. This is due to the inclusion of fruit and vegetables from composite dishes which has led to a decrease in the proportion consuming no fruit or vegetables. Data from earlier years were taken from the fruit and vegetable module. Fruit and vegetable consumption data for NHS health boards and council area areas for 2017-2021 combined are not available, as due to the different method of data collection, it was not possible to combine data for these years. Respondents to the INTAKE24 food diary were included if they had provided data for two days. 
@@ -28,6 +28,11 @@
 # 30026 = rg17a_new	Percentage of adults who provide 20 or more hours of care per week to a member of their household or to someone not living with them, excluding help provided in the course of employment. Participants were asked whether they look after, or give any regular help or support to, family members, friends, neighbours or others because of a long-term physical condition, mental ill-health or disability; or problems related to old age. Caring which is done as part of any paid employment is not asked about. From 2014 onwards, this question explicitly instructed respondents to exclude caring as part of paid employment. The variables used to construc this indicator were RG15aNew (Do you provide any regular help or care for any sick, disabled, or frail people?) and RG17aNew (How many hours do you spend each week providing help or unpaid care for him/her/them?). 
 # 14001 - mus_rec - Adults meeting muscle strengthening guidelines. 2011 CMO guidelines recommend 2x 30 minute muscle strengthening sessions per week
 # 14002 - adt10gp_tw_LOW - Adults with very low activity levels. Also in CWB, AMH profiles. 2011 CMO guidelines recommend 150 mins/week MVPA.
+# 99105: Food insecurity
+# 99106: Adult Healthy Weight 
+# 4170: Alcohol consumption: Binge drinking (drinking over (6/8) units in a day (includes non-drinkers): Over 8 units for men, over 6 units for women" (previous indicator definition excluded non-drinkers from denom)
+# 4171: Alcohol consumption: Hazardous/Harmful drinker" (% consuming over 14 units per week) (NB. original ScotPHO indicator excluded non-drinkers from denominator... it's not clear whether they are included here) 
+# 4172: Alcohol consumption (mean weekly units)
 
 # 12 child indicators:
 # 30130 = ch_ghq  Percentage of children aged 15 years or under who have a parent/carer who scores 4 or more on the General Health Questionnaire-12 (GHQ-12)
@@ -38,7 +43,7 @@
 # 30173	Conduct problems - Percentage of children with a 'slightly raised', 'high' or 'very high' score (a score of 3-10) on the conduct problems scale of the Strengths and Difficulties Questionnaire (SDQ)
 # 30174	Hyperactivity/inattention - Percentage of children with a 'slightly raised', 'high' or 'very high' score (a score of 6-10) on the hyperactivity/inattention scale of the Strengths and Difficulties Questionnaire (SDQ)
 # 30175	Prosocial behaviour - Percentage of children with a 'close to average' score (a score of 8-10) on the prosocial scale of the Strengths and Difficulties Questionnaire (SDQ)
-# 30111 % children meeting 1 hour PA per day
+# 30111 % children meeting 1 hour PA per day (INCL. SCHOOL)
 # 14003 - c00sum7s - Children with very low activity levels
 # 14006 - spt1ch - Children participating in sport
 # 14007 - ch30plyg - Children engaging in active play
@@ -108,17 +113,17 @@ pacman::p_load(
 
 source(here("functions", "functions.R")) # sources the file "functions/functions.R" within this project/repo
 
-# # Source functions/packages from ScotPHO's scotpho-indicator-production repo 
-# # (works if you've stored the ScotPHO repo in same location as the current repo)
-# #source("../scotpho-indicator-production/1.indicator_analysis.R")
-# #source("../scotpho-indicator-production/2.deprivation_analysis.R")
-# # change wd first
-# setwd("../scotpho-indicator-production/")
-# source("functions/main_analysis.R") # for packages and QA function 
-# source("functions/deprivation_analysis.R") # for packages and QA function (and path to lookups)
-# 
-# # move back to the ScotPHO_survey_data repo
-# setwd("/conf/MHI_Data/Liz/repos/ScotPHO_survey_data")
+# Source functions/packages from ScotPHO's scotpho-indicator-production repo
+# (works if you've stored the ScotPHO repo in same location as the current repo)
+#source("../scotpho-indicator-production/1.indicator_analysis.R")
+#source("../scotpho-indicator-production/2.deprivation_analysis.R")
+# change wd first
+setwd("../scotpho-indicator-production/")
+source("functions/main_analysis.R") # for packages and QA function
+source("functions/deprivation_analysis.R") # for packages and QA function (and path to lookups)
+
+# move back to the ScotPHO_survey_data repo
+setwd("/conf/MHI_Data/Liz/repos/ScotPHO_survey_data")
 
 ## C. Path to the data derived by this script
 
@@ -136,7 +141,7 @@ derived_data <- "/conf/MHI_Data/derived data/"
 ## B. Get all the variable names and their descriptions from the survey data files
 # N.B. RUNNING THIS WILL TAKE ~5 MINS AND WILL MODIFY THE EXISTING SPREADSHEET:
 save_var_descriptions(survey = "shes", # looks in this folder 
-                       name_pattern = "\\/she?s\\D?(\\d{2,10})") # the regular expression for this survey's filenames that identifies the survey year(s)
+                      name_pattern = "\\/she?s\\D?(\\d{2,10})") # the regular expression for this survey's filenames that identifies the survey year(s)
 # Unpicking the regular expression:
 #    for shes this has to recognise filenames with either shes or shs in them (hence she?s, meaning the e is optional).
 #    the year can be from 2 digits (e.g. 08) to many digits (e.g., 08091011) hence d{2,10}.
@@ -173,7 +178,8 @@ save_var_descriptions(survey = "shes", # looks in this folder
 # 21 JAN 2026: ADDING IN PA PROFILE INDICATORS
 # 14 JAN 2026: ADDING 2023 DATA
 # 12 JAN 2026: ADDITION OF CHILD SDQ VARS
-extracted_survey_data_shes <- extract_survey_data("shes") 
+# 01 APR 2026: ADDING MORE VARS FROM THE SHES DASHBOARD, AND HARMONISING EXISTING VARS WITH THEIRS.
+extracted_survey_data_shes <- extract_survey_data("shes", additional="^int.*wt$|^cint.*wt$|^bio.*wt$|^vera.*wt$|^nurs.*wt$|intake24_wt_sc") 
 # What this function is doing:
 #   Uses the file locations saved in the spreadsheet, and opens each file in turn.
 #   Runs the function read_select() to read in the data for any variable listed in the vars_to_extract_xxx file.
@@ -187,8 +193,12 @@ extracted_survey_data_shes <- extract_survey_data("shes")
 # (These files could probably be avoided initially using a more complex reg expression in the save_var_descriptions() function call above)
 extracted_survey_data_shes <- extracted_survey_data_shes %>%
   filter(!str_detect(filename, "she?s\\D?\\d{2,10}h")) %>% # this drops the shes household files ("h" follows the year for these files)
-  filter(!str_detect(filename, "intake24"))  # this drops the shes intake24 files (the derived var we need is already in the individual file)
-  
+  filter(!str_detect(filename, "intake24")) %>% # this drops the shes intake24 files (the derived var we need is already in the individual file)
+# Drop years we don't want:
+# drop 2020 survey as experimental and not comparable. 1995 and 1998 don't have SIMD, and have old HBs. 2003 has old HBs too.
+  filter(!year %in% c("95", "98", "03", "20")) # Not used
+
+
 
 ## C. Save the file (do this if new variables/data have been read in)
 # saveRDS(extracted_survey_data_shes, paste0(derived_data, "extracted_survey_data_shes.rds"))
@@ -209,7 +219,7 @@ extracted_survey_data_shes <- extracted_survey_data_shes %>%
 # responses_as_list_shes  # examine the output
 # 2nd run to exclude the numeric vars that don't need codings and/or muck up the output:
 extract_responses(survey = "shes", #survey acronym
-                  chars_to_exclude = c("wt", "age", "psu", "strata", "weighta", "par", "serial")) #we don't need to work out codings for these numeric vars (and they muck up the output)
+                  chars_to_exclude = c("wt", "age", "psu", "strata", "par", "serial")) #we don't need to work out codings for these numeric vars (and they muck up the output)
 # What this function does: 
 #   Runs get_valid_responses() function for each variable in each survey file.
 #   This extracts any character/factor data, converts to character, stores in a dataframe.
@@ -236,18 +246,29 @@ responses_as_list_shes
 # [1] "Meets recommendations"   "Schedule not applicable" "Very low activity"       "Some activity"           "Low activity"            "Don't know"             
 # [7] "Refused"
 # 
+# $ag16g10
+# [1] "25-34"               "Item not applicable" "45-54"               "55-64"               "16-24"               "35-44"               "75+"                
+# [8] "65-74"               "item not applicable" NA                    "Item Not Applicable" "Not applicable"      "Refused"            
+# 
 # $anxsymp
 # [1] "0"                       "Schedule not applicable" "Item not applicable"     "1"                       "4"                       "2"                      
 # [7] "3"                       "schedule not applicable" "item not applicable"     "Refusal"                 NA                        "Don't know"             
 # [13] "schedule not obtained"   "don't know"              "refused"                 "Not applicable"          "Refused"                 "Schedule not obtained"  
 # 
-# $anxsymp_t20
-# [1] "0"          "1"          "4"          "3"          "2"          "Don't know" "Refused"   
-# 
 # $auditg
 # [1] "0-7"                                      "8 or more (hazardous/harmful drinking"    "Schedule not applicable"                 
 # [4] "Refused"                                  "Schedule not obtained"                    "Refusal"                                 
 # [7] "Refused/not answered"                     "8 or more (hazardous / harmful drinking)" "Not applicable"                          
+# 
+# $bmivg5
+# [1] "Over 25-30"              "Item not applicable"     "Schedule not applicable" "Over 18.5-25"            "Over 30-40"             
+# [6] "Over 40"                 "Under 18.5"              "30 to less than 40"      "25 to less than 30"      "18.5 to less than 25"   
+# [11] "40 and over"             "schedule not applicable" "item not applicable"     NA                        "Item Not Applicable"    
+# [16] "Not applicable"         
+# 
+# $bmivg5_adj
+# [1] "30 to less than 40"      "18.5 to less than 25"    "25 to less than 30"      "40 and over"             "Not applicable"          "Under 18.5"             
+# [7] "Schedule not applicable"
 # 
 # $c00sum7s
 # [1] "Schedule not applicable"          "Group 1:60+min on all 7 days"     "Group 2:30-59min on all 7 days"   "Group 3:Lower level of activity" 
@@ -255,6 +276,20 @@ responses_as_list_shes
 # [9] "don't know"                       "Dont know"                        NA                                 "Age 16+"                         
 # [13] "Age 0-1"                          "Not applicable"                   "Group 1: 60+min on all 7 days"    "Group 2: 30-59min on all 7 days" 
 # [17] "Group 3: Lower level of activity"
+# 
+# $cghq214
+# [1] "Not applicable"                                "Not living with parent with GHQ12 score of 4+" "Living with parent with GHQ12 score of 4+"    
+# [4] "Refused"                                       "Schedule not obtained"                         "No parent/guardian data"                      
+# [7] "Item not applicable"                          
+# 
+# $ch30plyg
+# [1] "not applicable"          "None"                    "5 or more"               "1 or 2"                  "3 or 4"                 
+# [6] "Item not applicable"     "Don't know"              "Schedule not applicable" "schedule not applicable" "don't know"             
+# [11] "Dont know"               NA                        "Not applicable"         
+# 
+# $combmivg5_adj
+# [1] "Schedule not applicable" "18.5 to less than 25"    "30 to less than 40"      "25 to less than 30"      "Not applicable"         
+# [6] "40 and over"             "Under 18.5"              "Don't know"              "Refused"                 "Item not applicable"    
 # 
 # $contrl
 # [1] "schedule not applicable" "Sometimes"               "Often"                   "Always"                  "Never"                   "don't know"             
@@ -267,8 +302,23 @@ responses_as_list_shes
 # [13] "Refusal"                 "Dont know"               NA                        "schdule not obtained"    "Not applicable"          "Refused"                
 # [19] "Schedule not obtained"  
 # 
-# $depsymp_t20
-# [1] "0"          "3"          "2"          "1"          "Refused"    "4"          "Don't know"
+# $dnany
+# [1] "not applicable"          "Never"                   "Very occasionally"       "schedule not obtained"   "Not applicable"         
+# [6] "Schedule not obtained"   "Don't know"              "Schedule not applicable" "Item not applicable"     "Refused"                
+# [11] "Refused/not answered"    NA                        "Dont know"               "Refusal"                
+# 
+# $dnnow
+# [1] "Yes"                     "not applicable"          "No"                      "Not answered/refused"    "schedule not obtained"  
+# [6] "Don't know"              "Not applicable"          "Schedule not obtained"   "No answer/Refused"       "Schedule not applicable"
+# [11] "Item not applicable"     "Refused"                 "Refused/not answered"    "Refusal"                 NA                       
+# 
+# $drating
+# values stored as strings, plus "Not answered (999.00)"
+# 
+# $drkcat315
+# [1] "Moderate (up to and including 14)" "Hazardous/harmful (over 14)"       "Schedule not applicable"           "Non-drinker"                      
+# [5] "Don't know"                        "Refused"                           "Schedule obtained"                 "Item not applicable"              
+# [9] "Schedule not obtained"             "Not applicable"                    "Hazardous / harmful (over 14)"    
 # 
 # $dsh5
 # [1] "No"                      "Schedule not applicable" "Item not applicable"     "Yes"                     "Don't know"              "Don't Know"             
@@ -282,27 +332,22 @@ responses_as_list_shes
 # [1] "0"                       "Schedule not applicable" "Item not applicable"     "3"                       "1"                       "2"                      
 # [7] "4"                      
 # 
-# $final_sex22
-# [1] "Male"              "Female"            "Refused"           "Prefer not to say"
-#
 # $dvj12
 # [1] "0"                       "Schedule not applicable" "Item not applicable"     "1"                       "4"                       "2"                      
 # [7] "3"                      
 # 
-# $gen_helf
-# [1] "Very good"     "Good"          "Bad"           "Fair"          "Very bad"      "Don't know"    "Refused"       "Don't Know"    "Refusal"       "refused"      
-# [11] "don't know"    NA              "Dont know"     "...very good," "good,"         "bad, or"       "fair,"         "very bad?"   "No answer/refused" 
+# $final_sex22
+# [1] "Male"              "Female"            "Refused"           "Prefer not to say"
 # 
-# $genhelf
-# [1] "Very good"     "Fair"          "Good"          "Bad"           "Very bad"      "good,"         "...very good," "fair,"         "bad, or"       "very bad?"    
+# $genhelf2 # (used on dashboard)
+# [1] "Very good/good"    "Fair"              "Bad/very bad"      "No answer/refused" "Don't know"        "Refused"           "refused"          
+# [8] "don't know"        "Refusal"           "Dont know"         NA                  "Don't Know"        "Not answered"      "Very good / good" 
+# [15] "Bad / very bad"   
 # 
 # $gh_qg2
 # [1] "Score 1-3"               "Schedule not applicable" "Score 0"                 "Score 4+"                "Schedule not obtained"   "Refused"                
 # [7] "schedule not applicable" "refused"                 "schedule not obtained"   "Refusal"                 "Refused/not answered"    NA                       
 # [13] "Don't know"              "Not applicable"         
-# 
-# $gh_qg2_t20
-# [1] "Score 1-3"  "Score 0"    "Score 4+"   "Don't know" "Refused"   
 # 
 # $ghq2
 # [1] "0"                     "1-3"                   "4 or more"             "Schedule not obtained" "Not answered"         
@@ -330,13 +375,6 @@ responses_as_list_shes
 # [21] "4"                         "2"                         "1"                         "6"                         "3"                        
 # [26] "13"                        "8"                         "14"                        "11"                        "Greater Glasgow and Clyde"
 # 
-# $hboard
-# [1] "Dumfries & Galloway" "Fife"                "Greater Glasgow"     "Ayreshire & Arran"   "Borders"             "Tayside"             "Grampian"           
-# [8] "Orkney"              "Forth Valley"        "Lothian"             "Argyll & Clyde"      "Highland"            "Lanarkshire"         "Western Isles"      
-# [15] "Shetland"            "SF9"                 "SH9"                 "SC9"                 "SG9"                 "SS9"                 "SL9"                
-# [22] "SV9"                 "SZ9"                 "SA9"                 "ST9"                 "SN9"                 "SB9"                 "SY9"                
-# [29] "SW9"                 "SR9"                
-# 
 # $hlth_brd
 # [1] "Fife"                    "Forth Valley"            "Lothian"                 "Borders"                 "Orkney"                  "Greater Glasgow & Clyde"
 # [7] "Tayside"                 "Grampian"                "Ayrshire & Arran"        "Western Isles"           "Highland"                "Lanarkshire"            
@@ -357,19 +395,49 @@ responses_as_list_shes
 # [7] "item not applicable"     "don't know"              NA                        "Schedule not applicable" "Refusal"                 "Item not applicable"    
 # [13] "Dont know"               "Don't Know"              "Don't know"              "Refused"                 "Not applicable"         
 # 
-# $life_sat
-# [1] "8"                          "Schedule not applicable"    "9"                          "5"                          "6"                         
-# [6] "10 - Extremely satisfied"   "7"                          "3"                          "0 - Extremely dissatisfied" "4"                         
-# [11] "2"                          "1"                          "Don't know"                 "Refused"                    "Don't Know"                
-# [16] "Refusal"                    "schedule not applicable"    "don't know"                 "refused"                    NA                          
-# [21] "Dont know"                  "Item not applicable"       
+# $la_code
+# [1] "West Lothian"          "Glasgow City"          "North Lanarkshire"     "Orkney Islands"        "Falkirk"               "Scottish Borders"     
+# [7] "Stirling"              "West Dunbartonshire"   "Dumfries and Galloway" "East Lothian"          "South Lanarkshire"     "Clackmannanshire"     
+# [13] "Midlothian"            "Edinburgh City"        "Shetland Islands"      "Highland"              "Angus"                 "Argyll and Bute"      
+# [19] "Inverclyde"            "Dundee City"           "Perth and Kinross"     "Renfrewshire"          "Aberdeenshire"         "East Ayrshire"        
+# [25] "East Renfrewshire"     "North Ayrshire"        "Fife"                  "South Ayrshire"        "Aberdeen City"         "East Dunbartonshire"  
+# [31] "Na h-Eileanan Siar"    "Moray"                
+# 
+# $lifesat2
+# [1] "above the mode (9-10)"   "mode (8)"                "below the mode (0 to 7)" "Schedule not applicable" "Don't know"             
+# [6] "Refusal"                 NA                        "Refused/not answered"    "Dont know"               "Item not applicable"    
+# [11] "Refused"                 "Not applicable"          "Above the mode (9-10)"   "Mode (8)"                "Below the mode (0 to 7)"
 # 
 # $limitill
 # [1] "No LI"           "Non limiting LI" "Limiting LI"     "Don't know"      "Refused"         "refused"         "don't know"      "Refusal"         "Don't Know"     
 # [10] "-9"              NA                "Dont know"       "Not answered"   "No answer/refused" NA
 # 
+# $mus_rec
+# [1] "Yes"                     "Schedule not applicable" "No"                     
+# 
+# $musrec
+# [1] "No"                      "Schedule not applicable" "Yes"   
+# 
 # $number_of_recalls
-# [1] "2"              "Not applicable" "1"             
+# [1] "2"              "Not applicable" "1"           
+# 
+# $numberofrecalls
+# [1] "Item not applicable" "2"                   "1"                  
+# 
+# $olim_l_wb
+# [1] "From 0 up to and including  M8,F6"                             "Schedule not applicable"                                      
+# [3] "Over M8,F6"                                                    "Refusal"                                                      
+# [5] "Item not applicable"                                           "Dont know"                                                    
+# [7] "Schedule not obtained"                                         "Don't know"                                                   
+# [9] "Refused/not answered"                                          NA                                                             
+# [11] "Refused"                                                       "Not applicable"                                               
+# [13] "From 0 up to and including 8 units for men, 6 units for women" "Over 8 units for men, 6 units for women"                      
+# 
+# $olimlwb
+# [1] "From 0 up to and including 8 units for men, 6 units for women" "Schedule not applicable"                                      
+# [3] "Schedule not obtained"                                         "Over 8 units for men, 6 units for women"                      
+# [5] "Don't know"                                                    "Item not applicable"                                          
+# [7] "Refused"    
 # 
 # $p_crisis
 # [1] "12"                      "schedule not applicable" "4"                       "10"                      "5"                       "6"                      
@@ -393,21 +461,14 @@ responses_as_list_shes
 # [7] "refused"                 "Refusal"                 "Refused/not answered"    NA                       
 # 
 # $porftvg3intake
-# [1] "5 portions or more"          "0.5 to less than 5 portions" "Not applicable"              "None/less than 0.5"         
-# 
-# $region
-# [1] "Lothian & Fife"               "Lanark etc"                   "Argyll etc"                   "Glasgow"                      "Highland & Islands"          
-# [6] "Borders/D & G"                "Grampian & Tayside"           "Borders, Dumfries & Galloway" "Glagow"                       "Lanarkshire,Ayrshire & Arran"
-# [11] "Highlands & Islands"          "Forth Valley, Argyll & Clyde"
+# [1] "5 portions or more"          "0.5 to less than 5 portions" "Not applicable"              "None/less than 0.5"    "Item not applicable"       
 # 
 # $rg15a_new
 # [1] "Item not applicable"     "No"                      "Schedule not applicable" "Yes"                     "Don't Know"              "Not applicable"         
 # [7] "Don't know"              "Refused"                 "Refusal"                
 # 
-# $rg17a_new
-# [1] "Item not applicable"                    "Schedule not applicable"                "Up to 4 hours a week"                   "5 - 19 hours a week"                   
-# [5] "50 or more hours a week"                "20 - 34 hours a week"                   "Varies (spontaneous - not on showcard)" "35 - 49 hours a week"                  
-# [9] "Not applicable"                         "Don't Know"                             "Varies"                                 "Don't know"                            
+# $rg15anew
+# [1] "No"                      "Schedule not applicable" "Yes"                     "Refused"                 "Item not applicable"    
 # 
 # $rg17a_new
 # [1] "Item not applicable"                    "Schedule not applicable"                "Up to 4 hours a week"                   "5 - 19 hours a week"                   
@@ -452,7 +513,6 @@ responses_as_list_shes
 # [7] "Refused"                 "schedule not applicable" "schedule not obtained"   NA                        "Not applicable"          "17-19"                  
 # [13] "Item not applicable"     "20-40"                  
 # 
-# 
 # $sex
 # [1] "Male"              "Female"            NA                  "Refused"           "Prefer not to say"
 # 
@@ -468,10 +528,6 @@ responses_as_list_shes
 # $simd20_sga
 # [1] "4"              "3"              "Most deprived"  "2"              "Least deprived"
 # 
-# $simd5
-# [1] "Least deprived (0.5393 - 7.7347)"  "(7.7354 - 13.5231)"                "(13.5303 - 21.0301)"               "(21.0421 - 33.5214)"              
-# [5] "(33.5277 - 87.5665) most deprived"
-# 
 # $simd5_s_ga
 # [1] "3rd"                   "2nd"                   " 5th - least deprived" "4th"                   "1st - most deprived"   "3"                    
 # [7] "2"                     "Least deprived"        "4"                     "Most deprived"         "most deprived"         "least deprived"       
@@ -481,11 +537,20 @@ responses_as_list_shes
 # [1] "3rd"                  "5th - least deprived" "2nd"                  "4th"                  "1st - most deprived"  NA                     "3"                   
 # [8] "4"                    "1"                    "2"                    "5"                   
 # 
+# $spt1ch
+# [1] "not applicable"          "No"                      "Yes"                     "Schedule not applicable" "Don't know"             
+# [6] "No answer/refused"       "Refused"                 "schedule not applicable" "refused"                 "don't know"             
+# [11] "Don't Know"              "Refusal"                 NA                        "Dont know"               "Item not applicable"    
+# 
 # $str_work2
 # [1] "schedule not applicable"       "moderately stressful"          "not at all/mildly stressful"   "don't know"                    "very/extremely stressful"     
 # [6] "refused"                       NA                              "Item not applicable"           "Schedule not applicable"       "Refusal"                      
 # [11] "Don't know"                    "Moderately stressful"          "Very/extremely stressful"      "Not at all/mildly stressful"   "Refused"                      
 # [16] "Not at all / Mildly stressful" "Very / Extremely stressful"    "Not applicable"                "Not at all / mildly stressful" "Very / extremely stressful"   
+# 
+# $strwork2
+# [1] "Moderately stressful"          "Schedule not applicable"       "Not at all / mildly stressful" "Very / extremely stressful"   
+# [5] "Item not applicable"           "Refused"                       "Don't know"                    "Not applicable"               
 # 
 # $suicide2
 # [1] "No"                                      "Schedule not applicable"                 "Item not applicable"                    
@@ -507,6 +572,18 @@ responses_as_list_shes
 # [7] "Neutral"                 "Does not apply"          "CAPI routing error"      "Refused"                 "Don't know"              "Item not applicable"    
 # [13] "Not_Apply"               "Don't Know"              "Refusal"                  
 # 
+# $urbrur2a
+# [1] "Urban"          "Rural"          "Not applicable"
+# 
+# $urbrur2a_16
+# [1] "Not applicable" "Rural"          "Urban"         
+# 
+# $urbrur2a_20
+# [1] "Not applicable" "Rural"          "Urban"         
+# 
+# $urindsc2
+# [1] "Urban" "Rural"
+# 
 # $wemwbs
 # [1] "39"                      "Schedule not applicable" "50"                      "57"                      "41"                      "56"                     
 # [7] "53"                      "58"                      "33"                      "46"                      "59"                      "54"                     
@@ -520,13 +597,6 @@ responses_as_list_shes
 # [55] "23"                      "14"                      "18"                      "21"                      "19"                      "15"                     
 # [61] "schedule not applicable" "refused"                 "Refusal"                 NA                        "Don't know"              "Not applicable"         
 # 
-# $wemwbs_t20
-# [1] "44"         "49"         "48"         "51"         "Don't know" "65"         "54"         "53"         "57"         "43"         "64"         "56"        
-# [13] "47"         "66"         "24"         "38"         "55"         "35"         "61"         "Refused"    "60"         "39"         "52"         "63"        
-# [25] "23"         "42"         "59"         "69"         "45"         "58"         "67"         "70"         "62"         "41"         "50"         "26"        
-# [37] "68"         "40"         "29"         "37"         "34"         "20"         "36"         "46"         "14"         "28"         "33"         "27"        
-# [49] "21"         "31"         "32"         "22"         "30"         "19"        
-# 
 # $work_bal
 # [1] "schedule not applicable"    "6"                          "5"                          "8"                          "10 - Extremely satisfied"  
 # [6] "7"                          "don't know"                 "4"                          "3"                          "2"                         
@@ -534,24 +604,13 @@ responses_as_list_shes
 # [16] "Item not applicable"        "Schedule not applicable"    "Dont know"                  "Don't Know"                 "Refusal"                   
 # [21] "Don't know"                 "Refused"                    "Not applicable"   
 #
-# $ch30plyg
-# [1] "not applicable"          "None"                    "5 or more"               "1 or 2"                 
-# [5] "3 or 4"                  "Item not applicable"     "Don't know"              "Schedule not applicable"
-# [9] "schedule not applicable" "don't know"              "Dont know"               NA                       
-# [13] "Not applicable"         
-# 
-# $mus_rec
-# [1] "Yes"                     "Schedule not applicable" "No"                     
-# 
-# $musrec
-# [1] "No"                      "Schedule not applicable" "Yes"       
-# 
-# $spt1ch
-# [1] "not applicable"          "No"                      "Yes"                     "Schedule not applicable" "Don't know"              "No answer/refused"      
-# [7] "Refused"                 "schedule not applicable" "refused"                 "don't know"              "Don't Know"              "Refusal"                
-# [13] NA                        "Dont know"               "Item not applicable"   
-###################################
+# $wrfood
+# [1] "Schedule not applicable" "No"                      "Yes"                     "Refusal"                 "Refused"                
+# [6] "Schedule not obtained"   "Not applicable"          "Don't know"              NA                        "Item not applicable"    
 
+
+
+###################################
 
 
 # 5. How should the responses be coded?
@@ -615,20 +674,6 @@ lookup_dsh5sc <- list(
   "No"="no"
 )
 
-# general health
-lookup_gen_helf <- list( 
-  "...very good,"="yes", 
-  "Good"="yes", 
-  "good,"="yes", 
-  "Very good"="yes",
-  "Bad"="no", 
-  "bad, or"="no", 
-  "Fair"="no", 
-  "fair,"="no", 
-  "Very bad"="no", 
-  "very bad?"="no"
-)
-
 # GHQ caseness
 # For recoding gh_qg2, ghqg2 and ghq2
 lookup_gh_qg2 <- list( # trying to recreate the published data (SHeS dashboard) confirmed that 'don't know' and refused/not answered are excluded from calcs
@@ -640,6 +685,14 @@ lookup_gh_qg2 <- list( # trying to recreate the published data (SHeS dashboard) 
   "Score 1-3"="no"
 )
 
+# general health (genhelf2)
+lookup_genhelf2 <- list( 
+  "Very good/good" ="yes",   
+  "Very good / good" ="yes",
+  "Fair" ="no",             
+  "Bad/very bad" ="no",     
+  "Bad / very bad" ="no"
+)
 
 # For recoding involve and involv19
 lookup_involve <- list(
@@ -685,7 +738,7 @@ lookup_rg17a_new <- list(
   "Don't Know"= "no"
 )
 
-                        
+
 # For recoding sdq_totg
 lookup_sdq_totg <- list(
   "14-16"="yes", 
@@ -767,6 +820,47 @@ lookup_support1 <- list(
   "Tend to disagree"="no" 
 )
 
+# Healthy weight (for bmivg5, bmivg5_adj, combmivg5_adj)
+lookup_healthyweight <- list(
+  "18.5 to less than 25"="yes",
+  "Under 18.5" ="no",              
+  "Over 25-30" ="no",              
+  "25 to less than 30" ="no",         
+  "Over 18.5-25" ="no",            
+  "Over 30-40" ="no",             
+  "30 to less than 40" ="no",      
+  "Over 40" ="no",                 
+  "40 and over"="no"   )
+
+# life satisfaction as % (lifesat2)
+lookup_lifesat2 <- list(
+  "above the mode (9-10)"="yes",
+  "Above the mode (9-10)" = "yes",
+  "mode (8)" ="no",               
+  "Mode (8)" ="no",               
+  "below the mode (0 to 7)" ="no",
+  "Below the mode (0 to 7)"="no"   )
+
+# binge drinking (olim_l_wb and olimlwb)
+lookup_binge <- list(
+  "Over M8,F6" ="yes",
+  "Over 8 units for men, 6 units for women" ="yes",                     
+  "From 0 up to and including  M8,F6" ="no",                            
+  "From 0 up to and including 8 units for men, 6 units for women"  ="no"   )
+
+# drinking over rec limits (drkcat315)
+lookup_alcoholguidelines <- list(
+  "Hazardous / harmful (over 14)" ="yes",   
+  "Hazardous/harmful (over 14)" ="yes",      
+  "Moderate (up to and including 14)" ="no", 
+  "Non-drinker" ="no" )
+
+# food insecurity (wrfood)
+lookup_foodinsecure <- list(
+  "Yes" ="yes",
+  "No"  ="no"   )
+
+
 # CYP MHI indicators:
 
 # For recoding auditg
@@ -781,6 +875,12 @@ lookup_sex <- list(
   "Female"="Female",
   "Male"="Male" 
 )
+
+# children living with parent with GHQ12 score of 4+ (cghq214)
+lookup_childghq <- list(
+  "Living with parent with GHQ12 score of 4+"="yes",
+  "Not living with parent with GHQ12 score of 4+"="no"   )
+
 
 # PA profile indicators:
 
@@ -812,7 +912,7 @@ lookup_c00sum7s <- list(
   "Group 3:Lower level of activity" = "yes",
   "Group 3: Lower level of activity" = "yes")
 
-#Adults meeting muscle strengthening recommedation
+#Adults meeting muscle strengthening recommendation (musrec and mus_rec)
 lookup_mus_rec <- list(
   "No" = "no",
   "Yes" = "yes")
@@ -825,6 +925,9 @@ lookup_limitill_SPLIT <- list(
 
 # 6. Initial processing of the survey data: creating a flat file with harmonised variable names.
 # =================================================================================================================
+
+## Read the data back in if not in memory:
+# extracted_survey_data_shes <- readRDS(paste0(derived_data, "extracted_survey_data_shes.rds"))
 
 ## A: How are grouping variables (geogs and SIMD) coded in each survey file? Need standardising?
 
@@ -839,33 +942,30 @@ shes_years_vars <- extracted_survey_data_shes %>%
   filter(!grepl("^bio|^int|^nurs|^vera|^weight|^cint|serial", var_label))  %>% # drop the weights and serial numbers
   pivot_wider(names_from=year, values_from = value) 
 
-  
+
 # This shows some issues that need to be rectified before the dataframe can be 'unlisted' into a flat file:
-# 1. File years 03, 12, 13, 14, 1214, and 121314 use 2 HB variables. 
- # hboard and hlthbrd used in 03: keep hlthbrd here (text), as hboard contains codes
- # hbcode and hlth_brd used in 12, 1214, 14 data (keep hlth_brd as it is consistently text in these files)
- # hbcode and hlthbrd used in 13 (keep hlthbrd as it's text)
- # hb_code and hlth_brd used in 121314 (keep hlth_brd as it's text)
- # hbcode and hb_code are used inconsistently (see responses_as_list_shes above): don't use when hlth_brd or hlthbrd are also used (i.e., in the years noted above).
+# 1. File years 12, 13, 14, 1214, and 121314 use 2 HB variables. 
+# hbcode and hlth_brd used in 12, 1214, 14 data (keep hlth_brd as it is consistently text in these files)
+# hbcode and hlthbrd used in 13 (keep hlthbrd as it's text)
+# hb_code and hlth_brd used in 121314 (keep hlth_brd as it's text)
+# hbcode and hb_code are used inconsistently (see responses_as_list_shes above): don't use when hlth_brd or hlthbrd are also used (i.e., in the years noted above).
 # 2. 2015-18 survey uses two SIMDs (simd5_s_ga for 2015 and simd16_s_ga for 2016-18): harmonise these into "simd_combo" before aggregating
-# 3. 1995 and 1998 don't have SIMD data: exclude
 
 
 ## B. Create lookups for harmonising var names and coding:
 
 # lookups:
-hb_lookup <- c(hb = "hboard", hb = "hbcode", hb = "hb_code", hb = "hlth_brd", hb = "hlthbrd")
-simd_lookup <- c(quintile = "simd5", quintile = "simd20_s_ga", quintile = "simd16_s_ga", quintile = "simd5_sg", 
+hb_lookup <- c(hb = "hbcode", hb = "hb_code", hb = "hlth_brd", hb = "hlthbrd")
+simd_lookup <- c(quintile = "simd20_s_ga", quintile = "simd16_s_ga", quintile = "simd5_sg", 
                  quintile = "simd5_s_ga", quintile = "simd20_sga", quintile = "simd_combo", quintile = "simd20_r_pa") # r_pa needed for 2022. check its coding.
-age_lookup <- c(age = "age", age = "respage") # respage used in 1995
-sex_lookup <- c(sex = "sex", sex = "final_sex22", sex = "respsex") # respsex used in 1995, final_sex22 used in 2022
-indserial_lookup <- c(indserial="cpseriala",  indserial="pserial", indserial="pserial_a", indserial="cpserial_a", indserial="cp_serial_a", indserial="serialx")
-hhserial_lookup <- c(hhserial="chh_serial_a", hhserial="chhserial_a", hhserial="chhseriala", hhserial="chserial_a", hhserial="hhserial", hhserial="hserial_a")
+sex_lookup <- c(sex = "sex", sex = "final_sex22") # final_sex22 used from 2022
+indserial_lookup <- c(indserial="cpseriala",  indserial="pserial_a", indserial="cpserial_a", indserial="cp_serial_a")
+hhserial_lookup <- c(hhserial="chh_serial_a", hhserial="chhserial_a", hhserial="chhseriala", hhserial="chserial_a", hhserial="hserial_a")
 
 # derive lookup for years where only a numeric hbcode is provided (hbcode in 1213 and 1618, hb_code in 1921):
 # checked when hbcode/hb_code is provided alongside a character hb field, and all code the same: alphabetically
 # extract codings from 2014 file: 
-hbcodes <- extracted_survey_data_shes[[4]][[18]] %>%
+hbcodes <- extracted_survey_data_shes[[4]][[15]] %>%
   group_by(hbcode, hlth_brd) %>%
   summarise() %>%
   ungroup()  
@@ -876,74 +976,75 @@ hbcodes <- extracted_survey_data_shes[[4]][[18]] %>%
 # Lots of steps here. If not processing new data the files shes_adult_data and shes_child_data can be read in after these 
 # (currently around lines 912 and 951)
 
-# Drop years we don't want:
-# drop 2020 survey as experimental and not comparable. 1995 and 1998 don't have SIMD, and have old HBs. 2003 has old HBs too.
-shes_data <- extracted_survey_data_shes %>%
-  filter(!year %in% c("95", "98", "03", "20")) 
 # keep only single year and 4-year aggregations:
-shes_data <- shes_data %>% 
+shes_data <- extracted_survey_data_shes %>% 
   mutate(year = case_when(year=="2022" ~ "22", 
                           year=="2023" ~ "23",
                           year=="2024" ~ "24",
                           TRUE ~ year)) %>%
   filter(nchar(year)==2|nchar(year)==8)
-  
+
 # Harmonise HB variable names and coding: (working within list column, hence use of 'map' function)
 shes_data <- shes_data %>%
   mutate(survey_data = map(survey_data, ~ .x %>% # map() here means this is all being done within the individual items in the list column, while retaining the list format
                              mutate(across(.cols = everything(), as.character)) %>% # some factors muck up the processing otherwise. Will convert some vars back to numeric eventually. 
                              # ensure there's only a single HB variable each year
-                             { if (length(grep("hlth_brd|hbcode|hlthbrd|hb_code|hboard", names(.))) > 1) select(., -starts_with("hb")) else .} %>% # drop hb* when there are two hb vars (see logic above)
-                             { if (length(grep("hlth_brd|hbcode|hlthbrd|hb_code|hboard", names(.))) ==0) mutate(., hb=strata) else .} %>% # when there's no hb var use strata instead (could actually probably be done for every year, if consistently coded...)
+                             { if (length(grep("hlth_brd|hbcode|hlthbrd|hb_code", names(.))) > 1) select(., -starts_with("hb")) else .} %>% # drop hb* when there are two hb vars (see logic above)
+                             { if (length(grep("hlth_brd|hbcode|hlthbrd|hb_code", names(.))) ==0) mutate(., hb=strata) else .} %>% # when there's no hb var use strata instead (could actually probably be done for every year, if consistently coded...)
                              rename(any_of(hb_lookup)) %>% # apply the lookup defined above to rename all hb vars as 'hb'
                              # Standardise HB names for matching with ScotPHO geo_lookup
-                             mutate(spatial.unit = case_match(hb,
-                                                    "1" ~ "Ayrshire and Arran",   
-                                                    "2" ~ "Borders",              
-                                                    "3" ~ "Dumfries and Galloway",
-                                                    "4" ~ "Fife",                 
-                                                    "5" ~ "Forth Valley",         
-                                                    "6" ~ "Grampian",             
-                                                    "7" ~ "Greater Glasgow & Clyde",             
-                                                    "8" ~ "Highland",             
-                                                    "9" ~ "Lanarkshire",          
-                                                    "10" ~ "Lothian",              
-                                                    "11" ~ "Orkney",               
-                                                    "12" ~ "Shetland",             
-                                                    "13" ~ "Tayside",              
-                                                    "14" ~ "Western Isles",
-                                                    "Greater" ~ "Greater Glasgow & Clyde",
-                                                    "Greater Glasgow" ~ "Greater Glasgow & Clyde",
-                                                    "Greater Glascow and Clyde" ~ "Greater Glasgow & Clyde",
-                                                    .default = hb)) %>%
-                             mutate(spatial.unit = gsub(" and ", " & ", spatial.unit),
-                                    spatial.unit = case_when(!spatial.unit=="NA" ~ paste0("NHS ", spatial.unit),
-                                                   TRUE ~ as.character(NA)),
-                                    spatial.scale = "Health board")))
+                             mutate(hb = case_match(hb,
+                                                              "1" ~ "Ayrshire and Arran",   
+                                                              "2" ~ "Borders",              
+                                                              "3" ~ "Dumfries and Galloway",
+                                                              "4" ~ "Fife",                 
+                                                              "5" ~ "Forth Valley",         
+                                                              "6" ~ "Grampian",             
+                                                              "7" ~ "Greater Glasgow & Clyde",             
+                                                              "8" ~ "Highland",             
+                                                              "9" ~ "Lanarkshire",          
+                                                              "10" ~ "Lothian",              
+                                                              "11" ~ "Orkney",               
+                                                              "12" ~ "Shetland",             
+                                                              "13" ~ "Tayside",              
+                                                              "14" ~ "Western Isles",
+                                                              "Greater" ~ "Greater Glasgow & Clyde",
+                                                              "Greater Glasgow" ~ "Greater Glasgow & Clyde",
+                                                              "Greater Glascow and Clyde" ~ "Greater Glasgow & Clyde",
+                                                              .default = hb)) %>%
+                             mutate(hb = gsub(" and ", " & ", hb),
+                                    hb = case_when(!hb=="NA" ~ paste0("NHS ", hb),
+                                                             TRUE ~ as.character(NA))) %>%
+                             # When there's a la_code variable, standardise CA names for matching with ScotPHO geo_lookup
+                             { if (length(grep("la_code", names(.)))==1) 
+                               mutate(., la_code = case_when(la_code == "Edinburgh City" ~ "City of Edinburgh", 
+                                                             str_detect(la_code, " and ") ~ gsub(" and ", " & ", la_code),
+                                                             TRUE ~ la_code))
+                               else .} 
+                           ))
 
 
 # Harmonise SIMD variable names and coding: 
 shes_data <- shes_data %>%
   mutate(survey_data = map(survey_data, ~ .x %>% # map() here means this is all being done within the individual items in the list column, while retaining the list format
-                           coalesce_simd() %>% # harmonise SIMD so there's just one per survey (function defined in functions file)
+                             coalesce_simd() %>% # harmonise SIMD so there's just one per survey (function defined in functions file)
                              { if (length(grep("simd20_s_ga|simd20_r_pa|simd20_sga", names(.))) > 1) select(., -contains("simd20_s")) else .} %>%
                              rename(any_of(simd_lookup)) %>% # apply the lookup defined above to rename all simd vars as 'quintile'
-                           #Standardise the SIMD var labels (keep numeric for now, for the deprivation analysis. ScotPHO text labels added later)
-                           mutate(quintile = case_when(
-                             quintile %in% c("Most deprived", "1st - most deprived", "most deprived", "(33.5277 - 87.5665) most deprived" ) ~ "1",
-                             quintile %in% c("2nd", "(21.0421 - 33.5214)") ~ "2",
-                             quintile %in% c("3rd", "(13.5303 - 21.0301)") ~ "3",
-                             quintile %in% c("4th", "(7.7354 - 13.5231)") ~ "4",
-                             quintile %in% c(" 5th - least deprived", "Least deprived", "Least deprived (0.5393 - 7.7347)",
-                                             "least deprived", "5th - least deprived") ~ "5",
-                             TRUE ~ quintile)
-                           )
-                           ))
+                             #Standardise the SIMD var labels (keep numeric for now, for the deprivation analysis. ScotPHO text labels added later)
+                             mutate(quintile = case_when(
+                               quintile %in% c("Most deprived", "1st - most deprived", "most deprived") ~ "1",
+                               quintile %in% c("2nd") ~ "2",
+                               quintile %in% c("3rd") ~ "3",
+                               quintile %in% c("4th") ~ "4",
+                               quintile %in% c(" 5th - least deprived", "Least deprived", 
+                                               "least deprived", "5th - least deprived") ~ "5",
+                               TRUE ~ quintile)
+                             )
+  ))
 
 # Harmonise age, sex, and identifier variable names as required:
 shes_data <- shes_data %>%
   mutate(survey_data = map(survey_data, ~ .x %>% # map() here means this is all being done within the individual items in the list column, while retaining the list format
-                             rename(any_of(age_lookup)) %>% # apply the lookup defined above to rename all age vars to "age"
                              rename(any_of(sex_lookup)) %>% # apply the lookup defined above to rename all sex vars to "sex"
                              mutate(sex = recode(sex, !!!lookup_sex, .default = as.character(NA))) %>% # the 'Refused' and 'Prefer not to say' cats from 2022 get stored as NA here
                              # All versions of individual serial numbers: rename as indserial
@@ -954,14 +1055,15 @@ shes_data <- shes_data %>%
                              mutate(person=substr(indserial, nchar(indserial)-1, nchar(indserial))) %>%
                              # All versions of household serial numbers: rename as hhserial
                              rename(any_of(hhserial_lookup)))) 
-                
+
 # Harmonise the names of the weights (all have the year in them currently):
 shes_data <- shes_data %>%
   mutate(survey_data = map(survey_data, ~ .x %>% # map() here means this is all being done within the individual items in the list column, while retaining the list format
+                             select(-any_of(starts_with(c("intsc", "biophy")))) %>% 
                              rename(intwt = starts_with("int") ) %>% 
                              rename(verawt = starts_with("vera")) %>%
                              rename(bio_wt = starts_with("bio") |  starts_with("nurs")) %>% # biowt called nurswt in early years
-                             rename(intakewt = starts_with("s") & ends_with("wt_sc")) %>%
+                             rename(intakewt = contains("intake24_wt")) %>%
                              rename(cintwt = starts_with("cint")))) # child interview weight
 
 # Add age groups: for the SIMD age-standardisation, and for identification of children (0-15y)
@@ -969,14 +1071,8 @@ shes_data <- shes_data %>%
   mutate(survey_data = map(survey_data, ~ .x %>% # map() here means this is all being done within the individual items in the list column, while retaining the list format
                              filter(!is.na(age)) %>% # 0911 file has a lot of missing data rows in it, so this clear this up
                              mutate(age = as.numeric(age)) %>%
-                             mutate(agegp7 = case_when(between(age, 16, 24) ~ "16-24", 
-                                                       between(age, 25, 34) ~ "25-34",
-                                                       between(age, 35, 44) ~ "35-44",
-                                                       between(age, 45, 54) ~ "45-54",
-                                                       between(age, 55, 64) ~ "55-64",
-                                                       between(age, 65, 74) ~ "65-74",
-                                                       age >=75 ~ "75+",
-                                                       TRUE ~ as.character(NA))) %>% # 0-15y 
+                             mutate(agegp7 = case_when(!ag16g10 %in% c("25-34","45-54","55-64","16-24","35-44","75+","65-74") ~ as.character(NA), # 0-15y 
+                                                       TRUE ~ ag16g10)) %>% 
                              mutate(age65plus = case_when(age >= 65 ~ "65y and over",
                                                           age < 65 ~ "16 to 64y")) %>%
                              mutate(child = between(age, 0, 15)) %>%
@@ -991,7 +1087,7 @@ shes_data <- shes_data %>%
                                                                age %in% c(5:11) ~ "5 to 11y",
                                                                age %in% c(12:15) ~ "12 to 15y",
                                                                TRUE ~ as.character(NA)))))
-  
+
 
 # Ready to unlist the df to create a flat file:
 shes_data <- shes_data %>%
@@ -1003,7 +1099,7 @@ shes_data <- shes_data %>%
 # Do some data checks, now unnested:
 table(shes_data$sex, shes_data$year, useNA = "always") # Female/Male; some NA from 2022 (include in Totals)
 table(shes_data$quintile, shes_data$year, useNA = "always") # 5 bands; no NAs
-table(shes_data$spatial.unit, useNA = "always") # 14 HBs as expected, no NA
+table(shes_data$hb, useNA = "always") # 14 HBs as expected, no NA
 table(shes_data$age, useNA = "always") # 0 to 103y; 6 NAs from ~2023 (refused to answer)
 
 
@@ -1020,27 +1116,57 @@ shes_data <- shes_data %>%
   mutate(mus_rec = coalesce(mus_rec, musrec)) %>%
   mutate(rg17a_new = coalesce(rg17a_new, rg17anew)) %>%
   mutate(rg15a_new = coalesce(rg15a_new, rg15anew)) %>%
-  #mutate(gen_helf = coalesce(gen_helf, genhelf)) %>% # years with genhelf now excluded before this point
-  #mutate(gh_qg2 = coalesce(ghqg2, gh_qg2)) %>% # years with ghqg2 now excluded before this point
+  mutate(str_work2 = coalesce(str_work2, strwork2)) %>%
+  mutate(number_of_recalls = coalesce(numberofrecalls, number_of_recalls)) %>%
+  mutate(urban_rural = coalesce(urbrur2a, urbrur2a_16, urbrur2a_20, urindsc2)) %>%
+  mutate(urban_rural = ifelse(urban_rural=="Not applicable", as.character(NA), urban_rural)) %>%
+  mutate(gh_qg2 = coalesce(ghqg2, gh_qg2)) %>% 
+  mutate(olimlwb = coalesce(olimlwb, olim_l_wb)) %>%
+  mutate(bmi = coalesce(bmivg5, bmivg5_adj, combmivg5_adj)) %>%
   # delete the redundant vars now
-  select(-c(involv19, support1_19, pcris19, dsh5, dvg11, dvj12, musrec, adt10gptw, rg17anew, rg15anew)) 
+  select(-c(involv19, support1_19, pcris19, dsh5, dvg11, dvj12, musrec, adt10gptw, rg17anew, rg15anew, 
+            strwork2, numberofrecalls, ghqg2, urbrur2a, urbrur2a_16, urbrur2a_20, urindsc2, olim_l_wb,
+            bmivg5, bmivg5_adj, combmivg5_adj)) 
 
+# standardise the equivalised income column
+shes_data <- shes_data %>%
+  mutate(eqv5_15 = case_when(str_detect(eqv5_15, "Bottom") ~ "Q1 (lowest)",
+                             str_detect(eqv5_15, "2nd") ~ "Q2",
+                             str_detect(eqv5_15, "3rd") ~ "Q3",
+                             str_detect(eqv5_15, "4th") ~ "Q4",
+                             str_detect(eqv5_15, "Top") ~ "Q5 (highest)",
+                             TRUE ~ as.character(NA)))
 
 # Convert some variables to numeric where appropriate
 shes_data <- shes_data %>%
-  mutate(across(c(life_sat, work_bal), ~ substr(., 1, 2))) %>% # 0 and 10 have text in them, so this command just selects the numeric part
-  mutate(across(c(p_crisis, wemwbs, life_sat, work_bal, sdq_pro), as.numeric))  
+  mutate(across(c(work_bal), ~ substr(., 1, 2))) %>% # 0 and 10 have text in them, so this command just selects the numeric part
+  mutate(across(c(p_crisis, wemwbs, work_bal, sdq_pro), as.numeric)) %>%
+  mutate(drating = as.numeric(as.character(drating))) # starts as factor
 #gives warning for non-numeric data in each (e.g., refused, not applicable...)
-  
+
+# Create the drkcat315 var when it's NA (prior to files containing 2015 data)
+shes_data <- shes_data %>% 
+  mutate(drkcat315 = case_when(!is.na(drkcat315) ~ drkcat315,
+                               drating<=14 ~ "Moderate (up to and including 14)", # use the units reported first,
+                               drating>14 ~ "Hazardous/harmful (over 14)",
+                               dnany %in% c("Never", "Very occasionally") ~ "Moderate (up to and including 14)", # then include any without units who have answered dnany or dnnow in the denominator
+                               dnnow %in% c("Yes", "No") ~ "Moderate (up to and including 14)",
+                               TRUE ~ as.character(NA))) %>%
+  mutate(drating = case_when(!is.na(drating) ~ drating, # in cases where units are missing, but resp has said they don't drink now, or very occasionally, replace NA with 0, so that these are included in the denom.
+                             dnnow == "No" ~ 0,
+                             dnany %in% c("Never", "Very occasionally") ~ 0, 
+                             TRUE ~ as.numeric(NA)))
+
 
 # Recode the variables
 shes_data <- shes_data %>%  
-  
+
   # Variables with simple recoding:
   mutate(adt10gp_tw2 = recode(adt10gp_tw, !!!lookup_adt10gp_tw, .default = as.character(NA))) %>% # recodes into a copy, so that the var can also be used for another indicator (adt10gp_tw_LOW)
   mutate(contrl = recode(contrl, !!!lookup_contrl, .default = as.character(NA))) %>%
-  mutate(gen_helf = recode(gen_helf, !!!lookup_gen_helf, .default = as.character(NA))) %>%
+  mutate(gen_helf = recode(genhelf2, !!!lookup_genhelf2, .default = as.character(NA))) %>%
   mutate(gh_qg2 = recode(gh_qg2, !!!lookup_gh_qg2, .default = as.character(NA))) %>%
+  mutate(lifesat2 = recode(lifesat2, !!!lookup_lifesat2, .default = as.character(NA))) %>%
   mutate(limitill2 = recode(limitill, !!!lookup_limitill, .default = as.character(NA))) %>% # recodes into a copy, so that the var can also be used for a split column (limitill_SPLIT)
   mutate(str_work2 = recode(str_work2, !!!lookup_str_work2, .default = as.character(NA))) %>%
   mutate(suicide2 = recode(suicide2, !!!lookup_suicide2, .default = as.character(NA))) %>%
@@ -1055,7 +1181,12 @@ shes_data <- shes_data %>%
   mutate(sdq_cong = recode(sdq_cong, !!!lookup_sdq_cong, .default = as.character(NA))) %>%
   mutate(sdq_hypg = recode(sdq_hypg, !!!lookup_sdq_hypg, .default = as.character(NA))) %>%
   mutate(sdq_emog = recode(sdq_emog, !!!lookup_sdq_emog, .default = as.character(NA))) %>%
+  mutate(cghq214 = recode(cghq214, !!!lookup_childghq, .default = as.character(NA))) %>%
   mutate(childpa1hr = recode(c00sum7s, !!!lookup_childpa1hr, .default = as.character(NA))) %>%
+  mutate(healthyweight = recode(bmi, !!!lookup_healthyweight, .default = as.character(NA))) %>%
+  mutate(foodinsecure = recode(wrfood, !!!lookup_foodinsecure, .default = as.character(NA))) %>%
+  mutate(binge = recode(olimlwb, !!!lookup_binge, .default = as.character(NA))) %>%
+  mutate(hazharmful = recode(drkcat315, !!!lookup_alcoholguidelines, .default = as.character(NA))) %>% # make sure all years have this var before now
   # PA profile vars with simple recoding:
   mutate(adt10gp_tw_LOW = recode(adt10gp_tw, !!!lookup_adt10gp_tw_LOW, .default = as.character(NA))) %>%
   mutate(mus_rec = recode(mus_rec, !!!lookup_mus_rec, .default = as.character(NA))) %>%
@@ -1063,14 +1194,14 @@ shes_data <- shes_data %>%
   mutate(spt1ch = recode(spt1ch, !!!lookup_spt1ch, .default = as.character(NA))) %>%
   mutate(ch30plyg = recode(ch30plyg, !!!lookup_ch30plyg, .default = as.character(NA))) %>%
   mutate(limitill_SPLIT = recode(limitill, !!!lookup_limitill_SPLIT, .default = as.character(NA))) %>% # _SPLIT differentiates this split variable from the indicator that uses the same column (limitill)
-
-  # Portions of fruit and veg: variable changed in 2021
-  mutate(porftvg3 = recode(porftvg3, !!!lookup_porftvg3, .default = as.character(NA))) %>%
+  
+  # Portions of fruit and veg: variable changed in 2021 (to a food diary), but SHeS present as a continuous indicator. 
+  mutate(porftvg3 = recode(porftvg3, !!!lookup_porftvg3, .default = as.character(NA))) %>% # variable derived from survey questions
   # porftvg3intake data only in 2021 and 2024 so far
   mutate(porftvg3intake = recode(porftvg3intake, !!!lookup_porftvg3, .default = as.character(NA))) %>% # porftvg3intake variable (from food diary) only used if number_of_recalls == 2
-  mutate(porftvg3intake = case_when(number_of_recalls %in% c("1", "Not applicable") ~ as.character(NA),
-                                    TRUE ~ porftvg3intake)) %>% # in 2021 porftvg3 is only valid if number_of_recalls == 2, so recode other options as NA. Earlier years won't have anything but NA for the recall var. 
-  
+  mutate(porftvg3intake = case_when(number_of_recalls %in% c("1", "Not applicable", "Item not applicable") ~ as.character(NA),
+                                    TRUE ~ porftvg3intake)) %>% # porftvg3intake is only valid if number_of_recalls == 2, so recode other options as NA. Earlier years won't have anything but NA for the recall var. 
+
   # Hours of unpaid caring needs coding from 2 vars:
   mutate(rg17a_new = recode(rg17a_new, !!!lookup_rg17a_new, .default = as.character(NA))) %>%
   mutate(rg17a_new = case_when(is.na(rg17a_new) & rg15a_new %in% c("Yes", "No", "Don't know", "Don't Know") ~ "no", # need rg15a_new (Do you provide any regular help or care for any sick, disabled or frail person?) to identify those who give no caring per week (0 hrs not included in rg17a_new)
@@ -1084,19 +1215,17 @@ shes_data <- shes_data %>%
   # SDQ prosocial score 8-10:
   mutate(sdq_pro = case_when(sdq_pro >= 8 ~ "yes", # no lookup as easier to work with this var as numeric
                              sdq_pro < 8 ~ "no", 
-                              TRUE ~ as.character(NA))) %>%
-
+                             TRUE ~ as.character(NA))) %>%
+  
   # keep only the vars required for the analysis
   select(-c(filename, fileloc, #number_of_recalls, # will be required for future porftvg3intake variable processing (but not currently)
             rg15a_new)) %>%
-  select(year, ends_with("wt"), psu, strata, sex, agegp7, age, spatial.unit, spatial.scale, quintile, everything())
+  select(year, ends_with("wt"), psu, strata, sex, agegp7, age, hb, quintile, everything())
 
 
 # Add trend_axis (character) and numeric year variables 
 shes_data <- shes_data %>%  
   mutate(trend_axis = case_when(nchar(year)==2 ~ paste0("20", year), # e.g., "08" -> "2008"
-                                nchar(year)==4 ~ paste0("20", substr(year, 1, 2), "-", "20", substr(year, 3, 4)), # e.g., "1516" -> "2015-2016"
-                                nchar(year)==6 ~ paste0("20", substr(year, 1, 2), "-", "20", substr(year, 5, 6)), # e.g., "151617" -> "2015-2017"
                                 nchar(year)==8 ~ paste0("20", substr(year, 1, 2), "-", "20", substr(year, 7, 8)), # e.g., "15161718" -> "2015-2018"
                                 TRUE ~ as.character(NA)), # shouldn't be any...
          # Replicating the standard used elsewhere in ScotPHO: year = the midpoint of the year range, rounded up if decimal
@@ -1108,27 +1237,12 @@ shes_data <- shes_data %>%
 ## D. Load the population data for the age-standardisation of SIMD results:
 
 # Age-standardisation requires mid-year private household population estimates (see methodology note on the SHeS dashboard)
-# (downloaded from https://scotland.shinyapps.io/sg-scottish-health-survey/_w_4523e40893ec40a5b3860eef4fcb525e/Private%20household%20population%20estimates,%202008-2021,%20Scotland.xlsx)
-# (updated data 2018-21 obtained by request from NRS statisticscustomerservices@nrscotland.gov.uk, and Stefania.Sechi@nrscotland.gov.uk in the household estimates department)
+# (downloaded from https://scotland.shinyapps.io/sg-scottish-health-survey/_w_484e5f010383450eb01c2d335adf1b4a/Private%20household%20population%20estimates,%202008-2022,%20Scotland.xlsx
 
 # Read in the data from spreadsheets
 shes_source_dir <- "/conf/MHI_Data/big/big_mhi_data/unzipped/shes"
-private_pops_2008to18 <- read.xlsx(here(shes_source_dir, "Private household population estimates, 2008-2018, Scotland.xlsx"),
-                                   startRow = 3, rows = c(3:17)) 
-private_pops_2019to21 <- read.xlsx(here(shes_source_dir, "NRS-private-population-scotland-2018-21.xlsx"),
-                                   sheet = "private population 2018-21",
-                                   startRow = 2, rows = c(2:16)) %>%
-  select(-"2018") # duplicates data in the 2008to18 spreadsheet, so can drop here
-private_pops_2022to23 <- read.xlsx(here(shes_source_dir, "NRS - 2025 - 047 - Private household population estimates - 28 August 2025.xlsx"),
-                                   sheet = "Private hhold pop",
-                                   startRow = 4, rows = c(4:18)) 
-
-# Combine the data, and manipulate so it can be merged into the SHeS respondent data
-private_pops <- private_pops_2008to18 %>%
-  merge(y = private_pops_2019to21) %>%
-  merge(y = private_pops_2022to23) %>%
-  # repeat 2023 for 2024 until 2024 data received
-  mutate(`2024` = `2023`) %>%
+private_pops <- read.xlsx(here(shes_source_dir, "Private household population estimates, 2008-2022, Scotland.xlsx"), rows = c(3:17)) %>%
+  # manipulate data so it can be merged into the SHeS respondent data
   rename(sex=Sex,
          agegp7 = Age.group) %>%
   pivot_longer(cols = c(-sex, -agegp7), names_to = "year", values_to = "scotpop", names_transform = list(year = as.integer)) %>%
@@ -1137,14 +1251,74 @@ private_pops <- private_pops_2008to18 %>%
   ungroup() %>%
   mutate(prop_pop = rnd4dp(scotpop / totpop)) %>% # the proportion of the population in each age group, by year and sex
   select(year, sex, agegp7, prop_pop) 
-# Inconsistency in which year's pop data were used for which year's SIMD standardisation by the SHeS team:
-# SHeS team used the pop from the same year for the 2008 to 2011 surveys, and pop from the previous year thereafter. 
-# I have opted to match consistently to the year in each survey file's year column (rounded-up midpoint if multi-year)
 
+# Inconsistency in which year's pop data were used for which year's SIMD standardisation by the SHeS team, as described in the spreadsheet:
+# 1. For the 2008-2011 Scottish Health Survey reports, the population estimates for years 2008-2011 were used respectively.
+# 2. For each of the 2012-2019 and 2021-2022 Scottish Health Survey reports, the population estimates for the previous year were used respectively. For example, for the 2012 report the 2011 estimates were used and so on. 
+# 3. For the 2023 Scottish Health Survey report, the 2021 population estimates were used.
+# 4. For the 2024 Scottish Health Survey report, the 2022 population estimates were used.
+# 5. For combined years' analysis, the latest year's report estimates were used. For example, for 2021/2022 combined years' analysis, the estimates that were used for the 2022 report were used and so on.
+
+# replicate this:
+trend_axis <- unique(shes_data$trend_axis) # from 2008 to 2021-2024
+use_private_pop_year <- c(2008,2009,2010,
+                          2011,2011,2011,
+                          2012,2013,
+                          2014,2014, 
+                          2015,2015, 
+                          2016,2016,     
+                          2017,2017,
+                          2018,2018,
+                          2020,2020,
+                          2021,2021,2021,2021,
+                          2022,2022)
+private_pops_lookup <- data.frame(trend_axis, use_private_pop_year)
 
 # merge in the private household pops for age standardisation purposes
 shes_data <- shes_data %>%  
-  merge(y=private_pops, by = c("agegp7", "year", "sex"), all.x=TRUE) # keeps even those without sex=m/f, for completeness
+  merge(y=private_pops_lookup, by="trend_axis") %>%
+  merge(y=private_pops, 
+        by.x = c("agegp7", "use_private_pop_year", "sex"), 
+        by.y = c("agegp7", "year", "sex"), 
+        all.x=TRUE) # keeps even those without sex=m/f, for completeness
+
+# save intermediate df:
+#arrow::write_parquet(shes_data, paste0(derived_data, "shes_data_int.parquet"))
+# read back in if not in memory:
+#shes_data <- arrow::read_parquet(paste0(derived_data, "shes_data_int.parquet"))
+
+
+# Read in geography lookup (based on area names and types -> code)
+geo_lookup <- readRDS(file.path(profiles_lookups, "Geography", "opt_geo_lookup.rds")) %>% 
+  select(!c(parent_area, areaname_full))
+
+# Add HB codes
+shes_data <- shes_data %>%
+  mutate(hb_type = "Health board") %>%
+  left_join(y = geo_lookup, join_by(hb == areaname, hb_type == areatype)) %>%
+  select(-hb_type, -hb) %>%
+  rename(hb = code) 
+
+# Add CA codes
+# NB la_code: currently just available for 2 files (19212223 and 21222324) 
+# Have asked SHES team if they can provide lookup for older data too
+shes_data <- shes_data %>%
+  mutate(ca_type = "Council area") %>%
+  left_join(y = geo_lookup, join_by(la_code == areaname, ca_type == areatype)) %>%
+  select(-ca_type, -la_code) %>%
+  rename(ca = code) 
+
+# Add geogs that are aggregates of CA
+
+# lookup of all required geog codes
+geography_lookup <- readRDS(file.path(profiles_lookups, "/Geography/DataZone11_All_Geographies_Lookup.rds")) |>
+  select(ca2019, hscp=hscp2019, adp, pd) |>
+  unique()
+
+# join the geography lookup to the data so there is a column for each geography level
+shes_data <- shes_data %>%
+  left_join(y = geography_lookup, join_by(ca == ca2019))
+
 
 # save intermediate df:
 #arrow::write_parquet(shes_data, paste0(derived_data, "shes_data.parquet"))
@@ -1164,7 +1338,7 @@ shes_adult_data <- shes_data %>%
   select(-c(child, contains("serial"), starts_with("par"), 
             cintwt, age, age_group,
             c00sum7s, spt1ch, ch30plyg, childpa1hr, contains("sdq")
-            ))
+  ))
 # save intermediate df:
 #arrow::write_parquet(shes_adult_data, paste0(derived_data, "shes_adult_data.parquet"))
 # read back in if not in memory:
@@ -1182,8 +1356,8 @@ parent_data <- shes_data %>%
 shes_child_data <- shes_data %>%
   filter(child) %>% # keep 0-15
   select(year, trend_axis, contains("serial"), par1, par2, 
-         cintwt, psu, strata, sex, age, starts_with("age_group"), spatial.unit, spatial.scale, quintile, 
-         c00sum7s, spt1ch, ch30plyg, childpa1hr, contains("sdq")) %>%
+         cintwt, psu, strata, sex, age, starts_with("age_group"), hb, ca, hscp, adp, pd, quintile, 
+         cghq214, c00sum7s, spt1ch, ch30plyg, childpa1hr, contains("sdq"), urban_rural, eqv5_15) %>%
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par1"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #1st parent/carer in hhd
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par2"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #2nd parent/carer in hhd
   # calculate the new child MHIs using the data for both parents (.x and .y)
@@ -1193,8 +1367,8 @@ shes_child_data <- shes_data %>%
          ch_audit = case_when(auditg.x=="yes" | auditg.y=="yes" ~ "yes", # yes if either parent has harmful/hazardous (8+) AUDIT score
                               auditg.x=="no" | auditg.y=="no" ~ "no", # otherwise no (if the data were collected)
                               TRUE ~ as.character(NA))) %>%  # NA if no data (question not asked / 'don't know'/refused/not answered)
-  select(year, trend_axis, cintwt, spatial.unit, spatial.scale, quintile, psu, strata, sex, starts_with("age_group"),  
-         ch_ghq, ch_audit, contains("sdq"), childpa1hr, c00sum7s, spt1ch, ch30plyg)
+  select(year, trend_axis, cintwt, hb, ca, hscp, adp, pd, quintile, psu, strata, sex, starts_with("age_group"),  
+         cghq214, ch_ghq, ch_audit, contains("sdq"), childpa1hr, c00sum7s, spt1ch, ch30plyg, urban_rural, eqv5_15)
 
 # save intermediate df:
 #arrow::write_parquet(shes_child_data, paste0(derived_data, "shes_child_data.parquet"))
