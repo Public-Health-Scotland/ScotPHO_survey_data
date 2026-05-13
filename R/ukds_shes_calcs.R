@@ -290,6 +290,7 @@ svy_results <- list.files(pattern = "svy_.*\\.parquet$", recursive=TRUE, full.na
 shes_results0 <- lapply(svy_results, arrow::read_parquet) %>% #read all the files in and store in a list
   bind_rows() # May 2026: n=541,960
 
+
 # # BUT IF ALL DATA ARE IN THE GLOBAL ENVIRONMENT:
 # shes_results0 <- mget(ls(pattern = "^svy_"), .GlobalEnv) %>% # finds all the dataframes produced by the functions above
 #   bind_rows(.)
@@ -307,6 +308,7 @@ shes_results0 <- arrow::read_parquet(paste0(derived_data, "shes_results0.parquet
 # cghq214 (compare with ch_ghq): very close, use the official cghq214 var when available (2019, 2022, 2023 and 2024) and our derived var ch_ghq otherwise
 # porftvg3 and porftvg3intake: porftvg3 stops at 2019-23, so use porftvg3intake after this
 
+
 shes_results1 <- shes_results0 %>% #n=541,960
   unique() %>% # get rid of duplicates. n=541,960
   mutate(indicator = ifelse(indicator=="porftvg3intake", "porftvg3", indicator)) %>% # harmonise the indicator name
@@ -316,7 +318,6 @@ shes_results1 <- shes_results0 %>% #n=541,960
   filter(!(indicator=="ch_ghq" & count==2)) %>% # drop our derived data when there's cghq214 data available.
   mutate(indicator = ifelse(indicator=="ch_ghq", "cghq214", indicator)) %>% # harmonise the indicator name
   select(-count) #n=540,453
-
 
 
 
