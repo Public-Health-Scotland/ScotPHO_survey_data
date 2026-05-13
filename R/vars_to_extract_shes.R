@@ -79,6 +79,7 @@ vars_to_keep <- c(
   "sdq_totg", "sdq_pro", "sdq_emog", "sdq_cong", "sdq_hypg", "sdq_peeg", #child sdq variables 
   "spt1ch", #children participating in sport
   "ch30plyg", #children engaging in active play
+  "cbm_ig5_new", "cbm_ig5_new_sr", "cbm_ig5_new_int", "cbmig5_new_int", "cbmig5_new", # children's BMI categories (-> at risk of obesity)
   
   # child physical activity
   "c00sum7s", # Summary classification activity levels - All activities, INCLUDING SCHOOL no lower limits
