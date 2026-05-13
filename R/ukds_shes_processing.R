@@ -34,7 +34,7 @@
 # 4171: Alcohol consumption: Hazardous/Harmful drinker" (% consuming over 14 units per week) (NB. original ScotPHO indicator excluded non-drinkers from denominator... it's not clear whether they are included here) 
 # 4172: Alcohol consumption (mean weekly units)
 
-# 12 child indicators:
+# 15 child indicators:
 # 30130 = ch_ghq  Percentage of children aged 15 years or under who have a parent/carer who scores 4 or more on the General Health Questionnaire-12 (GHQ-12)
 # 30129 = ch_audit  Percentage of children aged 15 years or under with a parent/carer who reports consuming alcohol at hazardous or harmful levels (AUDIT questionnaire score 8+)
 # 30170	Peer relationship problems - Percentage of children with a 'slightly raised', 'high' or 'very high' score (a score of 3-10) on the peer relationship problems scale of the Strengths and Difficulties Questionnaire (SDQ)
@@ -47,7 +47,9 @@
 # 14003 - c00sum7s - Children with very low activity levels
 # 14006 - spt1ch - Children participating in sport
 # 14007 - ch30plyg - Children engaging in active play
-
+# 30114 = gen_helf	Percentage of children who, when asked "How good is your health in general?", selected "good" or "excellent". The five possible options ranged from very good to very bad, and the variable was GenHelf2. 
+# 30115 = limitill2	Percentage of children who have a limiting long-term illness. Long-term conditions are defined as a physical or mental health condition or illness lasting, or expected to last, 12 months or more. A long-term condition is defined as limiting if the respondent reported that it limited their activities in any way. The variable used was limitill. 
+# 99144 - cbmig5 - children at risk of obesity, 2-15y
 
 # Denominators = Total number of respondents answering the question. 'Don't know' is omitted, except for in the case of the caring hours indicator rg17a_new (where it is included in the denominator, on the assumption that people giving this response probably don't give more than 20 hours of care a week) 
 
@@ -219,7 +221,7 @@ extracted_survey_data_shes <- extracted_survey_data_shes %>%
 # responses_as_list_shes  # examine the output
 # 2nd run to exclude the numeric vars that don't need codings and/or muck up the output:
 extract_responses(survey = "shes", #survey acronym
-                  chars_to_exclude = c("wt", "age", "psu", "strata", "par", "serial")) #we don't need to work out codings for these numeric vars (and they muck up the output)
+                  chars_to_exclude = c("age", "psu", "strata", "par", "serial", "wt$", "_wt_sc$")) #we don't need to work out codings for these numeric vars (and they muck up the output)
 # What this function does: 
 #   Runs get_valid_responses() function for each variable in each survey file.
 #   This extracts any character/factor data, converts to character, stores in a dataframe.
@@ -277,6 +279,45 @@ responses_as_list_shes
 # [13] "Age 0-1"                          "Not applicable"                   "Group 1: 60+min on all 7 days"    "Group 2: 30-59min on all 7 days" 
 # [17] "Group 3: Lower level of activity"
 # 
+# $cbm_ig5_new
+# [1] "Schedule not applicable"                                "Overweight (>= 85th %ile to < 95th %ile)"              
+# [3] "Healthy weight (> 2nd %ile to < 85th %ile)"             "Morbidly obese (>= 98th %ile)"                         
+# [5] "Underweight (<= 2nd %ile)"                              "Item not applicable"                                   
+# [7] "Obese (>= 95th %ile to  <98th %ile)"                    "missing full date of birth"                            
+# [9] "out of range"                                           "no BMI"                                                
+# [11] "Not applicable"                                         "No BMI"                                                
+# [13] "Missing full date of birth"                             "Out of range"                                          
+# [15] "Morbidly obese (>= 98th percentile)"                    "Healthy weight (> 2nd percentile to < 85th percentile)"
+# [17] "Overweight (>= 85th percentile to < 95th percentile)"   "Obese (>= 95th percentile to  <98th percentile)"       
+# [19] "Underweight (<= 2nd percentile)"                        NA                                                      
+# 
+# $cbm_ig5_new_int
+# [1] "No BMI"                                               "Schedule not applicable"                             
+# [3] "Healthy weight (>2nd percentile to <85th percentile)" "Obese (>=95th percentile to <98th percentile)"       
+# [5] "Overweight (>=85th percentile to <95th percentile)"   "Morbidly obese (>=98th percentile)"                  
+# [7] "Underweight (<=2nd percentile)"                      
+# 
+# $cbm_ig5_new_sr
+# [1] "Schedule not applicable"                                "Healthy weight (> 2nd percentile to < 85th percentile)"
+# [3] "Underweight (<= 2nd percentile)"                        "No BMI"                                                
+# [5] "Overweight (>= 85th percentile to < 95th percentile)"   "Morbidly obese (>= 98th percentile)"                   
+# [7] "Out of range"                                           "Obese (>= 95th percentile to  <98th percentile)"       
+# [9] "Missing full date of birth"                            
+# 
+# $cbmig5_new
+# [1] "Schedule not applicable"                                "No BMI"                                                
+# [3] "Morbidly obese (>= 98th percentile)"                    "Healthy weight (> 2nd percentile to < 85th percentile)"
+# [5] "Overweight (>= 85th percentile to < 95th percentile)"   "Obese (>= 95th percentile to  <98th percentile)"       
+# [7] "Missing full date of birth"                             "Underweight (<= 2nd percentile)"                       
+# [9] "Out of range"                                          
+# 
+# $cbmig5_new_int
+# [1] "Schedule not applicable"                              "Healthy weight (>2nd percentile to <85th percentile)"
+# [3] "No BMI"                                               "Morbidly obese (>=98th percentile)"                  
+# [5] "Overweight (>=85th percentile to <95th percentile)"   "Underweight (<=2nd percentile)"                      
+# [7] "Obese (>=95th percentile to <98th percentile)"        "Out of range"                                        
+# [9] "6"                                  
+# 
 # $cghq214
 # [1] "Not applicable"                                "Not living with parent with GHQ12 score of 4+" "Living with parent with GHQ12 score of 4+"    
 # [4] "Refused"                                       "Schedule not obtained"                         "No parent/guardian data"                      
@@ -286,6 +327,37 @@ responses_as_list_shes
 # [1] "not applicable"          "None"                    "5 or more"               "1 or 2"                  "3 or 4"                 
 # [6] "Item not applicable"     "Don't know"              "Schedule not applicable" "schedule not applicable" "don't know"             
 # [11] "Dont know"               NA                        "Not applicable"         
+# 
+# $ch_over_wt_new
+# [1] "Schedule not applicable"                     "overweight or obese ((>= 95th %ile)"        
+# [3] "not overweigh or obese (< 85th %ile)"        "Item not applicable"                        
+# [5] "missing full date of birth"                  "out of range"                               
+# [7] "schedule not applicable"                     "no BMI"                                     
+# [9] "Not applicable"                              "Overweight or obese ((>= 95th %ile)"        
+# [11] "Not overweight or obese (< 85th %ile)"       "No BMI"                                     
+# [13] "Missing full date of birth"                  "Out of range"                               
+# [15] "Overweight or obese ((>= 85th %ile)"         "Overweight or obese ((>= 95th percentile)"  
+# [17] "Not overweight or obese (< 85th percentile)" "Overweight or obese (>= 95th percentile)"   
+# [19] "Overweight or obese (>= 85th percentile)"    NA                                           
+# 
+# $ch_over_wt_new_int
+# [1] "No BMI"                                      "Schedule not applicable"                    
+# [3] "Not overweight or obese (< 85th percentile)" "Overweight or obese (>= 85th percentile)"   
+# 
+# $ch_over_wt_new_sr
+# [1] "Schedule not applicable"                     "Not overweight or obese (< 85th percentile)"
+# [3] "No BMI"                                      "Overweight or obese (>= 85th percentile)"   
+# [5] "Out of range"                                "Missing full date of birth"                 
+# 
+# $choverwt_new
+# [1] "Schedule not applicable"                     "No BMI"                                     
+# [3] "Overweight or obese (>= 85th percentile)"    "Not overweight or obese (< 85th percentile)"
+# [5] "Missing full date of birth"                  "Out of range"                               
+# 
+# $choverwt_new_int
+# [1] "Schedule not applicable"                     "Not overweight or obese (< 85th percentile)"
+# [3] "No BMI"                                      "Overweight or obese (>= 85th percentile)"   
+# [5] "Out of range"   
 # 
 # $combmivg5_adj
 # [1] "Schedule not applicable" "18.5 to less than 25"    "30 to less than 40"      "25 to less than 30"      "Not applicable"         
@@ -860,9 +932,6 @@ lookup_foodinsecure <- list(
   "Yes" ="yes",
   "No"  ="no"   )
 
-
-# CYP MHI indicators:
-
 # For recoding auditg
 lookup_auditg <- list(
   "0-7"="no",
@@ -870,11 +939,11 @@ lookup_auditg <- list(
   "8 or more (hazardous / harmful drinking)"="yes" 
 )
 
-# For recoding sex/sexresp/final_sex22
-lookup_sex <- list(
-  "Female"="Female",
-  "Male"="Male" 
-)
+#Adults meeting muscle strengthening recommendation (musrec and mus_rec)
+lookup_mus_rec <- list(
+  "No" = "no",
+  "Yes" = "yes")
+# CYP MHI indicators:
 
 # children living with parent with GHQ12 score of 4+ (cghq214)
 lookup_childghq <- list(
@@ -912,11 +981,38 @@ lookup_c00sum7s <- list(
   "Group 3:Lower level of activity" = "yes",
   "Group 3: Lower level of activity" = "yes")
 
-#Adults meeting muscle strengthening recommendation (musrec and mus_rec)
-lookup_mus_rec <- list(
-  "No" = "no",
-  "Yes" = "yes")
+lookup_child_obesity <- list(
 
+  "Underweight (<= 2nd %ile)" = "no",     
+  "Underweight (<=2nd percentile)" = "no",                      
+  "Underweight (<= 2nd percentile)" = "no",                                                                   
+  
+  "Healthy weight (> 2nd %ile to < 85th %ile)" = "no",  
+  "Healthy weight (> 2nd percentile to < 85th percentile)" = "no",
+  "Healthy weight (>2nd percentile to <85th percentile)" = "no", 
+
+  "Overweight (>= 85th %ile to < 95th %ile)" = "no",              
+  "Overweight (>=85th percentile to <95th percentile)" = "no",   
+  "Overweight (>= 85th percentile to < 95th percentile)" = "no",   
+
+  "Obese (>= 95th %ile to  <98th %ile)" = "yes",   
+  "Obese (>= 95th percentile to  <98th percentile)" = "yes",       
+  "Obese (>=95th percentile to <98th percentile)" = "yes",       
+  
+  "Morbidly obese (>= 98th %ile)" = "yes",                         
+  "Morbidly obese (>= 98th percentile)" = "yes",                    
+  "Morbidly obese (>=98th percentile)" = "yes"                  
+)
+  
+## lookups for splits:
+
+# For recoding sex/final_sex22
+lookup_sex <- list(
+  "Female"="Female",
+  "Male"="Male" 
+)
+
+# recoding limiting illness as a split variable
 lookup_limitill_SPLIT <- list(
   "Limiting LI" = "Limiting Long-term Illness",
   "Non limiting LI" = "Non-limiting Long-term Illness",
@@ -938,7 +1034,6 @@ shes_years_vars <- extracted_survey_data_shes %>%
   unnest(var_label) %>%
   arrange(var_label) %>%
   mutate(value=1) %>%
-  filter(year!="20") %>% #drop 2020 survey as experimental and not comparable
   filter(!grepl("^bio|^int|^nurs|^vera|^weight|^cint|serial", var_label))  %>% # drop the weights and serial numbers
   pivot_wider(names_from=year, values_from = value) 
 
@@ -1089,6 +1184,13 @@ shes_data <- shes_data %>%
                                                                TRUE ~ as.character(NA)))))
 
 
+# Harmonise the child BMI variable names:
+shes_data <- shes_data %>%
+  mutate(survey_data = map(survey_data, ~ .x %>% # map() here means this is all being done within the individual items in the list column, while retaining the list format
+                             { if (length(grep("cbm_ig5_new|cbm_ig5_new_sr|cbm_ig5_new_int|cbmig5_new_int|cbmig5_new", names(.))) > 1)
+                               select(., -ends_with("_new")) else .}  # want to keep the one ending _int instead in years where there are 2 child bmi vars (ascertained thru looking at shes_years_vars)
+                             )) 
+
 # Ready to unlist the df to create a flat file:
 shes_data <- shes_data %>%
   mutate(survey_data = map(survey_data, ~ .x %>% # map() here means this is all being done within the individual items in the list column, while retaining the list format
@@ -1123,10 +1225,12 @@ shes_data <- shes_data %>%
   mutate(gh_qg2 = coalesce(ghqg2, gh_qg2)) %>% 
   mutate(olimlwb = coalesce(olimlwb, olim_l_wb)) %>%
   mutate(bmi = coalesce(bmivg5, bmivg5_adj, combmivg5_adj)) %>%
+  mutate(cbmig5_new = coalesce(cbm_ig5_new, cbm_ig5_new_sr, cbm_ig5_new_int, cbmig5_new_int, cbmig5_new)) %>%
   # delete the redundant vars now
   select(-c(involv19, support1_19, pcris19, dsh5, dvg11, dvj12, musrec, adt10gptw, rg17anew, rg15anew, 
             strwork2, numberofrecalls, ghqg2, urbrur2a, urbrur2a_16, urbrur2a_20, urindsc2, olim_l_wb,
-            bmivg5, bmivg5_adj, combmivg5_adj)) 
+            bmivg5, bmivg5_adj, combmivg5_adj,
+            cbm_ig5_new, cbm_ig5_new_sr, cbm_ig5_new_int, cbmig5_new_int)) 
 
 # standardise the equivalised income column
 shes_data <- shes_data %>%
@@ -1187,12 +1291,12 @@ shes_data <- shes_data %>%
   mutate(foodinsecure = recode(wrfood, !!!lookup_foodinsecure, .default = as.character(NA))) %>%
   mutate(binge = recode(olimlwb, !!!lookup_binge, .default = as.character(NA))) %>%
   mutate(hazharmful = recode(drkcat315, !!!lookup_alcoholguidelines, .default = as.character(NA))) %>% # make sure all years have this var before now
-  # PA profile vars with simple recoding:
   mutate(adt10gp_tw_LOW = recode(adt10gp_tw, !!!lookup_adt10gp_tw_LOW, .default = as.character(NA))) %>%
   mutate(mus_rec = recode(mus_rec, !!!lookup_mus_rec, .default = as.character(NA))) %>%
   mutate(c00sum7s = recode(c00sum7s, !!!lookup_c00sum7s, .default = as.character(NA))) %>% 
   mutate(spt1ch = recode(spt1ch, !!!lookup_spt1ch, .default = as.character(NA))) %>%
   mutate(ch30plyg = recode(ch30plyg, !!!lookup_ch30plyg, .default = as.character(NA))) %>%
+  mutate(cbmig5_new = recode(cbmig5_new, !!!lookup_child_obesity, .default = as.character(NA))) %>%
   mutate(limitill_SPLIT = recode(limitill, !!!lookup_limitill_SPLIT, .default = as.character(NA))) %>% # _SPLIT differentiates this split variable from the indicator that uses the same column (limitill)
   
   # Portions of fruit and veg: variable changed in 2021 (to a food diary), but SHeS present as a continuous indicator. 
@@ -1357,7 +1461,9 @@ shes_child_data <- shes_data %>%
   filter(child) %>% # keep 0-15
   select(year, trend_axis, contains("serial"), par1, par2, 
          cintwt, psu, strata, sex, age, starts_with("age_group"), hb, ca, hscp, adp, pd, quintile, 
-         cghq214, c00sum7s, spt1ch, ch30plyg, childpa1hr, contains("sdq"), urban_rural, eqv5_15) %>%
+         cghq214, c00sum7s, spt1ch, ch30plyg, childpa1hr, contains("sdq"), 
+         cbmig5_new, gen_helf, limitill2,
+         urban_rural, eqv5_15) %>%
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par1"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #1st parent/carer in hhd
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par2"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #2nd parent/carer in hhd
   # calculate the new child MHIs using the data for both parents (.x and .y)
@@ -1368,7 +1474,9 @@ shes_child_data <- shes_data %>%
                               auditg.x=="no" | auditg.y=="no" ~ "no", # otherwise no (if the data were collected)
                               TRUE ~ as.character(NA))) %>%  # NA if no data (question not asked / 'don't know'/refused/not answered)
   select(year, trend_axis, cintwt, hb, ca, hscp, adp, pd, quintile, psu, strata, sex, starts_with("age_group"),  
-         cghq214, ch_ghq, ch_audit, contains("sdq"), childpa1hr, c00sum7s, spt1ch, ch30plyg, urban_rural, eqv5_15)
+         cghq214, ch_ghq, ch_audit, contains("sdq"), childpa1hr, c00sum7s, spt1ch, ch30plyg,
+         cbmig5_new, gen_helf, limitill2,
+         urban_rural, eqv5_15)
 
 # save intermediate df:
 #arrow::write_parquet(shes_child_data, paste0(derived_data, "shes_child_data.parquet"))
