@@ -523,7 +523,7 @@ prep_df_for_svy_calc <- function(df, var, wt, variables) {
     group_by(across(all_of(variables))) %>%
     mutate(count_n = sum(var=="yes", na.rm=TRUE)) %>%
     ungroup() %>%
-    filter(count_n>0) %>%  # drop groups where there's no cases (N but no n) (breaks the survey calc otherwise)
+  #  filter(count_n>0) %>%  # drop groups where there's no cases (N but no n) (breaks the survey calc otherwise)(not anymore!)
     select(all_of(variables), var, wt, psu, strata)
   
 }
@@ -705,6 +705,30 @@ add_totals <- function (df, split_col) {
   df_new
 }
 
+prep_data <- function(df, var, wt, split_cols=NULL) {
+  
+  # which geogs are in the data?
+  all_geogs <- c("hb", "ca", "hscp", "adp", "pd")
+  available_geogs = intersect(names(df), all_geogs)
+  
+  # Prune and prep the data ready for the survey calculation.
+  df <- df %>%
+    # rename the wt to "wt" if not renamed that already:
+    rename_with( ~ case_when(. == wt ~ "wt",
+                             . == var ~ "var",
+                             TRUE ~ .)) %>%
+    filter(!is.na(var)) %>%
+    filter(!is.na(wt)) %>%
+    select(any_of(c(available_geogs, 
+                    "trend_axis", "year", "var", "wt", "psu", "strata", 
+                    "sex", "agegp7", "prop_pop", split_cols)))
+  
+  # add totals for sex column
+  df <- add_totals(df, "sex")  # will add totals for this split, by duplicating the existing data 
+  
+  
+}
+
 # Function for calling the required functions to produce indicator data for Scotland (by sex), lower geographies, and various splits (including SIMD quintiles):
 # May 2026: used on the SHeS update. See data format in 
 # shes_adult_data <- arrow::read_parquet(paste0(derived_data, "shes_adult_data.parquet"))
@@ -714,25 +738,8 @@ add_totals <- function (df, split_col) {
 calc_indicator_data <- function (df, var, wt, ind_id, type, split_cols=NULL) {
   
   # DATA PREP
-  # Prune and prep the data ready for the survey calculation.
-  df <- df %>%
-    # rename the wt to "wt" if not renamed that already:
-    rename_with( ~ case_when(. == wt ~ "wt",
-                             . == var ~ "var",
-                             TRUE ~ .)) %>%
-    filter(!is.na(var)) %>%
-    filter(!is.na(wt)) %>%
-    select(any_of(c("hb", "ca", "hscp", "adp", "pd", 
-                    "trend_axis", "year", "var", "wt", "psu", "strata", 
-                    "sex", "agegp7", "prop_pop", split_cols)))
-  
-  # add totals for sex column
-  df <- add_totals(df, "sex")  # will add totals for this split, by duplicating the existing data 
-  
-  # which geogs are in the data?
-  all_geogs <- c("hb", "ca", "hscp", "adp", "pd")
-  available_geogs = intersect(names(df), all_geogs)
-  
+  df <- prep_data(df, var, wt, split_cols)
+
   # CALCULATIONS
   # First calculate the national indicator values: overall and split by sex:
   
@@ -806,6 +813,8 @@ calc_indicator_data <- function (df, var, wt, ind_id, type, split_cols=NULL) {
     arrange(ind_id, code, split_name, split_value, year, trend_axis)
   
 }
+
+
 
 ## END
 ##########################################################################################
