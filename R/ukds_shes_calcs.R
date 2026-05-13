@@ -3,7 +3,7 @@
 
 # new lifesat2 as % rather than score
 # NEW gen_helf VAR
-# add: healthyweight, food insecurity, binge, alc recommended, weekly alc units
+# add: healthyweight, food insecurity, binge, alc recommended, weekly alc units, child obesity, child llti, child genhelf
 # splits: equivinc, urb, limitill...
 # add LA code in last 2 aggd dfs
 
@@ -19,7 +19,7 @@
 # 25 adult indicators: 
 
 # 99107 = adt10gp_tw2	(also in CWB and PA profiles) Percentage of adults who met the recommended moderate or vigorous physical activity guideline in the previous four weeks. In July 2011, the Chief Medical Officers of each of the four UK countries agreed and introduced revised guidelines on physical activity. Adults are recommended to accumulate 150 minutes of moderate activity or 75 minutes of vigorous activity per week, or an equivalent combination of both, in bouts of 10 minutes or more. The variable used was adt10gpTW. This bandings used for this variable include the new walking definition for those aged 65 years and over. 
-# 99108 = gen_helf	(also in CWB profile) Percentage of adults who, when asked "How good is your health in general?", selected "good" or "very good". The five possible options ranged from very good to very bad, and the variable was GenHelf. 
+# 99108 = gen_helf	(also in CWB profile) Percentage of adults who, when asked "How good is your health in general?", selected "good" or "very good". The five possible options ranged from very good to very bad, and the variable was GenHelf2. 
 # 99109 = limitill2	(also in CWB profile) Percentage of adults who have a limiting long-term illness. Long-term conditions are defined as a physical or mental health condition or illness lasting, or expected to last, 12 months or more. A long-term condition is defined as limiting if the respondent reported that it limited their activities in any way. The variable used was limitill. 
 # 30001 = wemwbs	Mean score on the WEMWBS scale (adults). WEMWBS stands for Warwick-Edinburgh Mental Wellbeing Scale. N.B. This indicator is also available from the ScotPHO Online Profiles (national, health board, and council area level, but not by SIMD). The questionnaire consists of 14 positively worded items designed to assess: positive affect (optimism, cheerfulness, relaxation) and satisfying interpersonal relationships and positive functioning (energy, clear thinking, self-acceptance, personal development, mastery and autonomy). It is scored by summing the response to each item answered on a 1 to 5 Likert scale ('none of the time', 'rarely', 'some of the time', often', 'all of the time'). The total score ranges from 14 to 70 with higher scores indicating greater wellbeing. The variable used was WEMWBS. 
 # 30002 = life_sat	Percentage with the highest levels of life satisfaction: responses above the mode (9 to 10-Extremely satisfied) when asked "All things considered, how satisfied are you with your life as a whole nowadays?"
@@ -44,7 +44,7 @@
 # 4171: Alcohol consumption: Hazardous/Harmful drinker" (% consuming over 14 units per week) (NB. original ScotPHO indicator excluded non-drinkers from denominator... it's not clear whether they are included here) 
 # 4172: Alcohol consumption (mean weekly units)
 
-# 12 child indicators:
+# 15 child indicators:
 # 30130 = ch_ghq  Percentage of children aged 15 years or under who have a parent/carer who scores 4 or more on the General Health Questionnaire-12 (GHQ-12)
 # 30129 = ch_audit  Percentage of children aged 15 years or under with a parent/carer who reports consuming alcohol at hazardous or harmful levels (AUDIT questionnaire score 8+)
 # 30170	Peer relationship problems - Percentage of children with a 'slightly raised', 'high' or 'very high' score (a score of 3-10) on the peer relationship problems scale of the Strengths and Difficulties Questionnaire (SDQ)
@@ -53,10 +53,14 @@
 # 30173	Conduct problems - Percentage of children with a 'slightly raised', 'high' or 'very high' score (a score of 3-10) on the conduct problems scale of the Strengths and Difficulties Questionnaire (SDQ)
 # 30174	Hyperactivity/inattention - Percentage of children with a 'slightly raised', 'high' or 'very high' score (a score of 6-10) on the hyperactivity/inattention scale of the Strengths and Difficulties Questionnaire (SDQ)
 # 30175	Prosocial behaviour - Percentage of children with a 'close to average' score (a score of 8-10) on the prosocial scale of the Strengths and Difficulties Questionnaire (SDQ)
-# 30111 % children meeting 1 hour PA per day
+# 30111 % children meeting 1 hour PA per day (INCL. SCHOOL)
 # 14003 - c00sum7s - Children with very low activity levels
 # 14006 - spt1ch - Children participating in sport
 # 14007 - ch30plyg - Children engaging in active play
+# 30114 = gen_helf	Percentage of children who, when asked "How good is your health in general?", selected "good" or "excellent". The five possible options ranged from very good to very bad, and the variable was GenHelf2. 
+# 30115 = limitill2	Percentage of children who have a limiting long-term illness. Long-term conditions are defined as a physical or mental health condition or illness lasting, or expected to last, 12 months or more. A long-term condition is defined as limiting if the respondent reported that it limited their activities in any way. The variable used was limitill. 
+# 99144 - cbmig5 - children at risk of obesity, 2-15y
+
 
 # Denominators = Total number of respondents answering the question. 'Don't know' is omitted, except for in the case of the caring hours indicator rg17a_new (where it is included in the denominator, on the assumption that people giving this response probably don't give more than 20 hours of care a week) 
 
@@ -261,8 +265,17 @@ svy_percent_spt1ch <- calc_indicator_data(shes_child_data[shes_child_data$age_gr
 arrow::write_parquet(svy_percent_spt1ch, "svy_percent_spt1ch.parquet")
 svy_percent_ch30plyg <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "ch30plyg", "cintwt", ind_id = 14007, type = "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_chpa"))
 arrow::write_parquet(svy_percent_ch30plyg, "svy_percent_ch30plyg.parquet")
+svy_percent_cbmig5_new <- calc_indicator_data(shes_child_data, "cbmig5_new", "cintwt", ind_id = 99144, type = "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group"))
+arrow::write_parquet(svy_percent_cbmig5_new, "svy_percent_cbmig5_new.parquet")
+svy_percent_child_gen_helf <- calc_indicator_data(shes_child_data, "gen_helf", "cintwt", ind_id = 30114, type = "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group")) %>%
+  mutate(indicator="child_gen_helf")
+arrow::write_parquet(svy_percent_child_gen_helf, "svy_percent_child_gen_helf.parquet")
+svy_percent_child_limitill2 <- calc_indicator_data(shes_child_data, "limitill2", "cintwt", ind_id = 30115, type = "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group")) %>%
+  mutate(indicator="child_limitill2")
+arrow::write_parquet(svy_percent_child_limitill2, "svy_percent_child_limitill2.parquet")
 
 setwd(here())
+
 
 
 # 9. Combine all the resulting indicator data into a single file
@@ -271,16 +284,17 @@ setwd(here())
 # IF READING IN FROM FILE:
 #*set up the 'svy_results' variable to contain all the svy_ parquet files in the data directory
 svy_results <- list.files(pattern = "svy_.*\\.parquet$", recursive=TRUE, full.names=TRUE) 
+# should be 42 paths (i.e., representing 42 indicators) in svy_results (May 2026)
 
 # Read in the files and join them
 shes_results0 <- lapply(svy_results, arrow::read_parquet) %>% #read all the files in and store in a list
-  bind_rows() # May 2026: n=497441
+  bind_rows() # May 2026: n=541,960
 
 # # BUT IF ALL DATA ARE IN THE GLOBAL ENVIRONMENT:
 # shes_results0 <- mget(ls(pattern = "^svy_"), .GlobalEnv) %>% # finds all the dataframes produced by the functions above
 #   bind_rows(.)
 
-#check <- arrow::read_parquet("./data/svy_percent_limitill.parquet")
+# check <- arrow::read_parquet("./data/svy_percent_child_gen_helf.parquet") 
 
 # save intermediate df:
 arrow::write_parquet(shes_results0, paste0(derived_data, "shes_results0.parquet"))
@@ -293,17 +307,17 @@ shes_results0 <- arrow::read_parquet(paste0(derived_data, "shes_results0.parquet
 # cghq214 (compare with ch_ghq): very close, use the official cghq214 var when available (2019, 2022, 2023 and 2024) and our derived var ch_ghq otherwise
 # porftvg3 and porftvg3intake: porftvg3 stops at 2019-23, so use porftvg3intake after this
 
-shes_results1 <- shes_results0 %>% #n=497441
-  unique() %>% # get rid of duplicates. still n=497441
+shes_results1 <- shes_results0 %>% #n=541,960
+  unique() %>% # get rid of duplicates. n=541,960
   mutate(indicator = ifelse(indicator=="porftvg3intake", "porftvg3", indicator)) %>% # harmonise the indicator name
   group_by(trend_axis, sex, code, ind_id, year, def_period, split_name, split_value) %>%
   mutate(count = n()) %>%
   ungroup() %>%
   filter(!(indicator=="ch_ghq" & count==2)) %>% # drop our derived data when there's cghq214 data available.
   mutate(indicator = ifelse(indicator=="ch_ghq", "cghq214", indicator)) %>% # harmonise the indicator name
-  select(-count) #n=495934
-  
-  
+  select(-count) #n=540,453
+
+
 
 
 # SHeS suppress any figures derived from denoms <30, so we apply the same threshold.
@@ -331,25 +345,25 @@ drop_these_splits <- shes_results1 %>%
             pc_under_30 = 100 * n_under_30 / total) %>%
   ungroup()  %>%
   mutate(drop = ifelse(pc_under_30>3, 1, 0))
-  
+
 
 
 # drop splits as identified above:
-shes_results1 <- shes_results1 %>% # 495,934 rows
+shes_results1 <- shes_results1 %>% # 540,453 rows
   mutate(area = substr(code, 1, 3)) %>%
   merge(y=drop_these_splits, by=c("area", "indicator", "split_name"), all.x=TRUE) %>%
-  filter(drop==0) %>% # now n=83,475
+  filter(drop==0) %>% # now n=87,558
   select(-c(area, areatype:drop)) 
 
 
 
 # drop splits by SIMD if they have data for fewer than three quintiles (+ total = 4)
-shes_results1 <- shes_results1 %>% # n=83,475
+shes_results1 <- shes_results1 %>% # n=87,558
   group_by(trend_axis, sex, indicator, ind_id, code, year, def_period, split_name) %>%
   mutate(count = n()) %>% # count all the values within each split, including the total
   ungroup() %>%
   filter(!(split_name=="Deprivation (SIMD)" & count<4)) %>% # case where e.g., and island board has 3 quintiles + a total
-  select(-count) # now 83,439
+  select(-count) # now 87,558
 
 # Suppress values where necessary:
 # SHeS suppress values where denominator (unweighted base) is <30
@@ -364,7 +378,7 @@ shes_results1 %>%
   select(indicator, code, trend_axis, split_value) %>%
   arrange(indicator) %>%
   print(n=300)
-# May 2026: 173 values suppressed.
+# May 2026: 177 values suppressed.
 
 # save intermediate df:
 arrow::write_parquet(shes_results1, paste0(derived_data, "shes_results1.parquet"))
@@ -382,7 +396,7 @@ table(shes_results1$split_name, shes_results1$split_value, useNA="always")
 # data checks:
 table(shes_results1$trend_axis, useNA = "always") # 2008 to 2024, no NA
 table(shes_results1$sex, useNA = "always") # Male, Female, Total 
-table(shes_results1$indicator, useNA = "always") # 37 vars (25 adult, 12 child), no NA
+table(shes_results1$indicator, useNA = "always") # 40 vars (25 adult, 15 child), no NA
 table(shes_results1$year, useNA = "always") # 2008 to 2024
 table(shes_results1$def_period, useNA = "always") # Aggregated years () and Survey year (), no NA
 table(shes_results1$split_name, useNA = "always") # Deprivation, Age group, LTI, inc, urb/rur, or Sex, no NA
@@ -430,6 +444,9 @@ shes_raw_data <- shes_results1 %>%
                                 indicator == "binge" ~ "alc_binge_drinking",
                                 indicator == "hazharmful" ~ "haz_or_harmful_drinker",
                                 indicator == "drating" ~ "alc_consumption_units",
+                                indicator == "cbmig5_new" ~ "child_obesity_risk",
+                                indicator == "child_gen_helf" ~ "child_general_health",
+                                indicator == "child_limitill2" ~ "child_llti",
                                 TRUE ~ as.character(NA)  )) %>%
   select(-denominator) 
 
@@ -442,30 +459,5 @@ saveRDS(shes_raw_data, file = paste0(profiles_data_folder, '/Prepared Data/shes_
 ###############################################################################
 
 ## END
-
-
-
-
-# ### 2026 update: 2024 data not available on statistics.scot.gov yet, so keep all from the UKDS microdata
-# # 6 adult vars from SHeS main sample are available from the published data (statistics.gov.scot, see SHeS script in the ScotPHO-indicator-production repo).
-# # The UKDS data can supplement those published data with SIMD x sex data (Scotland). 
-# published_vars <- c("gh_qg2", "gen_helf", "limitill2",
-#                     "adt10gp_tw2", "porftvg3", "wemwbs")
-# 
-# # Keep SIMD x sex for Scotland:
-# published_to_keep_1 <- shes_results %>%
-#   filter(indicator %in% published_vars & 
-#            substr(code, 1, 3)=="S00" & 
-#            split_name=="Deprivation (SIMD)" & 
-#            sex %in% c("Male", "Female")) 
-# # and also keep data for the coarser Age groups we have created here (don't use the finer ones in the published data as these aren't as usable for HBs)
-# published_to_keep_2 <- shes_results %>%
-#   filter(indicator %in% published_vars & 
-#            split_name=="Age group") 
-# 
-# shes_results <- shes_results %>%
-#   filter(!indicator %in% published_vars) %>% 
-#   rbind(published_to_keep_1, published_to_keep_2) 
-
 
 
