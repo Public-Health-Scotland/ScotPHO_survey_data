@@ -324,7 +324,7 @@ shes_results1 <- shes_results0 %>% #n=541,891
 # SHeS suppress any figures derived from denoms <30, so we apply the same threshold.
 # Let's check whether there are denominators under 30 for each of the splits.
 # And decide if we want to present a split that contains some suppressed values, or just remove that split altogether.
-# I've arbitrarily set the threshold at 3%: meaning we can cope with 3% (~1 in 30) data points being suppressed, but not more. 
+# I've arbitrarily set the threshold at 33%: meaning we can cope with 33% (~1 in 3) data points being suppressed, but not more. 
 
 drop_these_splits <- shes_results1 %>%
   mutate(split_name = ifelse(split_value=="Total", "Total", split_name)) %>%
@@ -345,26 +345,26 @@ drop_these_splits <- shes_results1 %>%
             n_under_30 = sum(denominator<30),
             pc_under_30 = 100 * n_under_30 / total) %>%
   ungroup()  %>%
-  mutate(drop = ifelse(pc_under_30>3, 1, 0))
+  mutate(drop = ifelse(pc_under_30>33, 1, 0))
 
 
 
 # drop splits as identified above:
-shes_results1 <- shes_results1 %>% # 540,453 rows
+shes_results1 <- shes_results1 %>% # 540,384 rows
   mutate(area = substr(code, 1, 3)) %>%
   merge(y=drop_these_splits, by=c("area", "indicator", "split_name"), all.x=TRUE) %>%
-  filter(drop==0) %>% # now n=87,558
+  filter(drop==0) %>% # now n=348,943
   select(-c(area, areatype:drop)) 
 
 
 
 # drop splits by SIMD if they have data for fewer than three quintiles (+ total = 4)
-shes_results1 <- shes_results1 %>% # n=87,558
+shes_results1 <- shes_results1 %>% # n=348,943
   group_by(trend_axis, sex, indicator, ind_id, code, year, def_period, split_name) %>%
   mutate(count = n()) %>% # count all the values within each split, including the total
   ungroup() %>%
   filter(!(split_name=="Deprivation (SIMD)" & count<4)) %>% # case where e.g., and island board has 3 quintiles + a total
-  select(-count) # now 87,558
+  select(-count) # now 341,303
 
 # Suppress values where necessary:
 # SHeS suppress values where denominator (unweighted base) is <30
@@ -377,9 +377,8 @@ shes_results1 <- shes_results1 %>%
 shes_results1 %>% 
   filter(is.na(rate)) %>%
   select(indicator, code, trend_axis, split_value) %>%
-  arrange(indicator) %>%
-  print(n=300)
-# May 2026: 177 values suppressed.
+  arrange(indicator) 
+# May 2026: ~40K values suppressed.
 
 # save intermediate df:
 arrow::write_parquet(shes_results1, paste0(derived_data, "shes_results1.parquet"))
