@@ -288,7 +288,7 @@ svy_results <- list.files(pattern = "svy_.*\\.parquet$", recursive=TRUE, full.na
 
 # Read in the files and join them
 shes_results0 <- lapply(svy_results, arrow::read_parquet) %>% #read all the files in and store in a list
-  bind_rows() # May 2026: n=541,960
+  bind_rows() # May 2026: n=541,891
 
 
 # # BUT IF ALL DATA ARE IN THE GLOBAL ENVIRONMENT:
@@ -309,15 +309,15 @@ shes_results0 <- arrow::read_parquet(paste0(derived_data, "shes_results0.parquet
 # porftvg3 and porftvg3intake: porftvg3 stops at 2019-23, so use porftvg3intake after this
 
 
-shes_results1 <- shes_results0 %>% #n=541,960
-  unique() %>% # get rid of duplicates. n=541,960
+shes_results1 <- shes_results0 %>% #n=541,891
+  unique() %>% # get rid of duplicates. n=541,891
   mutate(indicator = ifelse(indicator=="porftvg3intake", "porftvg3", indicator)) %>% # harmonise the indicator name
   group_by(trend_axis, sex, code, ind_id, year, def_period, split_name, split_value) %>%
   mutate(count = n()) %>%
   ungroup() %>%
   filter(!(indicator=="ch_ghq" & count==2)) %>% # drop our derived data when there's cghq214 data available.
   mutate(indicator = ifelse(indicator=="ch_ghq", "cghq214", indicator)) %>% # harmonise the indicator name
-  select(-count) #n=540,453
+  select(-count) #n=540,384
 
 
 
