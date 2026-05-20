@@ -10,10 +10,13 @@
 
 vars_to_keep <- c(
   
+  "s_year", "syear",
+  
   "age", 
   "ag16g10", # adult age groups (is this used?)
   
-  "hb_code", "hbcode", "hlth_brd", "hlthbrd",   
+  #"hb_code", "hbcode", "hlth_brd", 
+  "hlthbrd",   # needed for pre-2012 files (until SHeS team send a CA lookup)
 
   "la_code",
   
