@@ -131,6 +131,16 @@ setwd("/conf/MHI_Data/Liz/repos/ScotPHO_survey_data")
 
 derived_data <- "/conf/MHI_Data/derived data/"
 
+# Read in geography lookup (based on area names and types -> code)
+geo_lookup <- readRDS(file.path(profiles_lookups, "Geography", "opt_geo_lookup.rds")) %>% 
+  select(!c(parent_area, areaname_full))
+
+# lookup of all required geog codes
+geography_lookup <- readRDS(file.path(profiles_lookups, "/Geography/DataZone11_All_Geographies_Lookup.rds")) |>
+  select(ca=ca2019, hb=hb2019, hscp=hscp2019, adp, pd) |>
+  unique()
+
+
 
 # 1. Find survey data files, extract variable names and labels (descriptions), and save this info to a spreadsheet
 # =================================================================================================================
@@ -1019,6 +1029,61 @@ lookup_limitill_SPLIT <- list(
   "No LI" = "No Long-term Illness"
 )
 
+# recoding quintile
+lookup_quintile <- list(
+  "Most deprived" = "1", 
+  "1st - most deprived" = "1",
+  "most deprived" = "1",
+  "1" = "1",
+  "2nd" = "2",
+  "2" = "2",
+  "3rd" = "3",
+  "3" = "3",
+  "4th" = "4",
+  "4" = "4",
+  " 5th - least deprived"  = "5", 
+  "Least deprived"  = "5", 
+  "least deprived" = "5", 
+  "5th - least deprived" = "5",
+  "5" = "5"
+)
+
+# CA LOOKUP FROM XENIA (SHES TEAM): 
+ca_lookup <- list(
+  "100"= 'Aberdeen City',
+  "110" = 'Aberdeenshire',
+  "120"= 'Angus',
+  "130" = 'Argyll & Bute',
+  "150"= 'Clackmannanshire',
+  "170" = 'Dumfries & Galloway',
+  "180"= 'Dundee City',
+  "190" = 'East Ayrshire',
+  "200"= 'East Dunbartonshire',
+  "210" = 'East Lothian',
+  "220"= 'East Renfrewshire',
+  "230" = 'City of Edinburgh',
+  "240"= 'Falkirk',
+  "250" = 'Fife',
+  "260"= 'Glasgow City',
+  "270" = 'Highland',
+  "280"= 'Inverclyde',
+  "290" = 'Midlothian',
+  "300"= 'Moray',
+  "235" = 'Na h-Eileanan Siar',
+  "310"= 'North Ayrshire',
+  "320" = 'North Lanarkshire',
+  "330"= 'Orkney Islands',
+  "340" = 'Perth & Kinross',
+  "350"= 'Renfrewshire',
+  "355" = 'Scottish Borders',
+  "360"= 'Shetland Islands',
+  "370" = 'South Ayrshire',
+  "380"= 'South Lanarkshire',
+  "390" = 'Stirling',
+  "395"= 'West Dunbartonshire',
+  "400" = 'West Lothian' )
+
+
 # 6. Initial processing of the survey data: creating a flat file with harmonised variable names.
 # =================================================================================================================
 
@@ -1049,22 +1114,43 @@ shes_years_vars <- extracted_survey_data_shes %>%
 
 ## B. Create lookups for harmonising var names and coding:
 
-# lookups:
-hb_lookup <- c(hb = "hbcode", hb = "hb_code", hb = "hlth_brd", hb = "hlthbrd")
+# var name lookups:
 simd_lookup <- c(quintile = "simd20_s_ga", quintile = "simd16_s_ga", quintile = "simd5_sg", 
                  quintile = "simd5_s_ga", quintile = "simd20_sga", quintile = "simd_combo", quintile = "simd20_r_pa") # r_pa needed for 2022. check its coding.
 sex_lookup <- c(sex = "sex", sex = "final_sex22") # final_sex22 used from 2022
 indserial_lookup <- c(indserial="cpseriala",  indserial="pserial_a", indserial="cpserial_a", indserial="cp_serial_a")
 hhserial_lookup <- c(hhserial="chh_serial_a", hhserial="chhserial_a", hhserial="chhseriala", hhserial="chserial_a", hhserial="hserial_a")
+syear_lookup <- c(syear = "syear", syear = "s_year")
 
-# derive lookup for years where only a numeric hbcode is provided (hbcode in 1213 and 1618, hb_code in 1921):
-# checked when hbcode/hb_code is provided alongside a character hb field, and all code the same: alphabetically
-# extract codings from 2014 file: 
-hbcodes <- extracted_survey_data_shes[[4]][[15]] %>%
-  group_by(hbcode, hlth_brd) %>%
-  summarise() %>%
-  ungroup()  
-# these are hard-coded into the pipe below
+## NOT REQUIRED NOW HAVE CA CODES: (THO STILL NEED HLTHBRD VAR PRE 2012)
+# # derive lookup for years where only a numeric hbcode is provided (hbcode in 1213 and 1618, hb_code in 1921):
+# # checked when hbcode/hb_code is provided alongside a character hb field, and all code the same: alphabetically
+# # extract codings from 2014 file: 
+# hbcodes <- extracted_survey_data_shes[[4]][[15]] %>%
+#   group_by(hbcode, hlth_brd) %>%
+#   summarise() %>%
+#   ungroup()  
+# # these are hard-coded into the pipe below
+# hb_lookup <- c(hb = "hbcode", hb = "hb_code", hb = "hlth_brd", hb = "hlthbrd")
+
+# Read in the CA codes (files 1 and 2 (2012 to 2019) provided by Xenia at SHeS)(STILL WAITING FOR PRE 2012 CODES...)
+# These give the CA for each individual in the survey (identified by cpseriala + syear)
+# Sub-national geogs can only be reported for the aggregated survey years
+ca_codes1 <- read.xlsx(here(profiles_data_folder, "Received Data", "Scottish Health Survey", "LA codes", "shes12131415la.xlsx")) %>% janitor::clean_names(parsing_option=0)
+ca_codes2 <- read.xlsx(here(profiles_data_folder, "Received Data", "Scottish Health Survey", "LA codes", "shes16171819la.xlsx")) %>% janitor::clean_names(parsing_option=0)
+ca_codes3 <- haven::read_dta("/conf/MHI_Data/big/big_mhi_data/unzipped/shes/shes_2024/UKDA-9518-stata/stata/stata13_se/shes_21222324_eul.dta") %>% 
+  janitor::clean_names(parsing_option=0) %>%
+  select(cpseriala, syear, lacode)
+
+# MAKE A LOOKUP FILE FROM CA TO OTHER GEOGS:
+ca_codes <- rbind(ca_codes1, ca_codes2, ca_codes3) %>%
+  mutate(areatype = "Council area",
+         areaname = recode(lacode, !!!ca_lookup)) %>%
+  mutate(syear = syear+2007) %>%
+  merge(y=geo_lookup, by=c("areaname", "areatype")) %>%
+  rename(ca = code) %>%
+  merge(y = geography_lookup, by="ca")
+
 
 
 ## C. Process the survey microdata before calculating indicator estimates:
@@ -1080,61 +1166,65 @@ shes_data <- extracted_survey_data_shes %>%
   filter(nchar(year)==2|nchar(year)==8)
 
 # Harmonise HB variable names and coding: (working within list column, hence use of 'map' function)
+# Now only needed for pre-2012 data. From 2012 we have CA codes that can be used to aggregate the individual responses to all higher geogs, including HBs
 shes_data <- shes_data %>%
   mutate(survey_data = map(survey_data, ~ .x %>% # map() here means this is all being done within the individual items in the list column, while retaining the list format
                              mutate(across(.cols = everything(), as.character)) %>% # some factors muck up the processing otherwise. Will convert some vars back to numeric eventually. 
-                             # ensure there's only a single HB variable each year
-                             { if (length(grep("hlth_brd|hbcode|hlthbrd|hb_code", names(.))) > 1) select(., -starts_with("hb")) else .} %>% # drop hb* when there are two hb vars (see logic above)
-                             { if (length(grep("hlth_brd|hbcode|hlthbrd|hb_code", names(.))) ==0) mutate(., hb=strata) else .} %>% # when there's no hb var use strata instead (could actually probably be done for every year, if consistently coded...)
-                             rename(any_of(hb_lookup)) %>% # apply the lookup defined above to rename all hb vars as 'hb'
-                             # Standardise HB names for matching with ScotPHO geo_lookup
-                             mutate(hb = case_match(hb,
-                                                              "1" ~ "Ayrshire and Arran",   
-                                                              "2" ~ "Borders",              
-                                                              "3" ~ "Dumfries and Galloway",
-                                                              "4" ~ "Fife",                 
-                                                              "5" ~ "Forth Valley",         
-                                                              "6" ~ "Grampian",             
-                                                              "7" ~ "Greater Glasgow & Clyde",             
-                                                              "8" ~ "Highland",             
-                                                              "9" ~ "Lanarkshire",          
-                                                              "10" ~ "Lothian",              
-                                                              "11" ~ "Orkney",               
-                                                              "12" ~ "Shetland",             
-                                                              "13" ~ "Tayside",              
-                                                              "14" ~ "Western Isles",
-                                                              "Greater" ~ "Greater Glasgow & Clyde",
-                                                              "Greater Glasgow" ~ "Greater Glasgow & Clyde",
-                                                              "Greater Glascow and Clyde" ~ "Greater Glasgow & Clyde",
-                                                              .default = hb)) %>%
-                             mutate(hb = gsub(" and ", " & ", hb),
-                                    hb = case_when(!hb=="NA" ~ paste0("NHS ", hb),
-                                                             TRUE ~ as.character(NA))) %>%
-                             # When there's a la_code variable, standardise CA names for matching with ScotPHO geo_lookup
-                             { if (length(grep("la_code", names(.)))==1) 
-                               mutate(., la_code = case_when(la_code == "Edinburgh City" ~ "City of Edinburgh", 
-                                                             str_detect(la_code, " and ") ~ gsub(" and ", " & ", la_code),
-                                                             TRUE ~ la_code))
-                               else .} 
-                           ))
+                             select(-any_of(c("hb_code", "hbcode", "hlth_brd"))) %>% # we now have CA lookup table for the years these vars are used
+                             { if (length(grep("hlthbrd", names(.))) == 1) #the pre 2012 files have this hb var
+                               mutate(., hlthbrd = case_when(!is.na(hlthbrd) ~ paste0("NHS ", as.character(hlthbrd)),
+                                                          TRUE ~ as.character(NA)))  
+                               else .}
+  ))
+        
+                             ## ensure there's only a single HB variable each year
+                             # { if (length(grep("hlth_brd|hbcode|hlthbrd|hb_code", names(.))) > 1) select(., -starts_with("hb")) else .} %>% # drop hb* when there are two hb vars (see logic above)
+                             # { if (length(grep("hlth_brd|hbcode|hlthbrd|hb_code", names(.))) ==0) mutate(., hb=strata) else .} %>% # when there's no hb var use strata instead (could actually probably be done for every year, if consistently coded...)
+                             # rename(any_of(hb_lookup)) %>% # apply the lookup defined above to rename all hb vars as 'hb'
+                             # # Standardise HB names for matching with ScotPHO geo_lookup
+                             # mutate(hb = case_match(hb,
+                             #                                  "1" ~ "Ayrshire and Arran",   
+                             #                                  "2" ~ "Borders",              
+                             #                                  "3" ~ "Dumfries and Galloway",
+                             #                                  "4" ~ "Fife",                 
+                             #                                  "5" ~ "Forth Valley",         
+                             #                                  "6" ~ "Grampian",             
+                             #                                  "7" ~ "Greater Glasgow & Clyde",             
+                             #                                  "8" ~ "Highland",             
+                             #                                  "9" ~ "Lanarkshire",          
+                             #                                  "10" ~ "Lothian",              
+                             #                                  "11" ~ "Orkney",               
+                             #                                  "12" ~ "Shetland",             
+                             #                                  "13" ~ "Tayside",              
+                             #                                  "14" ~ "Western Isles",
+                             #                                  "Greater" ~ "Greater Glasgow & Clyde",
+                             #                                  "Greater Glasgow" ~ "Greater Glasgow & Clyde",
+                             #                                  "Greater Glascow and Clyde" ~ "Greater Glasgow & Clyde",
+                             #                                  .default = hb)) %>%
+                             # mutate(hb = gsub(" and ", " & ", hb),
+                             #        hb = case_when(!hb=="NA" ~ paste0("NHS ", hb),
+                             #                                 TRUE ~ as.character(NA))) %>%
+                             # # When there's a la_code variable, standardise CA names for matching with ScotPHO geo_lookup
+                             # { if (length(grep("la_code", names(.)))==1) 
+                             #   mutate(., la_code = case_when(la_code == "Edinburgh City" ~ "City of Edinburgh", 
+                             #                                 str_detect(la_code, " and ") ~ gsub(" and ", " & ", la_code),
+                             #                                 TRUE ~ la_code))
+                             #   else .} 
 
 
 # Harmonise SIMD variable names and coding: 
+# Need to make sure there's only one SIMD column for each survey file, and the col is named the same ("quintile")
 shes_data <- shes_data %>%
   mutate(survey_data = map(survey_data, ~ .x %>% # map() here means this is all being done within the individual items in the list column, while retaining the list format
-                             coalesce_simd() %>% # harmonise SIMD so there's just one per survey (function defined in functions file)
-                             { if (length(grep("simd20_s_ga|simd20_r_pa|simd20_sga", names(.))) > 1) select(., -contains("simd20_s")) else .} %>%
-                             rename(any_of(simd_lookup)) %>% # apply the lookup defined above to rename all simd vars as 'quintile'
-                             #Standardise the SIMD var labels (keep numeric for now, for the deprivation analysis. ScotPHO text labels added later)
-                             mutate(quintile = case_when(
-                               quintile %in% c("Most deprived", "1st - most deprived", "most deprived") ~ "1",
-                               quintile %in% c("2nd") ~ "2",
-                               quintile %in% c("3rd") ~ "3",
-                               quintile %in% c("4th") ~ "4",
-                               quintile %in% c(" 5th - least deprived", "Least deprived", 
-                                               "least deprived", "5th - least deprived") ~ "5",
-                               TRUE ~ quintile)
-                             )
+                             mutate(., across(starts_with("simd"), ~recode(., !!!lookup_quintile, .default = as.character(NA)))) %>%
+                            # harmonise SIMD vars in the single case where there's unique info in two simd cols (2015-18 file)
+                             { if (length(grep("simd5_s_ga|simd16_s_ga", names(.))) > 1)
+                               mutate(., simd16_s_ga = coalesce(simd5_s_ga, simd16_s_ga)) %>%
+                                 select(., -simd5_s_ga)
+                                 else .} %>%
+                            # select the SIMD col we need if there's more than one (and they don't contain unique info)
+                            { if (length(grep("simd20_s_ga|simd20_r_pa|simd20_sga", names(.))) > 1) select(., -contains("simd20_s")) else .} %>%
+                            rename(any_of(simd_lookup))  # apply the lookup defined above to rename all simd vars as 'quintile'
   ))
 
 # Harmonise age, sex, and identifier variable names as required:
@@ -1149,7 +1239,8 @@ shes_data <- shes_data %>%
                              # extract person id (used to link children to their parents)
                              mutate(person=substr(indserial, nchar(indserial)-1, nchar(indserial))) %>%
                              # All versions of household serial numbers: rename as hhserial
-                             rename(any_of(hhserial_lookup)))) 
+                             rename(any_of(hhserial_lookup)) %>%
+                             rename(any_of(syear_lookup)))) # all survey year vars get renamed to syear 
 
 # Harmonise the names of the weights (all have the year in them currently):
 shes_data <- shes_data %>%
@@ -1166,25 +1257,40 @@ shes_data <- shes_data %>%
   mutate(survey_data = map(survey_data, ~ .x %>% # map() here means this is all being done within the individual items in the list column, while retaining the list format
                              filter(!is.na(age)) %>% # 0911 file has a lot of missing data rows in it, so this clear this up
                              mutate(age = as.numeric(age)) %>%
-                             mutate(agegp7 = case_when(!ag16g10 %in% c("25-34","45-54","55-64","16-24","35-44","75+","65-74") ~ as.character(NA), # 0-15y 
+                             mutate(agegp7 = case_when(!ag16g10 %in% c("16-24","25-34","45-54","55-64","35-44","65-74","75+") ~ as.character(NA), 
                                                        TRUE ~ ag16g10)) %>% 
                              mutate(age65plus = case_when(age >= 65 ~ "65y and over",
-                                                          age < 65 ~ "16 to 64y")) %>%
-                             mutate(child = between(age, 0, 15)) %>%
+                                                          age < 65 ~ "16 to 64y")) %>% # use for adult vars with smaller samples OR PA profile: adult low PA, anxiety, depression, delib self harm, att suicide, meet muscle rec, unpaid caring
+                             mutate(child = between(age, 0, 15)) %>% # 0-15y 
                              mutate(age_group = case_when(age %in% c(0:4) ~ "0 to 4y",
                                                           age %in% c(5:11) ~ "5 to 11y",
                                                           age %in% c(12:15) ~ "12 to 15y",
                                                           TRUE ~ as.character(NA))) %>%
+                             # age groups for children's SDQ indicators:
                              mutate(age_group_sdq = case_when(age %in% c(4:8) ~ "4 to 8y",
                                                               age %in% c(9:12) ~ "9 to 12y",
                                                               TRUE ~ as.character(NA))) %>%
+                             # age groups for children's indicators on the ScotPHO PA profile:
                              mutate(age_group_chpa = case_when(age %in% c(2:4) ~ "2 to 4y",
                                                                age %in% c(5:11) ~ "5 to 11y",
                                                                age %in% c(12:15) ~ "12 to 15y",
+                                                               TRUE ~ as.character(NA))) %>%
+                             # age groups used for children on the SHeS dashboard (will use these for most CYP indicators)
+                             # children's physical activity indicators:
+                             mutate(age_group_chpa_dashbd = case_when(age %in% c(2:4) ~ "2 to 4y", 
+                                                               age %in% c(5:7) ~ "5 to 7y",
+                                                               age %in% c(8:10) ~ "8 to 10y",
+                                                               age %in% c(11:12) ~ "11 to 12y",
+                                                               age %in% c(13:15) ~ "13 to 15y",
+                                                               TRUE ~ as.character(NA))) %>%
+                             # children's gen health and llti indicators:
+                             mutate(age_group_ch_dashbd = case_when(age %in% c(0:3) ~ "0 to 3y",
+                                                               age %in% c(4:7) ~ "4 to 7y",
+                                                               age %in% c(8:11) ~ "8 to 11y",
+                                                               age %in% c(12:15) ~ "12 to 15y",
                                                                TRUE ~ as.character(NA)))))
 
-
-# Harmonise the child BMI variable names:
+# Harmonise the child BMI variable names, and ensure there's only one per survey file:
 shes_data <- shes_data %>%
   mutate(survey_data = map(survey_data, ~ .x %>% # map() here means this is all being done within the individual items in the list column, while retaining the list format
                              { if (length(grep("cbm_ig5_new|cbm_ig5_new_sr|cbm_ig5_new_int|cbmig5_new_int|cbmig5_new", names(.))) > 1)
@@ -1201,7 +1307,7 @@ shes_data <- shes_data %>%
 # Do some data checks, now unnested:
 table(shes_data$sex, shes_data$year, useNA = "always") # Female/Male; some NA from 2022 (include in Totals)
 table(shes_data$quintile, shes_data$year, useNA = "always") # 5 bands; no NAs
-table(shes_data$hb, useNA = "always") # 14 HBs as expected, no NA
+#table(shes_data$hlthbrd, useNA = "always") # 14 HBs as expected, no NA
 table(shes_data$age, useNA = "always") # 0 to 103y; 6 NAs from ~2023 (refused to answer)
 
 
@@ -1324,7 +1430,7 @@ shes_data <- shes_data %>%
   # keep only the vars required for the analysis
   select(-c(filename, fileloc, #number_of_recalls, # will be required for future porftvg3intake variable processing (but not currently)
             rg15a_new)) %>%
-  select(year, ends_with("wt"), psu, strata, sex, agegp7, age, hb, quintile, everything())
+  select(year, ends_with("wt"), psu, strata, sex, agegp7, age, quintile, everything())
 
 
 # Add trend_axis (character) and numeric year variables 
@@ -1335,7 +1441,10 @@ shes_data <- shes_data %>%
          # Replicating the standard used elsewhere in ScotPHO: year = the midpoint of the year range, rounded up if decimal
          year = case_when(nchar(trend_axis)==4 ~ as.numeric(trend_axis), 
                           nchar(trend_axis)>4 ~ rnd(0.5*(as.numeric(substr(trend_axis, 6, 9)) + as.numeric(substr(trend_axis, 1, 4)))), # e.g., "2015-2018" -> "2017" or "2015-2016" to "2016"
-                          TRUE ~ as.numeric(NA))) # shouldn't be any...
+                          TRUE ~ as.numeric(NA)), # shouldn't be any...
+         syear = case_when(as.numeric(syear) < 2000 ~ as.numeric(syear)+2007,
+                           TRUE ~ as.numeric(syear)))  
+  
 
 
 ## D. Load the population data for the age-standardisation of SIMD results:
@@ -1392,36 +1501,17 @@ shes_data <- shes_data %>%
 #shes_data <- arrow::read_parquet(paste0(derived_data, "shes_data_int.parquet"))
 
 
-# Read in geography lookup (based on area names and types -> code)
-geo_lookup <- readRDS(file.path(profiles_lookups, "Geography", "opt_geo_lookup.rds")) %>% 
-  select(!c(parent_area, areaname_full))
 
-# Add HB codes
+# add in area codes
 shes_data <- shes_data %>%
-  mutate(hb_type = "Health board") %>%
-  left_join(y = geo_lookup, join_by(hb == areaname, hb_type == areatype)) %>%
-  select(-hb_type, -hb) %>%
-  rename(hb = code) 
+  merge(y=geo_lookup, by.x="hlthbrd", by.y="areaname", all=TRUE) %>% # codes for 2008-2011 HBs
+  rename(hb_code = code) %>% 
+  merge(y=ca_codes, by.x=c("indserial", "syear"), by.y=c("cpseriala", "syear"), all=TRUE) %>%
+  mutate(hb = ifelse(is.na(hb), as.character(hb_code), hb)) %>%
+  mutate(across(c("ca", "hb", "adp", "hscp", "pd"), ~ case_when(nchar(trend_axis)==4 ~ as.character(NA),
+                                                                     TRUE ~ .x)))
 
-# Add CA codes
-# NB la_code: currently just available for 2 files (19212223 and 21222324) 
-# Have asked SHES team if they can provide lookup for older data too
-shes_data <- shes_data %>%
-  mutate(ca_type = "Council area") %>%
-  left_join(y = geo_lookup, join_by(la_code == areaname, ca_type == areatype)) %>%
-  select(-ca_type, -la_code) %>%
-  rename(ca = code) 
 
-# Add geogs that are aggregates of CA
-
-# lookup of all required geog codes
-geography_lookup <- readRDS(file.path(profiles_lookups, "/Geography/DataZone11_All_Geographies_Lookup.rds")) |>
-  select(ca2019, hscp=hscp2019, adp, pd) |>
-  unique()
-
-# join the geography lookup to the data so there is a column for each geography level
-shes_data <- shes_data %>%
-  left_join(y = geography_lookup, join_by(ca == ca2019))
 
 
 # save intermediate df:
@@ -1463,7 +1553,7 @@ shes_child_data <- shes_data %>%
          cintwt, psu, strata, sex, age, starts_with("age_group"), hb, ca, hscp, adp, pd, quintile, 
          cghq214, c00sum7s, spt1ch, ch30plyg, childpa1hr, contains("sdq"), 
          cbmig5_new, gen_helf, limitill2,
-         urban_rural, eqv5_15) %>%
+         urban_rural, eqv5_15, limitill_SPLIT) %>%
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par1"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #1st parent/carer in hhd
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par2"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #2nd parent/carer in hhd
   # calculate the new child MHIs using the data for both parents (.x and .y)
@@ -1476,7 +1566,7 @@ shes_child_data <- shes_data %>%
   select(year, trend_axis, cintwt, hb, ca, hscp, adp, pd, quintile, psu, strata, sex, starts_with("age_group"),  
          cghq214, ch_ghq, ch_audit, contains("sdq"), childpa1hr, c00sum7s, spt1ch, ch30plyg,
          cbmig5_new, gen_helf, limitill2,
-         urban_rural, eqv5_15)
+         urban_rural, eqv5_15, limitill_SPLIT)
 
 # save intermediate df:
 #arrow::write_parquet(shes_child_data, paste0(derived_data, "shes_child_data.parquet"))
