@@ -412,33 +412,6 @@ unzip_subdirs <- function(zipped_base, unzipped_base, files_to_unzip){
 }
 
 
-#' Function to coalesce two SIMD variables into a single one, called simd_combo, then remove original SIMD columns
-#'
-#' This is set up specifically to catch the only case of this occurring: in SHeS file for 2015-18
-#' @param df The input dataframe to be checked, and simd columns coalesced where necessary
-#'
-#' @return df in same format, with, if relevant, the simd_combo column added, and the original two simd columns removed
-#' @export
-#'
-#' @examples
-coalesce_simd <- function(df){
-  
-  if ("simd5_s_ga" %in% names(df) & "simd16_s_ga" %in% names(df)){
-    df %>%
-      mutate(simd5_s_ga = as.character(simd5_s_ga),
-             simd16_s_ga = as.character(simd16_s_ga)) %>%
-      mutate(simd5_s_ga = case_when(simd5_s_ga == "Not applicable" ~ as.character(NA),
-                                    simd5_s_ga == "2" ~ "2nd",
-                                    simd5_s_ga == "3" ~ "3rd",
-                                    simd5_s_ga == "4" ~ "4th",
-                                    TRUE ~ simd5_s_ga),
-             simd16_s_ga = case_when(simd16_s_ga == "Not applicable" ~ as.character(NA),
-                                     TRUE ~ simd16_s_ga)) %>%
-      mutate(simd_combo = coalesce(simd5_s_ga, simd16_s_ga)) %>%
-      select(-simd5_s_ga, -simd16_s_ga)
-  }
-  else {df}
-}
 
 
 ##########################################################################################
@@ -638,12 +611,11 @@ run_splits <- function (df, var, wt, type, split, lowergeogs=NULL) {
                            ifelse(split=="limitill_SPLIT", "Long-term Illness",
                                   ifelse(split=="eqv5_15", "Income (equivalised)",
                                          ifelse(split=="urban_rural", "Urban-Rural classification",
-                                                ifelse(split %in% c("age65plus", "agegp", "age_group", "age_group_sdq", "age_group_chpa", "agegp7"), 
+                                                ifelse(split %in% c("age65plus", "agegp", "age_group", "age_group_sdq", "age_group_chpa", "agegp7", "age_group_ch_dashbd", "age_group_chpa_dashbd"), 
                                                        "Age group", "ERROR"))))))
   
   # which geogs are in the data?
-  all_geogs <- c("hb", "ca", "hscp", "adp", "pd")
-  available_geogs = intersect(names(df), all_geogs)
+  available_geogs <- get_geogs(df)
   
   # add totals for this split (base df is the data with totals already added for sex)
   df <- add_totals(df, split)  # will add totals for this split, by duplicating the existing data 
@@ -705,11 +677,18 @@ add_totals <- function (df, split_col) {
   df_new
 }
 
+get_geogs <- function(df) {
+   
+  # which geogs are in the data?
+  all_geogs <- c("hb", "ca", "hscp", "adp", "pd") # add any others needed from other surveys
+  available_geogs = intersect(names(df), all_geogs)
+ 
+}
+
 prep_data <- function(df, var, wt, split_cols=NULL) {
   
   # which geogs are in the data?
-  all_geogs <- c("hb", "ca", "hscp", "adp", "pd")
-  available_geogs = intersect(names(df), all_geogs)
+  available_geogs <- get_geogs(df)
   
   # Prune and prep the data ready for the survey calculation.
   df <- df %>%
@@ -740,6 +719,9 @@ calc_indicator_data <- function (df, var, wt, ind_id, type, split_cols=NULL) {
   # DATA PREP
   df <- prep_data(df, var, wt, split_cols)
 
+  # which geogs are in the data?
+  available_geogs <- get_geogs(df)
+  
   # CALCULATIONS
   # First calculate the national indicator values: overall and split by sex:
   
