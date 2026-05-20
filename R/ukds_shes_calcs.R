@@ -140,10 +140,6 @@ derived_data <- "/conf/MHI_Data/derived data/"
 shes_adult_data <- arrow::read_parquet(paste0(derived_data, "shes_adult_data.parquet")) 
 shes_child_data <- arrow::read_parquet(paste0(derived_data, "shes_child_data.parquet")) 
 
-# Read in lookup for harmonising area names
-geo_lookup <- readRDS(paste0(profiles_lookups,"/Geography/opt_geo_lookup.rds")) %>% 
-  select(!c(parent_area, areaname_full))
-
 
 # 8. Calculate indicator values by various groupings
 # =================================================================================================================
@@ -238,39 +234,38 @@ arrow::write_parquet(svy_score_work_bal, "svy_score_work_bal.parquet")
 # CHILDREN
 
 # 1. cintwt used with main sample variables 
-svy_percent_ch_ghq <- calc_indicator_data(shes_child_data, "ch_ghq", "cintwt", ind_id=30130, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group"))
+svy_percent_ch_ghq <- calc_indicator_data(shes_child_data, "ch_ghq", "cintwt", ind_id=30130, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group"))
 arrow::write_parquet(svy_percent_ch_ghq, "svy_percent_ch_ghq.parquet")
-svy_percent_cghq214 <- calc_indicator_data(shes_child_data, "cghq214", "cintwt", ind_id=30130, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group"))  
+svy_percent_cghq214 <- calc_indicator_data(shes_child_data, "cghq214", "cintwt", ind_id=30130, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group"))  
 arrow::write_parquet(svy_percent_cghq214, "svy_percent_cghq214.parquet")
-svy_percent_ch_audit <- calc_indicator_data(shes_child_data, "ch_audit", "cintwt", ind_id=30129, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group"))  
+svy_percent_ch_audit <- calc_indicator_data(shes_child_data, "ch_audit", "cintwt", ind_id=30129, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group"))  
 arrow::write_parquet(svy_percent_ch_audit, "svy_percent_ch_audit.parquet")
-svy_percent_childpa1hr <- calc_indicator_data(shes_child_data, "childpa1hr", "cintwt", ind_id=30111, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_chpa"))  %>% 
-  mutate(split_value = ifelse(split_value=="0 to 4y", "2-4y", split_value))
+svy_percent_childpa1hr <- calc_indicator_data(shes_child_data, "childpa1hr", "cintwt", ind_id=30111, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_chpa_dashbd"))  
 arrow::write_parquet(svy_percent_childpa1hr, "svy_percent_childpa1hr.parquet")
-svy_percent_sdq <- calc_indicator_data(shes_child_data, "sdq_totg", "cintwt", ind_id=99117, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_sdq"))  
+svy_percent_sdq <- calc_indicator_data(shes_child_data, "sdq_totg", "cintwt", ind_id=99117, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_sdq"))  
 arrow::write_parquet(svy_percent_sdq, "svy_percent_sdq.parquet")
-svy_percent_sdq_peer <- calc_indicator_data(shes_child_data, "sdq_peeg", "cintwt", ind_id=30170, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_sdq"))  
+svy_percent_sdq_peer <- calc_indicator_data(shes_child_data, "sdq_peeg", "cintwt", ind_id=30170, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_sdq"))  
 arrow::write_parquet(svy_percent_sdq_peer, "svy_percent_sdq_peer.parquet")
-svy_percent_sdq_emo <- calc_indicator_data(shes_child_data, "sdq_emog", "cintwt", ind_id=30172, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_sdq"))  
+svy_percent_sdq_emo <- calc_indicator_data(shes_child_data, "sdq_emog", "cintwt", ind_id=30172, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_sdq"))  
 arrow::write_parquet(svy_percent_sdq_emo, "svy_percent_sdq_emo.parquet")
-svy_percent_sdq_cond <- calc_indicator_data(shes_child_data, "sdq_cong", "cintwt", ind_id=30173, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_sdq"))  
+svy_percent_sdq_cond <- calc_indicator_data(shes_child_data, "sdq_cong", "cintwt", ind_id=30173, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_sdq"))  
 arrow::write_parquet(svy_percent_sdq_cond, "svy_percent_sdq_cond.parquet")
-svy_percent_sdq_hyp <- calc_indicator_data(shes_child_data, "sdq_hypg", "cintwt", ind_id=30174, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_sdq"))  
+svy_percent_sdq_hyp <- calc_indicator_data(shes_child_data, "sdq_hypg", "cintwt", ind_id=30174, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_sdq"))  
 arrow::write_parquet(svy_percent_sdq_hyp, "svy_percent_sdq_hyp.parquet")
-svy_percent_sdq_pro <- calc_indicator_data(shes_child_data, "sdq_pro", "cintwt", ind_id=30175, type= "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_sdq"))  
+svy_percent_sdq_pro <- calc_indicator_data(shes_child_data, "sdq_pro", "cintwt", ind_id=30175, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_sdq"))  
 arrow::write_parquet(svy_percent_sdq_pro, "svy_percent_sdq_pro.parquet")
-svy_percent_c00sum7s <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "c00sum7s", "cintwt", ind_id = 14003, type = "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_chpa"))
+svy_percent_c00sum7s <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "c00sum7s", "cintwt", ind_id = 14003, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_chpa"))
 arrow::write_parquet(svy_percent_c00sum7s, "svy_percent_c00sum7s.parquet")
-svy_percent_spt1ch <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "spt1ch", "cintwt", ind_id = 14006, type = "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_chpa"))
+svy_percent_spt1ch <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "spt1ch", "cintwt", ind_id = 14006, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_chpa"))
 arrow::write_parquet(svy_percent_spt1ch, "svy_percent_spt1ch.parquet")
-svy_percent_ch30plyg <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "ch30plyg", "cintwt", ind_id = 14007, type = "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_chpa"))
+svy_percent_ch30plyg <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "ch30plyg", "cintwt", ind_id = 14007, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_chpa"))
 arrow::write_parquet(svy_percent_ch30plyg, "svy_percent_ch30plyg.parquet")
-svy_percent_cbmig5_new <- calc_indicator_data(shes_child_data, "cbmig5_new", "cintwt", ind_id = 99144, type = "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group"))
+svy_percent_cbmig5_new <- calc_indicator_data(shes_child_data, "cbmig5_new", "cintwt", ind_id = 99144, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group"))
 arrow::write_parquet(svy_percent_cbmig5_new, "svy_percent_cbmig5_new.parquet")
-svy_percent_child_gen_helf <- calc_indicator_data(shes_child_data, "gen_helf", "cintwt", ind_id = 30114, type = "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group")) %>%
+svy_percent_child_gen_helf <- calc_indicator_data(shes_child_data, "gen_helf", "cintwt", ind_id = 30114, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_ch_dashbd")) %>%
   mutate(indicator="child_gen_helf")
 arrow::write_parquet(svy_percent_child_gen_helf, "svy_percent_child_gen_helf.parquet")
-svy_percent_child_limitill2 <- calc_indicator_data(shes_child_data, "limitill2", "cintwt", ind_id = 30115, type = "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group")) %>%
+svy_percent_child_limitill2 <- calc_indicator_data(shes_child_data, "limitill2", "cintwt", ind_id = 30115, type = "percent", split_cols=c("quintile", "urban_rural", "eqv5_15", "age_group_ch_dashbd")) %>%
   mutate(indicator="child_limitill2")
 arrow::write_parquet(svy_percent_child_limitill2, "svy_percent_child_limitill2.parquet")
 
@@ -288,7 +283,7 @@ svy_results <- list.files(pattern = "svy_.*\\.parquet$", recursive=TRUE, full.na
 
 # Read in the files and join them
 shes_results0 <- lapply(svy_results, arrow::read_parquet) %>% #read all the files in and store in a list
-  bind_rows() # May 2026: n=541,891
+  bind_rows() # May 2026: n=1,167,865
 
 
 # # BUT IF ALL DATA ARE IN THE GLOBAL ENVIRONMENT:
@@ -309,15 +304,15 @@ shes_results0 <- arrow::read_parquet(paste0(derived_data, "shes_results0.parquet
 # porftvg3 and porftvg3intake: porftvg3 stops at 2019-23, so use porftvg3intake after this
 
 
-shes_results1 <- shes_results0 %>% #n=541,891
-  unique() %>% # get rid of duplicates. n=541,891
+shes_results1 <- shes_results0 %>% #n=1,167,865
+  unique() %>% # get rid of duplicates. 
   mutate(indicator = ifelse(indicator=="porftvg3intake", "porftvg3", indicator)) %>% # harmonise the indicator name
   group_by(trend_axis, sex, code, ind_id, year, def_period, split_name, split_value) %>%
   mutate(count = n()) %>%
   ungroup() %>%
   filter(!(indicator=="ch_ghq" & count==2)) %>% # drop our derived data when there's cghq214 data available.
   mutate(indicator = ifelse(indicator=="ch_ghq", "cghq214", indicator)) %>% # harmonise the indicator name
-  select(-count) #n=540,384
+  select(-count) #n=1,167,713
 
 
 
@@ -350,21 +345,21 @@ drop_these_splits <- shes_results1 %>%
 
 
 # drop splits as identified above:
-shes_results1 <- shes_results1 %>% # 540,384 rows
+shes_results1 <- shes_results1 %>% # 1,167,713 rows
   mutate(area = substr(code, 1, 3)) %>%
   merge(y=drop_these_splits, by=c("area", "indicator", "split_name"), all.x=TRUE) %>%
-  filter(drop==0) %>% # now n=348,943
+  filter(drop==0) %>% # now n=726,058
   select(-c(area, areatype:drop)) 
 
 
 
 # drop splits by SIMD if they have data for fewer than three quintiles (+ total = 4)
-shes_results1 <- shes_results1 %>% # n=348,943
+shes_results1 <- shes_results1 %>% # n=726,058
   group_by(trend_axis, sex, indicator, ind_id, code, year, def_period, split_name) %>%
   mutate(count = n()) %>% # count all the values within each split, including the total
   ungroup() %>%
   filter(!(split_name=="Deprivation (SIMD)" & count<4)) %>% # case where e.g., and island board has 3 quintiles + a total
-  select(-count) # now 341,303
+  select(-count) # now 718,885
 
 # Suppress values where necessary:
 # SHeS suppress values where denominator (unweighted base) is <30
@@ -378,7 +373,7 @@ shes_results1 %>%
   filter(is.na(rate)) %>%
   select(indicator, code, trend_axis, split_value) %>%
   arrange(indicator) 
-# May 2026: ~40K values suppressed.
+# May 2026: ~70K values suppressed.
 
 # save intermediate df:
 arrow::write_parquet(shes_results1, paste0(derived_data, "shes_results1.parquet"))
