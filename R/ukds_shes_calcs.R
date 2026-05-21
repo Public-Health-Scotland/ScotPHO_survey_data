@@ -5,7 +5,6 @@
 # NEW gen_helf VAR
 # add: healthyweight, food insecurity, binge, alc recommended, weekly alc units, child obesity, child llti, child genhelf
 # splits: equivinc, urb, limitill...
-# add LA code in last 2 aggd dfs
 
 
 # ============================================================================
@@ -131,14 +130,14 @@ setwd("/conf/MHI_Data/Liz/repos/ScotPHO_survey_data")
 
 ## C. Path to the data derived by this script
 
-derived_data <- "/conf/MHI_Data/derived data/"
+derived_data <- "/conf/MHI_Data/derived data"
 
 # Read in the processed data
 # =================================================================================================================
 
 
-shes_adult_data <- arrow::read_parquet(paste0(derived_data, "shes_adult_data.parquet")) 
-shes_child_data <- arrow::read_parquet(paste0(derived_data, "shes_child_data.parquet")) 
+shes_adult_data <- arrow::read_parquet(here(derived_data, "shes_adult_data.parquet")) 
+shes_child_data <- arrow::read_parquet(here(derived_data, "shes_child_data.parquet")) 
 
 
 # 8. Calculate indicator values by various groupings
@@ -156,7 +155,7 @@ shes_child_data <- arrow::read_parquet(paste0(derived_data, "shes_child_data.par
 # type= "percent"
 # split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")
 
-setwd(here("data"))
+setwd(derived_data)
 
 # ADULT
 
@@ -278,7 +277,7 @@ setwd(here())
 
 # IF READING IN FROM FILE:
 #*set up the 'svy_results' variable to contain all the svy_ parquet files in the data directory
-svy_results <- list.files(pattern = "svy_.*\\.parquet$", recursive=TRUE, full.names=TRUE) 
+svy_results <- list.files(path = here(derived_data, "shes_indicator_files"), pattern = "svy_.*\\.parquet$", recursive=TRUE, full.names=TRUE) 
 # should be 42 paths (i.e., representing 42 indicators) in svy_results (May 2026)
 
 # Read in the files and join them
@@ -319,7 +318,7 @@ shes_results1 <- shes_results0 %>% #n=1,167,865
 # SHeS suppress any figures derived from denoms <30, so we apply the same threshold.
 # Let's check whether there are denominators under 30 for each of the splits.
 # And decide if we want to present a split that contains some suppressed values, or just remove that split altogether.
-# I've arbitrarily set the threshold at 33%: meaning we can cope with 33% (~1 in 3) data points being suppressed, but not more. 
+# I've arbitrarily set the threshold at 25%: meaning we can cope with 25% (~1 in 4) data points being suppressed, but not more. 
 
 drop_these_splits <- shes_results1 %>%
   mutate(split_name = ifelse(split_value=="Total", "Total", split_name)) %>%
@@ -340,7 +339,7 @@ drop_these_splits <- shes_results1 %>%
             n_under_30 = sum(denominator<30),
             pc_under_30 = 100 * n_under_30 / total) %>%
   ungroup()  %>%
-  mutate(drop = ifelse(pc_under_30>33, 1, 0))
+  mutate(drop = ifelse(pc_under_30>25, 1, 0))
 
 
 
@@ -348,18 +347,18 @@ drop_these_splits <- shes_results1 %>%
 shes_results1 <- shes_results1 %>% # 1,167,713 rows
   mutate(area = substr(code, 1, 3)) %>%
   merge(y=drop_these_splits, by=c("area", "indicator", "split_name"), all.x=TRUE) %>%
-  filter(drop==0) %>% # now n=726,058
+  filter(drop==0) %>% # now n=655,821
   select(-c(area, areatype:drop)) 
 
 
 
 # drop splits by SIMD if they have data for fewer than three quintiles (+ total = 4)
-shes_results1 <- shes_results1 %>% # n=726,058
+shes_results1 <- shes_results1 %>% # n=655,821
   group_by(trend_axis, sex, indicator, ind_id, code, year, def_period, split_name) %>%
   mutate(count = n()) %>% # count all the values within each split, including the total
   ungroup() %>%
   filter(!(split_name=="Deprivation (SIMD)" & count<4)) %>% # case where e.g., and island board has 3 quintiles + a total
-  select(-count) # now 718,885
+  select(-count) # now 650,214
 
 # Suppress values where necessary:
 # SHeS suppress values where denominator (unweighted base) is <30
@@ -373,7 +372,7 @@ shes_results1 %>%
   filter(is.na(rate)) %>%
   select(indicator, code, trend_axis, split_value) %>%
   arrange(indicator) 
-# May 2026: ~70K values suppressed.
+# May 2026: ~54K values suppressed.
 
 # save intermediate df:
 arrow::write_parquet(shes_results1, paste0(derived_data, "shes_results1.parquet"))
@@ -442,7 +441,7 @@ shes_raw_data <- shes_results1 %>%
                                 indicator == "cbmig5_new" ~ "child_obesity_risk",
                                 indicator == "child_gen_helf" ~ "child_general_health",
                                 indicator == "child_limitill2" ~ "child_llti",
-                                TRUE ~ as.character(NA)  )) %>%
+                                TRUE ~ as.character(NA)  )) %>% #shouldn't be any of these
   select(-denominator) 
 
 # save data ----
