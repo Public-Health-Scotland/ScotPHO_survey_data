@@ -214,6 +214,8 @@ extracted_survey_data_shes <- extracted_survey_data_shes %>%
 
 ## C. Save the file (do this if new variables/data have been read in)
 # saveRDS(extracted_survey_data_shes, paste0(derived_data, "extracted_survey_data_shes.rds"))
+# Liz version 3 June 2026:
+# saveRDS(extracted_survey_data_shes, paste0(derived_data, "extracted_survey_data_shes_liz.rds"))
 
 
 # 4. What are the possible responses? (needed so we can decide how to code each variable)
@@ -221,6 +223,7 @@ extracted_survey_data_shes <- extracted_survey_data_shes %>%
 
 ## A. Read the data back in if not in memory:
 # extracted_survey_data_shes <- readRDS(paste0(derived_data, "extracted_survey_data_shes.rds"))
+# extracted_survey_data_shes <- readRDS(paste0(derived_data, "extracted_survey_data_shes_liz.rds"))
 
 ## B. Get all the possible responses that have been recorded for each variable (combined over the years), and save to xlsx and rds
 # Running extract_responses() will modify existing spreadsheet and overwrite existing rds file
@@ -1024,9 +1027,9 @@ lookup_sex <- list(
 
 # recoding limiting illness as a split variable
 lookup_limitill_SPLIT <- list(
-  "Limiting LI" = "Limiting Long-term Illness",
-  "Non limiting LI" = "Non-limiting Long-term Illness",
-  "No LI" = "No Long-term Illness"
+  "Limiting LI" = "Long-term illness",
+  "Non limiting LI" = "Long-term illness",
+  "No LI" = "No long-term illness"
 )
 
 # recoding quintile
@@ -1089,6 +1092,7 @@ ca_lookup <- list(
 
 ## Read the data back in if not in memory:
 # extracted_survey_data_shes <- readRDS(paste0(derived_data, "extracted_survey_data_shes.rds"))
+# extracted_survey_data_shes <- readRDS(paste0(derived_data, "extracted_survey_data_shes_liz.rds"))
 
 ## A: How are grouping variables (geogs and SIMD) coded in each survey file? Need standardising?
 
@@ -1235,12 +1239,11 @@ shes_data <- shes_data %>%
                              # All versions of individual serial numbers: rename as indserial
                              # drop cpserial_a when pserial_a is also used (in 2010: Liz checked this, and pserial_a is the one we need here)
                              { if (length(grep("cpserial_a|pserial_a", names(.)))>1) select(., -cpserial_a) else .} %>%
-                             rename(any_of(indserial_lookup)) %>% 
-                             # extract person id (used to link children to their parents)
+                             rename(any_of(indserial_lookup)) %>% # extract person id (used to link children to their parents)
                              mutate(person=substr(indserial, nchar(indserial)-1, nchar(indserial))) %>%
-                             # All versions of household serial numbers: rename as hhserial
-                             rename(any_of(hhserial_lookup)) %>%
-                             rename(any_of(syear_lookup)))) # all survey year vars get renamed to syear 
+                             rename(any_of(hhserial_lookup)) %>% # All versions of household serial numbers: rename as hhserial
+                             rename(any_of(syear_lookup)) # all survey year vars get renamed to syear 
+                             )) 
 
 # Harmonise the names of the weights (all have the year in them currently):
 shes_data <- shes_data %>%
@@ -1497,8 +1500,10 @@ shes_data <- shes_data %>%
 
 # save intermediate df:
 #arrow::write_parquet(shes_data, paste0(derived_data, "shes_data_int.parquet"))
+#arrow::write_parquet(shes_data, paste0(derived_data, "shes_data_int_liz.parquet"))
 # read back in if not in memory:
 #shes_data <- arrow::read_parquet(paste0(derived_data, "shes_data_int.parquet"))
+#shes_data <- arrow::read_parquet(paste0(derived_data, "shes_data_int_liz.parquet"))
 
 
 
@@ -1516,8 +1521,10 @@ shes_data <- shes_data %>%
 
 # save intermediate df:
 #arrow::write_parquet(shes_data, paste0(derived_data, "shes_data.parquet"))
+#arrow::write_parquet(shes_data, paste0(derived_data, "shes_data_liz.parquet"))
 # read back in if not in memory:
 #shes_data <- arrow::read_parquet(paste0(derived_data, "shes_data.parquet"))
+#shes_data <- arrow::read_parquet(paste0(derived_data, "shes_data_liz.parquet"))
 
 
 
