@@ -191,8 +191,7 @@ save_var_descriptions(survey = "shes", # looks in this folder
 # 14 JAN 2026: ADDING 2023 DATA
 # 12 JAN 2026: ADDITION OF CHILD SDQ VARS
 # 01 APR 2026: ADDING MORE VARS FROM THE SHES DASHBOARD, AND HARMONISING EXISTING VARS WITH THEIRS.
-extracted_survey_data_shes <- extract_survey_data("shes", additional="^int.*wt$|^cint.*wt$|^bio.*wt$|^vera.*wt$|^nurs.*wt$|intake24_wt_sc") 
-# What this function is doing:
+extracted_survey_data_shes <- extract_survey_data("shes", additional="^int.*wt$|^cint.*wt$|^bio.*wt$|^vera.*wt$|^nurs.*wt$|intake24_wt_sc")# What this function is doing:
 #   Uses the file locations saved in the spreadsheet, and opens each file in turn.
 #   Runs the function read_select() to read in the data for any variable listed in the vars_to_extract_xxx file.
 #   Stores all the required data from a single file in a list in a dataframe.
@@ -213,7 +212,7 @@ extracted_survey_data_shes <- extracted_survey_data_shes %>%
 
 
 ## C. Save the file (do this if new variables/data have been read in)
-# saveRDS(extracted_survey_data_shes, paste0(derived_data, "extracted_survey_data_shes.rds"))
+#saveRDS(extracted_survey_data_shes, paste0(derived_data, "extracted_survey_data_shes.rds"))
 
 
 # 4. What are the possible responses? (needed so we can decide how to code each variable)
@@ -982,7 +981,7 @@ lookup_ch30plyg <- list(
   "3 or 4" = "no",
   "5 or more" = "yes")
 
-#Children with very low activity levels
+#Children with very low activity levels (inc school)
 lookup_c00sum7s <- list(
   "Group 1:60+min on all 7 days" = "no",
   "Group 1: 60+min on all 7 days" = "no",
@@ -990,6 +989,15 @@ lookup_c00sum7s <- list(
   "Group 2: 30-59min on all 7 days" = "no",
   "Group 3:Lower level of activity" = "yes",
   "Group 3: Lower level of activity" = "yes")
+
+#Children meeting activity guidelines (not inc school)
+lookup_ch00sum7 <- list(
+  "Group 1:60+min on all 7 days" = "yes",
+  "Group 1: 60+min on all 7 days" = "yes",
+  "Group 2:30-59min on all 7 days" = "no",
+  "Group 2: 30-59min on all 7 days" = "no",
+  "Group 3:Lower level of activity" = "no",
+  "Group 3: Lower level of activity" = "no")
 
 lookup_child_obesity <- list(
 
@@ -1310,7 +1318,6 @@ table(shes_data$quintile, shes_data$year, useNA = "always") # 5 bands; no NAs
 #table(shes_data$hlthbrd, useNA = "always") # 14 HBs as expected, no NA
 table(shes_data$age, useNA = "always") # 0 to 103y; 6 NAs from ~2023 (refused to answer)
 
-
 # Combine indicators that have two different names in the data
 shes_data <- shes_data %>%
   # coalesce the indicator vars with two different names
@@ -1393,6 +1400,7 @@ shes_data <- shes_data %>%
   mutate(sdq_emog = recode(sdq_emog, !!!lookup_sdq_emog, .default = as.character(NA))) %>%
   mutate(cghq214 = recode(cghq214, !!!lookup_childghq, .default = as.character(NA))) %>%
   mutate(childpa1hr = recode(c00sum7s, !!!lookup_childpa1hr, .default = as.character(NA))) %>%
+  mutate(ch00sum7 = recode(ch00sum7, !!!lookup_ch00sum7, .default = as.character(NA))) %>%
   mutate(healthyweight = recode(bmi, !!!lookup_healthyweight, .default = as.character(NA))) %>%
   mutate(foodinsecure = recode(wrfood, !!!lookup_foodinsecure, .default = as.character(NA))) %>%
   mutate(binge = recode(olimlwb, !!!lookup_binge, .default = as.character(NA))) %>%
@@ -1551,7 +1559,7 @@ shes_child_data <- shes_data %>%
   filter(child) %>% # keep 0-15
   select(year, trend_axis, contains("serial"), par1, par2, 
          cintwt, psu, strata, sex, age, starts_with("age_group"), hb, ca, hscp, adp, pd, quintile, 
-         cghq214, c00sum7s, spt1ch, ch30plyg, childpa1hr, contains("sdq"), 
+         cghq214, c00sum7s, ch00sum7, spt1ch, ch30plyg, childpa1hr, contains("sdq"), 
          cbmig5_new, gen_helf, limitill2,
          urban_rural, eqv5_15, limitill_SPLIT) %>%
   merge(y=parent_data, by.x=c("trend_axis", "hhserial", "par1"), by.y = c("trend_axis", "hhserial", "person"), all.x=TRUE) %>% #1st parent/carer in hhd
@@ -1564,7 +1572,7 @@ shes_child_data <- shes_data %>%
                               auditg.x=="no" | auditg.y=="no" ~ "no", # otherwise no (if the data were collected)
                               TRUE ~ as.character(NA))) %>%  # NA if no data (question not asked / 'don't know'/refused/not answered)
   select(year, trend_axis, cintwt, hb, ca, hscp, adp, pd, quintile, psu, strata, sex, starts_with("age_group"),  
-         cghq214, ch_ghq, ch_audit, contains("sdq"), childpa1hr, c00sum7s, spt1ch, ch30plyg,
+         cghq214, ch_ghq, ch_audit, contains("sdq"), childpa1hr, c00sum7s, ch00sum7, spt1ch, ch30plyg,
          cbmig5_new, gen_helf, limitill2,
          urban_rural, eqv5_15, limitill_SPLIT)
 
