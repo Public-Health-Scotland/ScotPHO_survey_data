@@ -43,7 +43,7 @@
 # 4171: Alcohol consumption: Hazardous/Harmful drinker" (% consuming over 14 units per week) (NB. original ScotPHO indicator excluded non-drinkers from denominator... it's not clear whether they are included here) 
 # 4172: Alcohol consumption (mean weekly units)
 
-# 15 child indicators:
+# 16 child indicators:
 # 30130 = ch_ghq  Percentage of children aged 15 years or under who have a parent/carer who scores 4 or more on the General Health Questionnaire-12 (GHQ-12)
 # 30129 = ch_audit  Percentage of children aged 15 years or under with a parent/carer who reports consuming alcohol at hazardous or harmful levels (AUDIT questionnaire score 8+)
 # 30170	Peer relationship problems - Percentage of children with a 'slightly raised', 'high' or 'very high' score (a score of 3-10) on the peer relationship problems scale of the Strengths and Difficulties Questionnaire (SDQ)
@@ -56,6 +56,7 @@
 # 14003 - c00sum7s - Children with very low activity levels
 # 14006 - spt1ch - Children participating in sport
 # 14007 - ch30plyg - Children engaging in active play
+# 14012 % children meeting activity guidelines (NOT inc school) (var ch00sum7)
 # 30114 = gen_helf	Percentage of children who, when asked "How good is your health in general?", selected "good" or "excellent". The five possible options ranged from very good to very bad, and the variable was GenHelf2. 
 # 30115 = limitill2	Percentage of children who have a limiting long-term illness. Long-term conditions are defined as a physical or mental health condition or illness lasting, or expected to last, 12 months or more. A long-term condition is defined as limiting if the respondent reported that it limited their activities in any way. The variable used was limitill. 
 # 99144 - cbmig5 - children at risk of obesity, 2-15y
@@ -255,6 +256,8 @@ svy_percent_sdq_pro <- calc_indicator_data(shes_child_data, "sdq_pro", "cintwt",
 arrow::write_parquet(svy_percent_sdq_pro, "svy_percent_sdq_pro.parquet")
 svy_percent_c00sum7s <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "c00sum7s", "cintwt", ind_id = 14003, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_chpa"))
 arrow::write_parquet(svy_percent_c00sum7s, "svy_percent_c00sum7s.parquet")
+svy_percent_ch00sum7s <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "ch00sum7s", "cintwt", ind_id = 14012, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_chpa"))
+arrow::write_parquet(svy_percent_ch00sum7s, "svy_percent_ch00sum7s.parquet")
 svy_percent_spt1ch <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "spt1ch", "cintwt", ind_id = 14006, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_chpa"))
 arrow::write_parquet(svy_percent_spt1ch, "svy_percent_spt1ch.parquet")
 svy_percent_ch30plyg <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "ch30plyg", "cintwt", ind_id = 14007, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_chpa"))
