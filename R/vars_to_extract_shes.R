@@ -83,9 +83,9 @@ vars_to_keep <- c(
   "spt1ch", #children participating in sport
   "ch30plyg", #children engaging in active play
   "cbm_ig5_new", "cbm_ig5_new_sr", "cbm_ig5_new_int", "cbmig5_new_int", "cbmig5_new", # children's BMI categories (-> at risk of obesity)
-  
   # child physical activity
   "c00sum7s", # Summary classification activity levels - All activities, INCLUDING SCHOOL no lower limits
+  "ch00sum7", #Summary classification activity levels - not including school
   
   # needed for CYP MHIs:
   "auditg", # banded AUDIT score (for CYP indicator) (every other year)
