@@ -156,7 +156,7 @@ shes_child_data <- arrow::read_parquet(here(derived_data, "shes_child_data.parqu
 # type= "percent"
 # split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")
 
-setwd(derived_data)
+setwd(here(derived_data, "shes_indicator_files"))
 
 # ADULT
 
@@ -256,8 +256,8 @@ svy_percent_sdq_pro <- calc_indicator_data(shes_child_data, "sdq_pro", "cintwt",
 arrow::write_parquet(svy_percent_sdq_pro, "svy_percent_sdq_pro.parquet")
 svy_percent_c00sum7s <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "c00sum7s", "cintwt", ind_id = 14003, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_chpa"))
 arrow::write_parquet(svy_percent_c00sum7s, "svy_percent_c00sum7s.parquet")
-svy_percent_ch00sum7s <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "ch00sum7s", "cintwt", ind_id = 14012, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_chpa"))
-arrow::write_parquet(svy_percent_ch00sum7s, "svy_percent_ch00sum7s.parquet")
+svy_percent_ch00sum7 <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "ch00sum7", "cintwt", ind_id = 14012, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_chpa"))
+arrow::write_parquet(svy_percent_ch00sum7, "svy_percent_ch00sum7.parquet")
 svy_percent_spt1ch <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "spt1ch", "cintwt", ind_id = 14006, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_chpa"))
 arrow::write_parquet(svy_percent_spt1ch, "svy_percent_spt1ch.parquet")
 svy_percent_ch30plyg <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "ch30plyg", "cintwt", ind_id = 14007, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_chpa"))
@@ -285,14 +285,12 @@ svy_results <- list.files(path = here(derived_data, "shes_indicator_files"), pat
 
 # Read in the files and join them
 shes_results0 <- lapply(svy_results, arrow::read_parquet) %>% #read all the files in and store in a list
-  bind_rows() # May 2026: n=1,167,865
+  bind_rows() # May 2026: n=1,169,918
 
 
 # # BUT IF ALL DATA ARE IN THE GLOBAL ENVIRONMENT:
 # shes_results0 <- mget(ls(pattern = "^svy_"), .GlobalEnv) %>% # finds all the dataframes produced by the functions above
 #   bind_rows(.)
-
-# check <- arrow::read_parquet("./data/svy_percent_child_gen_helf.parquet") 
 
 # save intermediate df:
 arrow::write_parquet(shes_results0, paste0(derived_data, "shes_results0.parquet"))
@@ -306,7 +304,7 @@ shes_results0 <- arrow::read_parquet(paste0(derived_data, "shes_results0.parquet
 # porftvg3 and porftvg3intake: porftvg3 stops at 2019-23, so use porftvg3intake after this
 
 
-shes_results1 <- shes_results0 %>% #n=1,167,865
+shes_results1 <- shes_results0 %>% #n=1,169,918
   unique() %>% # get rid of duplicates. 
   mutate(indicator = ifelse(indicator=="porftvg3intake", "porftvg3", indicator)) %>% # harmonise the indicator name
   group_by(trend_axis, sex, code, ind_id, year, def_period, split_name, split_value) %>%
@@ -314,7 +312,7 @@ shes_results1 <- shes_results0 %>% #n=1,167,865
   ungroup() %>%
   filter(!(indicator=="ch_ghq" & count==2)) %>% # drop our derived data when there's cghq214 data available.
   mutate(indicator = ifelse(indicator=="ch_ghq", "cghq214", indicator)) %>% # harmonise the indicator name
-  select(-count) #n=1,167,713
+  select(-count) #n=1,169,770
 
 
 
@@ -347,21 +345,21 @@ drop_these_splits <- shes_results1 %>%
 
 
 # drop splits as identified above:
-shes_results1 <- shes_results1 %>% # 1,167,713 rows
+shes_results1 <- shes_results1 %>% # 1,169,770 rows
   mutate(area = substr(code, 1, 3)) %>%
   merge(y=drop_these_splits, by=c("area", "indicator", "split_name"), all.x=TRUE) %>%
-  filter(drop==0) %>% # now n=655,821
+  filter(drop==0) %>% # now n=657,732
   select(-c(area, areatype:drop)) 
 
 
 
 # drop splits by SIMD if they have data for fewer than three quintiles (+ total = 4)
-shes_results1 <- shes_results1 %>% # n=655,821
+shes_results1 <- shes_results1 %>% # n=657,732
   group_by(trend_axis, sex, indicator, ind_id, code, year, def_period, split_name) %>%
   mutate(count = n()) %>% # count all the values within each split, including the total
   ungroup() %>%
   filter(!(split_name=="Deprivation (SIMD)" & count<4)) %>% # case where e.g., and island board has 3 quintiles + a total
-  select(-count) # now 650,214
+  select(-count) # now 652,125
 
 # Suppress values where necessary:
 # SHeS suppress values where denominator (unweighted base) is <30
@@ -375,7 +373,7 @@ shes_results1 %>%
   filter(is.na(rate)) %>%
   select(indicator, code, trend_axis, split_value) %>%
   arrange(indicator) 
-# May 2026: ~54K values suppressed.
+# June 2026: ~55K values suppressed.
 
 # save intermediate df:
 arrow::write_parquet(shes_results1, paste0(derived_data, "shes_results1.parquet"))
@@ -393,7 +391,7 @@ table(shes_results1$split_name, shes_results1$split_value, useNA="always")
 # data checks:
 table(shes_results1$trend_axis, useNA = "always") # 2008 to 2024, no NA
 table(shes_results1$sex, useNA = "always") # Male, Female, Total 
-table(shes_results1$indicator, useNA = "always") # 40 vars (25 adult, 15 child), no NA
+table(shes_results1$indicator, useNA = "always") # 41 vars (25 adult, 16 child), no NA
 table(shes_results1$year, useNA = "always") # 2008 to 2024
 table(shes_results1$def_period, useNA = "always") # Aggregated years () and Survey year (), no NA
 table(shes_results1$split_name, useNA = "always") # Deprivation, Age group, LTI, inc, urb/rur, or Sex, no NA
@@ -434,6 +432,7 @@ shes_raw_data <- shes_results1 %>%
                                 indicator == "adt10gp_tw_LOW" ~ "adults_very_low_activity",    
                                 indicator == "mus_rec" ~ "meeting_muscle_strengthening_recommendations",
                                 indicator == "c00sum7s" ~ "children_very_low_activity",
+                                indicator == "ch00sum7" ~ "children_meet_pa_recs_excl_school",
                                 indicator == "spt1ch" ~ "children_participating_sport",
                                 indicator == "ch30plyg" ~ "children_active_play",
                                 indicator == "healthyweight" ~ "adult_healthy_weight",
