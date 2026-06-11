@@ -34,7 +34,7 @@
 # 4171: Alcohol consumption: Hazardous/Harmful drinker" (% consuming over 14 units per week) (NB. original ScotPHO indicator excluded non-drinkers from denominator... it's not clear whether they are included here) 
 # 4172: Alcohol consumption (mean weekly units)
 
-# 15 child indicators:
+# 16 child indicators:
 # 30130 = ch_ghq  Percentage of children aged 15 years or under who have a parent/carer who scores 4 or more on the General Health Questionnaire-12 (GHQ-12)
 # 30129 = ch_audit  Percentage of children aged 15 years or under with a parent/carer who reports consuming alcohol at hazardous or harmful levels (AUDIT questionnaire score 8+)
 # 30170	Peer relationship problems - Percentage of children with a 'slightly raised', 'high' or 'very high' score (a score of 3-10) on the peer relationship problems scale of the Strengths and Difficulties Questionnaire (SDQ)
@@ -44,6 +44,7 @@
 # 30174	Hyperactivity/inattention - Percentage of children with a 'slightly raised', 'high' or 'very high' score (a score of 6-10) on the hyperactivity/inattention scale of the Strengths and Difficulties Questionnaire (SDQ)
 # 30175	Prosocial behaviour - Percentage of children with a 'close to average' score (a score of 8-10) on the prosocial scale of the Strengths and Difficulties Questionnaire (SDQ)
 # 30111 % children meeting 1 hour PA per day (INCL. SCHOOL)
+# 14012 % children meeting activity guidelines (NOT inc school) (var ch00sum7)
 # 14003 - c00sum7s - Children with very low activity levels
 # 14006 - spt1ch - Children participating in sport
 # 14007 - ch30plyg - Children engaging in active play
@@ -213,8 +214,6 @@ extracted_survey_data_shes <- extracted_survey_data_shes %>%
 
 ## C. Save the file (do this if new variables/data have been read in)
 # saveRDS(extracted_survey_data_shes, paste0(derived_data, "extracted_survey_data_shes.rds"))
-# Liz version 3 June 2026:
-# saveRDS(extracted_survey_data_shes, paste0(derived_data, "extracted_survey_data_shes_liz.rds"))
 
 
 # 4. What are the possible responses? (needed so we can decide how to code each variable)
@@ -222,7 +221,6 @@ extracted_survey_data_shes <- extracted_survey_data_shes %>%
 
 ## A. Read the data back in if not in memory:
 # extracted_survey_data_shes <- readRDS(paste0(derived_data, "extracted_survey_data_shes.rds"))
-# extracted_survey_data_shes <- readRDS(paste0(derived_data, "extracted_survey_data_shes_liz.rds"))
 
 ## B. Get all the possible responses that have been recorded for each variable (combined over the years), and save to xlsx and rds
 # Running extract_responses() will modify existing spreadsheet and overwrite existing rds file
@@ -1100,7 +1098,6 @@ ca_lookup <- list(
 
 ## Read the data back in if not in memory:
 # extracted_survey_data_shes <- readRDS(paste0(derived_data, "extracted_survey_data_shes.rds"))
-# extracted_survey_data_shes <- readRDS(paste0(derived_data, "extracted_survey_data_shes_liz.rds"))
 
 ## A: How are grouping variables (geogs and SIMD) coded in each survey file? Need standardising?
 
@@ -1508,10 +1505,8 @@ shes_data <- shes_data %>%
 
 # save intermediate df:
 #arrow::write_parquet(shes_data, paste0(derived_data, "shes_data_int.parquet"))
-#arrow::write_parquet(shes_data, paste0(derived_data, "shes_data_int_liz.parquet"))
 # read back in if not in memory:
 #shes_data <- arrow::read_parquet(paste0(derived_data, "shes_data_int.parquet"))
-#shes_data <- arrow::read_parquet(paste0(derived_data, "shes_data_int_liz.parquet"))
 
 
 
@@ -1524,15 +1519,10 @@ shes_data <- shes_data %>%
   mutate(across(c("ca", "hb", "adp", "hscp", "pd"), ~ case_when(nchar(trend_axis)==4 ~ as.character(NA),
                                                                      TRUE ~ .x)))
 
-
-
-
 # save intermediate df:
 #arrow::write_parquet(shes_data, paste0(derived_data, "shes_data.parquet"))
-#arrow::write_parquet(shes_data, paste0(derived_data, "shes_data_liz.parquet"))
 # read back in if not in memory:
 #shes_data <- arrow::read_parquet(paste0(derived_data, "shes_data.parquet"))
-#shes_data <- arrow::read_parquet(paste0(derived_data, "shes_data_liz.parquet"))
 
 
 
