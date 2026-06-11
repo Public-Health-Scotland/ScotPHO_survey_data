@@ -1347,11 +1347,11 @@ shes_data <- shes_data %>%
 
 # standardise the equivalised income column
 shes_data <- shes_data %>%
-  mutate(eqv5_15 = case_when(str_detect(eqv5_15, "Bottom") ~ "Q1 (lowest)",
+  mutate(eqv5_15 = case_when(str_detect(eqv5_15, "Bottom") ~ "Q5 (lowest)", # confirmed the ordering using the SHeS dashboard data
                              str_detect(eqv5_15, "2nd") ~ "Q2",
                              str_detect(eqv5_15, "3rd") ~ "Q3",
                              str_detect(eqv5_15, "4th") ~ "Q4",
-                             str_detect(eqv5_15, "Top") ~ "Q5 (highest)",
+                             str_detect(eqv5_15, "Top") ~ "Q1 (highest)",
                              TRUE ~ as.character(NA)))
 
 # Convert some variables to numeric where appropriate
