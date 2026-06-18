@@ -256,7 +256,7 @@ svy_percent_sdq_pro <- calc_indicator_data(shes_child_data, "sdq_pro", "cintwt",
 arrow::write_parquet(svy_percent_sdq_pro, "svy_percent_sdq_pro.parquet")
 svy_percent_c00sum7s <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "c00sum7s", "cintwt", ind_id = 14003, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_chpa"))
 arrow::write_parquet(svy_percent_c00sum7s, "svy_percent_c00sum7s.parquet")
-svy_percent_ch00sum7 <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "ch00sum7", "cintwt", ind_id = 14012, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_chpa"))
+svy_percent_ch00sum7 <- calc_indicator_data(shes_child_data, "ch00sum7", "cintwt", ind_id = 14012, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_chpa_dashbd"))
 arrow::write_parquet(svy_percent_ch00sum7, "svy_percent_ch00sum7.parquet")
 svy_percent_spt1ch <- calc_indicator_data(shes_child_data[shes_child_data$age_group_chpa!="2 to 4y", ], "spt1ch", "cintwt", ind_id = 14006, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age_group_chpa"))
 arrow::write_parquet(svy_percent_spt1ch, "svy_percent_spt1ch.parquet")
@@ -281,11 +281,12 @@ setwd(here())
 # IF READING IN FROM FILE:
 #*set up the 'svy_results' variable to contain all the svy_ parquet files in the data directory
 svy_results <- list.files(path = here(derived_data, "shes_indicator_files"), pattern = "svy_.*\\.parquet$", recursive=TRUE, full.names=TRUE) 
-# should be 42 paths (i.e., representing 42 indicators) in svy_results (May 2026)
+# should be 43 paths in svy_results (June 2026)
+# (i.e., representing 41 indicators, as porftveg is still 2 separate files, as is children with parent GHQ score 4+)
 
 # Read in the files and join them
 shes_results0 <- lapply(svy_results, arrow::read_parquet) %>% #read all the files in and store in a list
-  bind_rows() # May 2026: n=1,169,918
+  bind_rows() # June 2026: n=1,172,588
 
 
 # # BUT IF ALL DATA ARE IN THE GLOBAL ENVIRONMENT:
@@ -304,7 +305,7 @@ shes_results0 <- arrow::read_parquet(paste0(derived_data, "shes_results0.parquet
 # porftvg3 and porftvg3intake: porftvg3 stops at 2019-23, so use porftvg3intake after this
 
 
-shes_results1 <- shes_results0 %>% #n=1,169,918
+shes_results1 <- shes_results0 %>% #n=1,172,588
   unique() %>% # get rid of duplicates. 
   mutate(indicator = ifelse(indicator=="porftvg3intake", "porftvg3", indicator)) %>% # harmonise the indicator name
   group_by(trend_axis, sex, code, ind_id, year, def_period, split_name, split_value) %>%
@@ -312,7 +313,7 @@ shes_results1 <- shes_results0 %>% #n=1,169,918
   ungroup() %>%
   filter(!(indicator=="ch_ghq" & count==2)) %>% # drop our derived data when there's cghq214 data available.
   mutate(indicator = ifelse(indicator=="ch_ghq", "cghq214", indicator)) %>% # harmonise the indicator name
-  select(-count) #n=1,169,770
+  select(-count) #n=1,172,440
 
 
 
@@ -345,21 +346,21 @@ drop_these_splits <- shes_results1 %>%
 
 
 # drop splits as identified above:
-shes_results1 <- shes_results1 %>% # 1,169,770 rows
+shes_results1 <- shes_results1 %>% # 1,172,440 rows
   mutate(area = substr(code, 1, 3)) %>%
   merge(y=drop_these_splits, by=c("area", "indicator", "split_name"), all.x=TRUE) %>%
-  filter(drop==0) %>% # now n=657,732
+  filter(drop==0) %>% # now n=657,735
   select(-c(area, areatype:drop)) 
 
 
 
 # drop splits by SIMD if they have data for fewer than three quintiles (+ total = 4)
-shes_results1 <- shes_results1 %>% # n=657,732
+shes_results1 <- shes_results1 %>% # n=657,735
   group_by(trend_axis, sex, indicator, ind_id, code, year, def_period, split_name) %>%
   mutate(count = n()) %>% # count all the values within each split, including the total
   ungroup() %>%
   filter(!(split_name=="Deprivation (SIMD)" & count<4)) %>% # case where e.g., and island board has 3 quintiles + a total
-  select(-count) # now 652,125
+  select(-count) # now 652,128
 
 # Suppress values where necessary:
 # SHeS suppress values where denominator (unweighted base) is <30
@@ -435,14 +436,14 @@ shes_raw_data <- shes_results1 %>%
                                 indicator == "ch00sum7" ~ "children_meet_pa_recs_excl_school",
                                 indicator == "spt1ch" ~ "children_participating_sport",
                                 indicator == "ch30plyg" ~ "children_active_play",
-                                indicator == "healthyweight" ~ "adult_healthy_weight",
+                                indicator == "healthyweight" ~ "healthy_weight",
                                 indicator == "foodinsecure" ~ "food_insecurity",
-                                indicator == "binge" ~ "alc_binge_drinking",
-                                indicator == "hazharmful" ~ "haz_or_harmful_drinker",
-                                indicator == "drating" ~ "alc_consumption_units",
-                                indicator == "cbmig5_new" ~ "child_obesity_risk",
+                                indicator == "binge" ~ "binge_drinking",
+                                indicator == "hazharmful" ~ "problem_drinker",
+                                indicator == "drating" ~ "weekly_alc_units",
+                                indicator == "cbmig5_new" ~ "child_obesity_risk", # not used subsequently, due to separate SHeS data extract at locality level
                                 indicator == "child_gen_helf" ~ "child_general_health",
-                                indicator == "child_limitill2" ~ "child_llti",
+                                indicator == "child_limitill2" ~ "cyp_llti",
                                 TRUE ~ as.character(NA)  )) %>% #shouldn't be any of these
   select(-denominator) 
 
