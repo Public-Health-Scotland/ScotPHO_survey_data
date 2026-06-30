@@ -454,6 +454,8 @@ shs_data <- extracted_survey_data_shs %>%
                              randage >= 65 ~ "65+", #Consider revisiting later and adding more granular groups
                              TRUE ~ as.character(randage))) %>% 
   rename(long_term_illness = rg5a) %>%
+  mutate(urban_rural = coalesce(shs_2cla, shs_2cla_11)) %>%
+  select(-shs_2cla, shs_2cla_11) %>%
   
   mutate(outdoor = recode(outdoor, !!!lookup_outdoor)) %>%
   mutate(sprt3aa = recode(sprt3aa, !!!lookup_sprt3aa)) %>%
@@ -461,7 +463,7 @@ shs_data <- extracted_survey_data_shs %>%
   mutate(serv3e = recode(serv3e, !!!lookup_serv3e)) %>%
   mutate(long_term_illness = recode(long_term_illness, !!!lookup_rg5a)) %>%
   mutate(anysportnowalk = recode(anysportnowalk, !!!lookup_anysportnowalk)) %>%
-  mutate(greenfar13 = recode(greenfar13, !!!lookup_greenfar13)) %>%
+  mutate(greenfar13 = recode(greenfar13, !!!lookup_greenfar13, .default = NA_character_)) %>%
   
   select(-contains(c("hlth", "rand", "pc15", "dec", "file", "quin", "cred")), -la_code, -md04quin, -council) %>% #drop if not needed
   merge(y = shs_design_effects, by.x="year", by.y="Year", all.x=TRUE) |> 
@@ -492,6 +494,7 @@ table(shs_data$sprt3aa, useNA = "always") # just yes, no and NA, so coding has w
 table(shs_data$anysportnowalk, useNA = "always") # just yes, no and NA, so coding has worked
 table(shs_data$long_term_illness, useNA = "always") # just yes, no and NA, so coding has worked
 table(shs_data$greenfar13, useNA = "always") # just yes, no and NA, so coding has worked
+table(shs_data$urban_rural, useNA = "always") # just urban and rural so coding has worked
 
 # # repeat the data with sex=="Total"
 shs_data <- shs_data %>%
@@ -503,7 +506,7 @@ shs_data2 <- shs_data %>%
          hb = paste0 ("NHS ", hb)) %>%
   mutate(la = gsub(" and ", " & ", la)) %>%
   mutate(new_Scotland = "Scotland") %>%
-  pivot_longer(cols = c("sex", "long_term_illness", "simd5", "age_grp"), names_to = "split_name", values_to = "split_value") |> #pivoting the 3x splits longer
+  pivot_longer(cols = c("sex", "long_term_illness", "simd5", "age_grp", "urban_rural"), names_to = "split_name", values_to = "split_value") |> #pivoting the 3x splits longer
   pivot_longer(cols = c("la", "hb", "new_Scotland"), names_to = "spatial.scale", values_to = "spatial.unit") #pivoting the areas longer
 
 #Add on sex totals
@@ -530,6 +533,12 @@ age_totals <- shs_data5 |>
   mutate(split_value = "All ages")
 
 shs_data6 <- bind_rows(shs_data5, age_totals)
+
+urban_rural_totals <- shs_data6 |> 
+  filter(split_name == "urban_rural") |> 
+  mutate(split_value = "Total")
+
+shs_data7 <- bind_rows(shs_data6, urban_rural_totals)
 
 #Checking whether bases look acceptable
 # shs_bases <- shs_data6 |>
@@ -569,18 +578,19 @@ shs_percent_analysis <- function (df, var, wt) {
     mutate(split_name = case_when(split_name == "long_term_illness" ~ "Long-term Illness (LTI)",
                                   split_name == "sex" ~ "Sex",
                                   split_name == "simd5" ~ "Deprivation",
-                                  split_name == "age_grp" ~ "Age Group"))
+                                  split_name == "age_grp" ~ "Age Group",
+                                  split_name == "urban_rural" ~ "Urban rural classification"))
   
 }
 
 
 # # Run the function:
-aggd_outdoor <- shs_percent_analysis(shs_data6, "outdoor", "ind_wt")
-aggd_anysportnowalk <- shs_percent_analysis(shs_data6, "anysportnowalk", "ind_wt")
-aggd_sprt3aa <- shs_percent_analysis(shs_data6, "sprt3aa", "ind_wt")
-aggd_serv3a <- shs_percent_analysis(shs_data6, "serv3a", "ind_wt")
-aggd_serv3e <- shs_percent_analysis(shs_data6, "serv3e", "ind_wt")
-aggd_greenfar13 <- shs_percent_analysis(shs_data6, "greenfar13", "ind_wt")
+aggd_outdoor <- shs_percent_analysis(shs_data7, "outdoor", "ind_wt")
+aggd_anysportnowalk <- shs_percent_analysis(shs_data7, "anysportnowalk", "ind_wt")
+aggd_sprt3aa <- shs_percent_analysis(shs_data7, "sprt3aa", "ind_wt")
+aggd_serv3a <- shs_percent_analysis(shs_data7, "serv3a", "ind_wt")
+aggd_serv3e <- shs_percent_analysis(shs_data7, "serv3e", "ind_wt")
+aggd_greenfar13 <- shs_percent_analysis(shs_data7, "greenfar13", "ind_wt")
 
 # # Get all the resulting dataframes and rbind them
 shs_results <- mget(ls(pattern = "^aggd_"), .GlobalEnv) %>%

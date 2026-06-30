@@ -26,6 +26,10 @@ vars_to_keep <- c(
   ##age (random adults only)
   "randage",
   
+  ##urban rural splits (2-cat urban/rural)
+  "shs_2cla",
+  "shs_2cla_11",
+  
   # spatial units
   "hlth06", #some years have 2 hb/la variables (usually code and name): need both because of some unclear coding from the data dictionary
   "hlth14",
