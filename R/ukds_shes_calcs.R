@@ -288,7 +288,7 @@ shes_results0 <- arrow::read_parquet(paste0(derived_data, "shes_results0.parquet
 #rm(list=ls(pattern="^svy_"))
 
 # Check out vars requiring it:
-# May 2025 = 
+# May 2026 = 
 # cghq214 (compare with ch_ghq): very close, use the official cghq214 var when available (2019, 2022, 2023 and 2024) and our derived var ch_ghq otherwise
 # porftvg3 and porftvg3intake: porftvg3 stops at 2019-23, so use porftvg3intake after this (this is what SHeS team do)
 
@@ -428,7 +428,7 @@ shes_raw_data <- shes_results1 %>%
                                 indicator == "foodinsecure" ~ "food_insecurity",
                                 indicator == "binge" ~ "binge_drinking",
                                 indicator == "hazharmful" ~ "problem_drinker",
-                                indicator == "drating" ~ "weekly_alc_units",
+                                indicator == "drinker_units" ~ "drinker_units",
                                 indicator == "child_gen_helf" ~ "child_general_health",
                                 indicator == "child_limitill2" ~ "cyp_llti",
                                 TRUE ~ as.character(NA)  )) %>% #shouldn't be any of these
