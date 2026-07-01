@@ -239,6 +239,7 @@ save_var_descriptions <- function (survey, name_pattern) {
 #' @return The dataframe is written to a rds file called "extracted_survey_data_", survey, ".rds" 
 #'
 #' @examples
+
 extract_survey_data <- function (survey, pa = FALSE, additional = NULL) {
   
   # Set the directory containing the data (assumes it is a folder within /conf/MHI_Data/big/big_mhi_data/unzipped/)
@@ -584,7 +585,6 @@ add_more_required_cols <- function(df, var, svy_result, variables, type) {
     "Error: type should be score or percent"
     
   }
-  
 }  
 
 
@@ -753,6 +753,30 @@ calc_indicator_data <- function (df, var, wt, ind_id, type, split_cols=NULL) {
       }
     }
   }
+    
+  # Now calculate for all other splits:
+  for (split in split_cols) {
+    
+    results <- run_splits(sex_df, var, wt, type, split)
+    assign(paste0("results_", split), results) # name it to differentiate from other results generated here, so it isn't overwritten
+    
+    # Lower geographies (currently just HB in SHeS data)
+    if (wt %in% c("intwt", "cintwt") ) { # variables with these SHeS weights can be analysed at lower geographies. 
+      
+      results <- run_splits(sex_df, var, wt, type, split, lowergeogs=TRUE) %>%
+        mutate(spatial.scale = "Health board") # (amend this if different geographies are possible/needed)
+      assign(paste0("results_hb_", split), results) # name it to differentiate from other results generated here, so it isn't overwritten
+      
+    }
+  }
+  
+  # rbind all the splits together  
+  results <- mget(ls(pattern = "^results_")) %>% # finds all the "results_" dataframes produced by this function
+    bind_rows(.) %>%
+    mutate(spatial.scale = ifelse(is.na(spatial.scale), "Scotland", spatial.scale),
+           spatial.unit = ifelse(is.na(spatial.unit), "Scotland", spatial.unit),
+           quintile = ifelse(split_name=="Deprivation (SIMD)", split_value, "Total")) #needed later?
+  rm(list=ls(pattern="^results_"))
   
   # 3. Results for all other splits:
   for (split in split_cols) {
