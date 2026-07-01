@@ -54,6 +54,7 @@ extract_var_desc <- function(file_loc, source_dir, encoding=NULL){
 #' @param file_loc Where the file is located, given `source_dir`
 #' @param source_dir A base directory. Combined with `file_loc` this locates the data file
 #' @param vars_to_keep List of variables to search for
+#' @param additional is used if there are some variables that can be captured by a regexp, e.g., the weights in SHeS. These are passed in the call to extract_survey_data like this: additional=`^int.*wt$|^cint.*wt$|^bio.*wt$|^vera.*wt$|^nurs.*wt$`
 #' @param verbose Logical, `TRUE` for messages while running
 #' @param encoding = NULL  
 #'
@@ -61,13 +62,13 @@ extract_var_desc <- function(file_loc, source_dir, encoding=NULL){
 #' @export
 #'
 #' @examples
-read_select <- function(file_loc, source_dir, vars_to_keep, 
+read_select <- function(file_loc, source_dir, vars_to_keep, additional=NULL,
                         verbose = FALSE, encoding=NULL){
   dta_full <-  read_and_clean_dta(file_loc, source_dir, encoding)
   
   dta_reduced <- dta_full %>% 
-    select(any_of(vars_to_keep))
-
+    select(any_of(vars_to_keep), any_of(matches(additional)))
+  
   if (verbose){
     message("data contains ", ncol(dta_full), " variables")
     message("searching for ", length(vars_to_keep), " variables")
@@ -157,7 +158,7 @@ save_var_descriptions <- function (survey, name_pattern) {
   source_dir <- paste0("/conf/MHI_Data/big/big_mhi_data/unzipped/", survey)  
   
   # Find all the stata files (extension .dta) in the source_dir. 'recursive' is used so that any subfolders within source_dir are checked.
-
+  
   if(survey=="unsoc"){
     # for understanding soc: we only want individual-level files (ind*), because there are loads of others
     dta_files <- list.files(source_dir, pattern = "indresp\\.dta$|indall\\.dta$", recursive = TRUE) 
@@ -233,11 +234,13 @@ save_var_descriptions <- function (survey, name_pattern) {
 #' Need to add other filenames if they are found to need different encoding too.
 #'
 #' @param survey One of aps/shs/shes/shcs/scjs/unsoc
-#'
+#' @param additional Optional, is used if there are some variables that can be captured by a regexp, e.g., the weights in SHeS. These are passed in the call to extract_survey_data like this: additional=`^int.*wt$|^cint.*wt$|^bio.*wt$|^vera.*wt$|^nurs.*wt$`
+
 #' @return The dataframe is written to a rds file called "extracted_survey_data_", survey, ".rds" 
 #'
 #' @examples
-extract_survey_data <- function (survey, pa = FALSE) {
+
+extract_survey_data <- function (survey, pa = FALSE, additional = NULL) {
   
   # Set the directory containing the data (assumes it is a folder within /conf/MHI_Data/big/big_mhi_data/unzipped/)
   
@@ -272,6 +275,7 @@ extract_survey_data <- function (survey, pa = FALSE) {
                  ~ read_select(.x, 
                                source_dir = source_dir, 
                                vars_to_keep = vars_to_keep,
+                               additional = ifelse(is.null(additional), NULL, additional),
                                encoding = encoding, 
                                verbose = FALSE) %>% 
                    mutate_if(~"haven_labelled" %in% class(.), as_factor))) %>% # this turns all labelled variables into factors
@@ -306,7 +310,7 @@ extract_responses <- function (survey, chars_to_exclude=NULL, pa = FALSE) {
   if(pa == TRUE){
     df <- readRDS(paste0("/conf/MHI_Data/derived data/extracted_survey_data_", survey, "_pa.rds"))
   }else{
-  df <- readRDS(paste0("/conf/MHI_Data/derived data/extracted_survey_data_", survey, ".rds"))}
+    df <- readRDS(paste0("/conf/MHI_Data/derived data/extracted_survey_data_", survey, ".rds"))}
   
   # Produce a df with var_name column for the variable name, and responses column containing a list of all recorded responses for that variable
   if(survey=="unsoc"){
@@ -354,7 +358,7 @@ extract_responses <- function (survey, chars_to_exclude=NULL, pa = FALSE) {
     rowwise() %>%
     pull(responses)
   names(responses_as_list) <- all_responses$var_name # add the variable names to the list
-
+  
   # Save this list
   write_rds(responses_as_list, paste0("/conf/MHI_Data/derived data/responses_as_list_", survey, ".rds"))
   
@@ -409,33 +413,6 @@ unzip_subdirs <- function(zipped_base, unzipped_base, files_to_unzip){
 }
 
 
-#' Function to coalesce two SIMD variables into a single one, called simd_combo, then remove original SIMD columns
-#'
-#' This is set up specifically to catch the only case of this occurring: in SHeS file for 2015-18
-#' @param df The input dataframe to be checked, and simd columns coalesced where necessary
-#'
-#' @return df in same format, with, if relevant, the simd_combo column added, and the original two simd columns removed
-#' @export
-#'
-#' @examples
-coalesce_simd <- function(df){
-  
-  if ("simd5_s_ga" %in% names(df) & "simd16_s_ga" %in% names(df)){
-    df %>%
-      mutate(simd5_s_ga = as.character(simd5_s_ga),
-             simd16_s_ga = as.character(simd16_s_ga)) %>%
-      mutate(simd5_s_ga = case_when(simd5_s_ga == "Not applicable" ~ as.character(NA),
-                                    simd5_s_ga == "2" ~ "2nd",
-                                    simd5_s_ga == "3" ~ "3rd",
-                                    simd5_s_ga == "4" ~ "4th",
-                                    TRUE ~ simd5_s_ga),
-             simd16_s_ga = case_when(simd16_s_ga == "Not applicable" ~ as.character(NA),
-                                     TRUE ~ simd16_s_ga)) %>%
-      mutate(simd_combo = coalesce(simd5_s_ga, simd16_s_ga)) %>%
-      select(-simd5_s_ga, -simd16_s_ga)
-  }
-  else {df}
-}
 
 
 ##########################################################################################
@@ -460,7 +437,27 @@ rnd4dp <- function(x) (trunc((x*10000)+sign((x*10000))*0.5))/10000
 # Functions to run the survey calcs (survey package) on the survey data, by various groupings
 ##########################################################################################
 # These functions prep the data and perform calculations for percentage and score indicators from a microdata file from a survey with a complex survey design.
-# Applies to SHeS and Understanding Society data
+# Applies to SHeS, SHoS, and Understanding Society data
+# calc_indicator_data <- function (df, var, wt, ind_id, type, split_cols)
+# test <- calc_indicator_data(df = shes_adult_data, var = "gh_qg2", wt = "intwt", ind_id = 30003, type= "percent") 
+# test2 <- calc_indicator_data(
+#   df=shes_adult_data
+#   var="lifesat2"
+#   wt="intwt"
+#   ind_id=30002
+#   type= "percent"
+#   split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7") 
+
+
+# Examples of these calcs, by survey:
+
+# Understanding Society calcs: 
+# Results by Scotland, quintile, sex
+# jobsec <- calc_indicator_data(unsoc_sex, "job_insecurity", "indinwt", ind_id=30055, type= "percent")  
+
+# Scottish Household Survey calcs:
+# Results by Scotland, HB, CA, quintile, sex
+# nhood_good_place <- calc_indicator_data(shs_data3, "nhood_good_place", "ind_wt", ind_id=30046, type="percent")
 
 
 # # Function to calculate the age-standardised weight (for the SHeS SIMD calcs)
@@ -471,20 +468,17 @@ rnd4dp <- function(x) (trunc((x*10000)+sign((x*10000))*0.5))/10000
 add_std_weight <- function (df, var, wt) {
   
   df <- df %>%
-    #rename(#svy_var = var,
-    #  svy_wt = wt) %>% # makes later calculations easier if starting variable and weight have standard name
-    # filter(nchar(year) == 2) %>% # keep only single year (national) data. No, using 4-year aggregated data now.
     group_by(trend_axis, agegp7, sex, quintile) %>%
-    mutate(numsxag = sum(.data[[wt]][!is.na(var)], na.rm=T)) %>% # sums the weights when there's a valid response for the survey variable
+    mutate(numsxag = sum(wt[!is.na(var)], na.rm=T)) %>% # sums the weights when there's a valid response for the survey variable
     ungroup() %>%
     group_by(trend_axis, sex, quintile) %>%
-    mutate(numsx = sum(.data[[wt]][!is.na(var)], na.rm=T)) %>% # sums the weights when there's a valid response for the survey variable
+    mutate(numsx = sum(wt[!is.na(var)], na.rm=T)) %>% # sums the weights when there's a valid response for the survey variable
     ungroup() %>%
     mutate(scaling = prop_pop * numsx/numsxag) %>% # a scaling factor to upweight or downweight any age groups that are under/over-represented in the valid responses
-    mutate(wt = .data[[wt]] * scaling) %>% # makes a new weight for the individual that incorporates the age-standardisation
+    mutate(wt = wt * scaling) %>% # makes a new weight for the individual that incorporates the age-standardisation
     filter(!is.na(wt)) %>%
     filter(var!="NA") %>%
-    select(year, trend_axis, var, wt, sex, quintile, spatial.unit, spatial.scale, psu, strata)
+    select(year, trend_axis, var, wt, sex, quintile, any_of(c("hb", "ca", "hscp", "adp", "pd")), psu, strata)
   
   df
   
@@ -496,28 +490,15 @@ add_std_weight <- function (df, var, wt) {
 # The groupings required are passed as a vector to 'variables' 
 # If the indicator is a % (type == "percent") then groupings with no positive cases are removed (not needed for score indicators)
 
-prep_df_for_svy_calc <- function(df, var, wt, variables, type) {
+prep_df_for_svy_calc <- function(df, var, wt, variables) {
   
-  svy_df <- df %>%
-    # rename the wt to "wt" if not renamed that already:
-    rename_with( ~ case_when(. == wt ~ "wt",
-                             . == var ~ "var",
-                             TRUE ~ .)) %>%
-    filter(!is.na(var)) %>%
-    filter(!is.na(wt)) %>%
+  
+  df <- df %>%
+    group_by(across(all_of(variables))) %>%
+    mutate(count_n = sum(var=="yes", na.rm=TRUE)) %>%
+    ungroup() %>%
+  #  filter(count_n>0) %>%  # drop groups where there's no cases (N but no n) (breaks the survey calc otherwise)(not anymore!)
     select(all_of(variables), var, wt, psu, strata)
-  
-  if(type == "percent") {
-    
-    svy_df <- svy_df %>%
-      group_by(across(all_of(variables))) %>%
-      mutate(count_n = sum(var=="yes", na.rm=TRUE)) %>%
-      ungroup() %>%
-      filter(count_n>0) %>%  # drop groups where there's no cases (N but no n) (breaks the survey calc otherwise)
-      select(all_of(variables), var, wt, psu, strata)
-  }
-  
-  svy_df
   
 }
 
@@ -576,7 +557,6 @@ run_svy_calc <- function(df, variables, var, type) {
 
 
 # Function to add numerators and denominators into the dataset
-# Also adds spatial.unit, spatial.scale and quintile columns
 
 add_more_required_cols <- function(df, var, svy_result, variables, type) {
   
@@ -585,19 +565,17 @@ add_more_required_cols <- function(df, var, svy_result, variables, type) {
   if (type == "percent") {
     
     results <- df %>%
-      filter(!is.na(var)) %>%
       group_by(across(all_of(variables))) %>%
-      summarize(numerator = sum(.data[[var]]=="yes", na.rm=TRUE),
-                denominator = sum(!is.na(.data[[var]]))) %>% # includes situations where no positive cases (these were dropped for the survey analysis, but need to be retained)
+      summarize(numerator = sum(var=="yes", na.rm=TRUE),
+                denominator = n()) %>% # includes situations where no positive cases (these were dropped for the survey analysis, but need to be retained)
       ungroup() %>%
       merge(y = svy_result, by = variables) 
     
   } else if (type == "score") {
     
     results <- df %>%
-      filter(!is.na(var)) %>%
       group_by(across(all_of(variables))) %>%
-      summarize(denominator = sum(!is.na(.data[[var]]))) %>% 
+      summarize(denominator = n()) %>% 
       ungroup() %>%
       mutate(numerator = as.numeric(NA)) %>%
       merge(y = svy_result, by = variables) 
@@ -607,7 +585,6 @@ add_more_required_cols <- function(df, var, svy_result, variables, type) {
     "Error: type should be score or percent"
     
   }
-
 }  
 
 
@@ -615,7 +592,11 @@ add_more_required_cols <- function(df, var, svy_result, variables, type) {
 
 calc_single_breakdown <- function (df, var, wt, variables, type) {
   
-  df1 <- prep_df_for_svy_calc(df, var, wt, variables, type)
+  if(type == "percent") {
+    df1 <- prep_df_for_svy_calc(df, var, wt, variables) 
+  } else {
+    df1 <- df
+  }
   df2 <- run_svy_calc(df1, variables, var, type)
   df3 <- add_more_required_cols(df, var, df2, variables, type)
   
@@ -626,70 +607,151 @@ run_splits <- function (df, var, wt, type, split, lowergeogs=NULL) {
   
   # split_name_lookup
   split_nm = ifelse(split=="sex", "Sex",
-                 ifelse(split=="quintile", "Deprivation (SIMD)",
-                    ifelse(split=="limitill", "Long-term Illness",
-                       ifelse(split %in% c("age65plus", "agegp", "age_group"), "Age group", "ERROR"))))
-
+                    ifelse(split=="quintile", "Deprivation (SIMD)",
+                           ifelse(split=="limitill_SPLIT", "Long-term Illness",
+                                  ifelse(split=="eqv5_15", "Income (equivalised)",
+                                         ifelse(split=="urban_rural", "Urban-Rural classification",
+                                                ifelse(split %in% c("age65plus", "agegp", "age_group", "age_group_sdq", "age_group_chpa", "agegp7", "age_group_ch_dashbd", "age_group_chpa_dashbd"), 
+                                                       "Age group", "ERROR"))))))
+  
+  # which geogs are in the data?
+  available_geogs <- get_geogs(df)
+  
   # add totals for this split (base df is the data with totals already added for sex)
   df <- add_totals(df, split)  # will add totals for this split, by duplicating the existing data 
-
-  # Adult SIMD calc only: adjust the weights for age-standardisation
+  
+  # Adult SHeS SIMD calc only: adjust the weights for age-standardisation
   if (split == "quintile" & "agegp7" %in% names(df)) { # For SHeS the adult data has agegroups, so that the SIMD calcs can be age-standardised
     df <- add_std_weight(df, var, wt) # adjust the weight to age-standardise the result
   }  
   
-  # restrict to totals for the splits apart from sex or SIMD
+  # restrict to sex==totals for the splits apart from sex or SIMD
   # this is done because we can't currently present 2 pop splits simultaneously (apart from on deprivation tab)
   if (!(split %in% c("sex", "quintile"))) { 
     df <- df %>% filter(sex=="Total") 
   }  
   
-  if (is.null(lowergeogs)) {
   
-    # run the survey calculation to produce the results
-    calc_single_breakdown(df, var, wt, variables = c("trend_axis", "sex", split), type) %>% # including sex even when all=Total, so it is included in output
-      mutate(split_name = split_nm) %>%
-      rename(split_value = split) # includes total
+  # run the survey calculation to produce the results
   
-    } else if(lowergeogs==TRUE) {
+  # Run for Scotland in all cases:
+  results <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "sex", split), type) %>% # including sex even when all=Total, so it is included in output
+    mutate(split_name = split_nm,
+           code = "S00000001") %>%
+    rename(split_value = split) # includes total
+  assign(paste0("results_scot_", split), results, envir = .GlobalEnv) # name it to differentiate from other 'results' generated here, so it isn't overwritten
+  
+  if(lowergeogs==TRUE) {
+    
+    for (geog in available_geogs) {
       
-    # run the survey calculation to produce the results
-      calc_single_breakdown(df, var, wt, variables = c("trend_axis", "sex", "spatial.unit", split), type) %>% 
+      df1 <- df %>%
+        # rename the geog column to "code" if not renamed that already:
+        rename_with( ~ case_when(. == geog ~ "code",
+                                 TRUE ~ .)) %>%
+        filter(!is.na(code))
+      
+      if (nrow(df1) > 0) {
+        
+      # run the survey calculation to produce the results
+      results <- calc_single_breakdown(df1, var, wt, variables = c("trend_axis", "sex", "code", split), type) %>% 
         mutate(split_name = split_nm) %>%
         rename(split_value = split) # includes total
+      assign(paste0("results_", geog, "_", split), results, envir = .GlobalEnv) # name it to differentiate from other 'results' generated here, so it isn't overwritten
+      }
+    }
   }
-  }
+}
 
 
 # Function to add totals for each split required
 add_totals <- function (df, split_col) {
-  df_copy <- df # make a copy of the data
-  df[[split_col]]="Total" # recode all of the values in the split column of interest to "Total"
-  df_new <- rbind(df, df_copy) # combine both: will duplicate the individuals in the df, once coded as their original group, and once coded as "Total"
+  
+  if("Total" %in% df[[split_col]]) { # catch cases where the column already includes Total, and do nothing to these
+    df_new <- df
+  } else {
+    df_copy <- df # make a copy of the data
+    df[[split_col]]="Total" # recode all of the values in the split column of interest to "Total"
+    df_new <- rbind(df, df_copy) # combine both: will duplicate the individuals in the df, once coded as their original group, and once coded as "Total"
+  }
+  df_new
+}
+
+get_geogs <- function(df) {
+   
+  # which geogs are in the data?
+  all_geogs <- c("hb", "ca", "hscp", "adp", "pd") # add any others needed from other surveys
+  available_geogs = intersect(names(df), all_geogs)
+ 
+}
+
+prep_data <- function(df, var, wt, split_cols=NULL) {
+  
+  # which geogs are in the data?
+  available_geogs <- get_geogs(df)
+  
+  # Prune and prep the data ready for the survey calculation.
+  df <- df %>%
+    # rename the wt to "wt" if not renamed that already:
+    rename_with( ~ case_when(. == wt ~ "wt",
+                             . == var ~ "var",
+                             TRUE ~ .)) %>%
+    filter(!is.na(var)) %>%
+    filter(!is.na(wt)) %>%
+    select(any_of(c(available_geogs, 
+                    "trend_axis", "year", "var", "wt", "psu", "strata", 
+                    "sex", "agegp7", "prop_pop", split_cols)))
+  
+  # add totals for sex column
+  df <- add_totals(df, "sex")  # will add totals for this split, by duplicating the existing data 
+  
   
 }
-  
-# Function for calling the required functions to produce Scotland, HB and SIMD data:
 
-calc_indicator_data <- function (df, var, wt, ind_id, type, split_cols) {
+# Function for calling the required functions to produce indicator data for Scotland (by sex), lower geographies, and various splits (including SIMD quintiles):
+# May 2026: used on the SHeS update. See data format in 
+# shes_adult_data <- arrow::read_parquet(paste0(derived_data, "shes_adult_data.parquet"))
+# e.g. function call = 
+# svy_percent_mus_rec <- calc_indicator_data(shes_adult_data, "mus_rec", "intwt", ind_id = 14001, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "age65plus"))
+
+calc_indicator_data <- function (df, var, wt, ind_id, type, split_cols=NULL) {
   
-  # First calculate the indicator values split by sex:
+  # DATA PREP
+  df <- prep_data(df, var, wt, split_cols)
+
+  # which geogs are in the data?
+  available_geogs <- get_geogs(df)
   
-  # Scotland by sex (default: this is run for all)
-  sex_df <- add_totals(df, "sex")
-  results_sex <- calc_single_breakdown(sex_df, var, wt, variables = c("trend_axis", "sex"), type) %>%
+  # CALCULATIONS
+  # First calculate the national indicator values: overall and split by sex:
+  
+  # 1. Scotland by sex (male, female, total)
+  results_sex <- calc_single_breakdown(df, var, wt, variables = c("trend_axis", "sex"), type) %>%
     mutate(split_name = "Sex",
-           split_value = sex) # includes total   
-
-  # HB by sex (will be run for any indicators that use specific main sample weights: currently intwt and cintwt in SHeS)
-  # Lower geographies (currently just HB in SHeS data)
-  if (wt %in% c("intwt", "cintwt") ) { # variables with these SHeS weights can be analysed at lower geographies.
-
-    results_hb_sex <- calc_single_breakdown(sex_df, var, wt, variables = c("trend_axis", "sex", "spatial.unit"), type) %>%
-      mutate(spatial.scale = "Health board", # (amend this if different geographies are needed)
-             split_name = "Sex",
-             split_value = sex) # includes total
-
+           split_value = sex,
+           code = "S00000001") 
+  assign("results_scot_sex", results_sex, envir = .GlobalEnv) # name it to differentiate from other results generated here, so it isn't overwritten
+  
+  
+  # 2. Lower geogs by sex (will be run for any indicators that use specific main sample weights: currently intwt and cintwt in SHeS, or ind_wt in SHoS)
+  if (wt %in% c("intwt", "cintwt", "intakewt", "ind_wt") ) { # variables with these SHeS weights (intwt, intakewt, and cintwt) and SHoS weight (ind_wt) can be analysed at lower geographies.
+    
+    for (geog in available_geogs) {
+      
+      df1 <- df %>%
+        # rename the geog column to "code" if not renamed that already:
+        rename_with( ~ case_when(. == geog ~ "code",
+                                 TRUE ~ .)) %>%
+        filter(!is.na(code))
+      
+      if (nrow(df1) > 0) {
+      # lower geog calcs by sex (male, female, total)
+      results_geog_sex <- calc_single_breakdown(df1, var, wt, variables = c("trend_axis", "sex", "code"), type) %>%
+        mutate(split_name = "Sex",
+               split_value = sex) 
+      assign(paste0("results_", geog, "_sex"), results_geog_sex, envir = .GlobalEnv) # name it to differentiate from other results generated here, so it isn't overwritten
+      }
+    }
   }
     
   # Now calculate for all other splits:
@@ -716,14 +778,32 @@ calc_indicator_data <- function (df, var, wt, ind_id, type, split_cols) {
            quintile = ifelse(split_name=="Deprivation (SIMD)", split_value, "Total")) #needed later?
   rm(list=ls(pattern="^results_"))
   
-  # Read in lookup for harmonising area names
-  geo_lookup <- readRDS(paste0(profiles_lookups, "/Geography/opt_geo_lookup.rds")) %>% 
-    select(!c(parent_area, areaname_full))
+  # 3. Results for all other splits:
+  for (split in split_cols) {
+    
+    # variables with these SHeS weights (intwt, intakewt, and cintwt) and SHoS weight (ind_wt) can be analysed at lower geographies.
+    if (wt %in% c("intwt", "cintwt", "intakewt", "ind_wt") ) {
+      
+      # run splits for Scotland + lower geographies 
+      run_splits(df, var, wt, type, split, lowergeogs=TRUE) 
+      
+    }
+    
+    else { 
+      
+      # run splits for Scotland only 
+      run_splits(df, var, wt, type, split, lowergeogs=FALSE)
+      
+    }
+  }
+  
+  # rbind all the splits together  
+  results <- mget(ls(pattern = "^results_", envir = .GlobalEnv), envir = .GlobalEnv) %>% # finds all the "results_" dataframes produced by this function and the functions it calls (as they all should be in the global env)
+    bind_rows(.) 
+  rm(list=ls(pattern="^results_", envir = .GlobalEnv), envir = .GlobalEnv) 
   
   results <- results %>%
     mutate(ind_id = ind_id) %>%
-    # add the geog codes, 
-    merge(y=geo_lookup, by.x=c("spatial.unit", "spatial.scale"), by.y=c("areaname", "areatype")) %>%
     # add year back in
     # Replicating the standard used elsewhere in ScotPHO: year = the midpoint of the year range, rounded up if decimal
     mutate(year = case_when(nchar(trend_axis)==4 ~ as.numeric(trend_axis), # single years
@@ -733,17 +813,16 @@ calc_indicator_data <- function (df, var, wt, ind_id, type, split_cols) {
     # add def_period
     mutate(def_period = case_when(nchar(trend_axis) == 4 ~ paste0("Survey year (", trend_axis, ")"),
                                   substr(trend_axis, 5, 5)=="/" ~ paste0("Survey year (", trend_axis, ")"),
-                                  nchar(trend_axis) > 7 ~ paste0("Aggregated survey years (", trend_axis, ")"))) 
-
-  # select required columns
-  # NB. Some splits will be suppressed after this stage.
-  results <- results %>%
-    select(indicator, ind_id, code, split_name, split_value, year, trend_axis, def_period, sex, quintile, numerator, denominator, rate, lowci, upci) %>%
+                                  nchar(trend_axis) > 7 ~ paste0("Aggregated survey years (", trend_axis, ")"))) %>%
+    # NB. Some splits will be suppressed after this stage.
     # arrange so the points plot in right order in QA stage
     arrange(ind_id, code, split_name, split_value, year, trend_axis)
   
 }
 
+
+
 ## END
 ##########################################################################################
 ##########################################################################################
+  
