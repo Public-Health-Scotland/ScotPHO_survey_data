@@ -412,22 +412,18 @@ la_hb_lut <- ca2011_la_name_hb2019name %>%
 # # Produce a flat file by unnesting the list column
 # # Consolidate and standardise the relevant vars
 # # Apply the variable codings
-# # Add in SHS design effects
-# 
-# # design effects from Scottish Household Survey team
-shs_design_effects <- read.xlsx("/conf/MHI_Data/big/big_mhi_data/unzipped/shs/SHoS design effects from SG.xlsx",
-                                sheet = "Design factors",
-                                colNames = TRUE) %>%
-  filter(!(Year %in% c("2021 v3s model", "2020 (televid v3 model)"))) %>% # these are for the housing data (not used here)
-  mutate(Year = case_when(Year == "1999/2000" ~ "19992000",
-                          Year == "2001/2002" ~ "0102",
-                          Year == "2003/2004" ~ "20032004",
-                          Year == "2005/2006" ~ "0506",
-                          Year == "2007/2008" ~ "0708",
-                          Year == "2009/2010" ~ "2009-2010",
-                          Year == "2021 v2 model" ~ "2021",
-                          Year == "2020 (televid v2 model)" ~ "2020",
-                          TRUE ~ Year))
+
+###################################
+### Add in Design Effects       ###
+###################################
+
+#When running a new year of data, find the design effect for that year and 
+#manually input into the file read in below
+#It should be found in the file "Scottish Household Survey Confidence Intervals" found at the URL below:
+#https://www.gov.scot/publications/scottish-household-survey-2024-methodology-and-fieldwork-outcomes/documents/
+
+shs_design_effects_2 <- read.csv("/conf/MHI_Data/big/big_mhi_data/unzipped/shs/SHoS Design Effects Formatted.csv")
+
 
 
 shs_data <- extracted_survey_data_shs %>%
