@@ -331,74 +331,16 @@ la_hb_lut <- ca2011_la_name_hb2019name %>%
   merge(y = la_code_to_council_code, by="la_code") %>%
   select(-la_code)
 
-# # Processing of these microdata before calculating indicator estimates:
-# # Produce a flat file by unnesting the list column
-# # Consolidate and standardise the relevant vars
-# # Apply the variable codings
-
-###################################
-### Add in Design Effects       ###
-###################################
-
-#When running a new year of data, find the design effect for that year and 
-#manually input into the file read in below
-#It should be found in the file "Scottish Household Survey Confidence Intervals" found at the URL below:
-#https://www.gov.scot/publications/scottish-household-survey-2024-methodology-and-fieldwork-outcomes/documents/
-
-shs_design_effects <- read.csv("/conf/MHI_Data/big/big_mhi_data/unzipped/shs/SHoS Design Effects Formatted.csv")
-
-
-
-shs_data <- extracted_survey_data_shs %>%
-  mutate(survey_data = map(survey_data, ~.x %>%
-                             mutate(across(.cols = everything(), as.character)))) %>% # to deal with some incompatible formats that mucked up the unnest()
-  unnest(cols = c(survey_data)) %>%
-  mutate(sex = coalesce(randsex, randgender)) %>%
-  mutate(across(c(ends_with("wt")), as.numeric)) %>%
-  mutate(md06quin = ifelse(year == "2011", as.character(NA), md06quin),
-         md09quin = ifelse(year == "2009-2010", as.character(NA), md09quin),
-         md12quin = ifelse(year %in% c("2017", "2018"), as.character(NA), md12quin)) %>%
-  mutate(simd5 = coalesce(md05quin, md06quin, md09quin, md12quin, md16quin, md20quin)) %>%
-  mutate(council = ifelse(!is.na(la), la, council)) %>%
-  select(-la) %>%
-  merge(y = la_hb_lut, by = "council") %>%
-  mutate(sex = case_when(sex %in% c("female", "Female",  "Woman/Girl") ~ "Female",
-                         sex %in% c("male", "Male", "Man/Boy") ~ "Male",
-                         is.na(sex) ~ "Total")) %>%
-  mutate(simd5 = case_when(simd5 %in% c("1 - 20% most deprived", "Most deprived 20% data zones", "most deprived 20% data zones") ~ "1",
-                           simd5 %in% c("5 - 20% least deprived", "Least deprived 20% data zones", "least deprived 20% data zones") ~ "5",
-                           TRUE ~ simd5)) %>%
-  mutate(randage = as.numeric(substr(randage, 1, 2)), #removing plus sign from 86+
-         age_grp = case_when(randage < 65 ~ "16-64", #recoding into 16-64 and 65+ due to different guidelines. 
-                             randage >= 65 ~ "65+", #Consider revisiting later and adding more granular groups
-                             TRUE ~ as.character(randage))) %>% 
-  rename(long_term_illness = rg5a) %>%
-  mutate(urban_rural = coalesce(shs_2cla, shs_2cla_11)) %>%
-  select(-shs_2cla, shs_2cla_11) %>%
-  
-  mutate(outdoor = recode(outdoor, !!!lookup_outdoor)) %>%
-  mutate(sprt3aa = recode(sprt3aa, !!!lookup_sprt3aa)) %>%
-  mutate(serv3a = recode(serv3a, !!!lookup_serv3a)) %>%
-  mutate(serv3e = recode(serv3e, !!!lookup_serv3e)) %>%
-  mutate(long_term_illness = recode(long_term_illness, !!!lookup_rg5a)) %>%
-  mutate(anysportnowalk = recode(anysportnowalk, !!!lookup_anysportnowalk)) %>%
-  mutate(greenfar13 = recode(greenfar13, !!!lookup_greenfar13, .default = NA_character_)) %>%
-  
-  select(-contains(c("hlth", "rand", "pc15", "dec", "file", "quin", "cred")), -la_code, -md04quin, -council) %>% #drop if not needed
-  merge(y = shs_design_effects, by.x="year", by.y="Year", all.x=TRUE) |> 
-  filter(year >= 2012) #none of my variables have data from before 2012 so getting rid of unneeded data
-#Some age rows were already NAs so during case_when refactoring cause NAs. 
-
-
-
 
 ###################################
 ### Unnest data frames          ###
 ###################################
 shs_data2 <- extracted_survey_data_shs |> 
   mutate(survey_data = map(survey_data, ~.x |> 
-                             mutate(across(.cols = everything(), as.character)))) |># to deal with some incompatible formats that mucked up the unnest()
-  unnest(cols = c(survey_data))
+                             mutate(across(.cols = everything(), as.character))),  # to deal with some incompatible formats that mucked up the unnest()
+         year = as.numeric(substr(year, 1, 4))) |> #keep first 4 digits of year to then convert to numeric. Needed as e.g. 2010-2011 can't be converted to numeric due to chr. 
+  filter(year >= 2012) |> #Filter to 2012 onwards as it's when PA module was introducted
+  unnest(cols = c(survey_data))  #unnest
 
 ###################################
 ### Apply variable recoding     ###
@@ -420,54 +362,56 @@ shs_data2 <- shs_data2 |>
   select(-value) |> #drop the old value for the response
   pivot_wider(names_from = variable, values_from = keep) |>  #pivot wider again so each variable has its own col
   
-#Coalesce some variables that have changed name over the years and are therefore in different columns
-  mutate(sex = coalesce(randsex, randgender)) |> #coalesce sex and gender
-  mutate(simd5 = coalesce(md05quin, md06quin, md09quin, md12quin, md16quin, md20quin)) |> #coalesce all simd quintile col names
-  mutate(urban_rural = coalesce(shs_2cla, shs_2cla_11)) #|>  #coalesce urban-rural categorisation
+  #Coalesce some variables that have changed name over the years and are therefore in different columns
+  mutate(sex = coalesce(randsex, randgender), #coalesce sex and gender
+         simd5 = coalesce(md12quin, md16quin, md20quin), #coalesce all simd quintile col names
+         urban_rural = coalesce(shs_2cla, shs_2cla_11)) |>  #coalesce urban-rural classification
   
+  #Recode some split variables
+  mutate(sex = case_when(sex %in% c("female", "woman/girl") ~ "Female",
+                         sex %in% c("male", "man/boy") ~ "Male",
+                         TRUE ~ NA_character_), #harmonising variables in sex and gender
+         randage = as.numeric(substr(randage, 1, 2)), #removing plus sign from 86+
+         age_grp = case_when(randage < 65 ~ "16-64",
+                             randage >= 65 ~ "65+",
+                             TRUE ~ NA_character_), #creating a split on working age/older adults as different exercise guidelines for each
+         rg5a = case_when(rg5a == "yes" ~ "Long-term illness",
+                          rg5a == "no" ~ "No long-term illness",
+                          TRUE ~ NA_character_)) |> 
+  
+  #Tidy up some variables
+  rename(long_term_illness = rg5a) |> 
+  mutate(across(ends_with("wt"), as.numeric)) |> #convert weights to numeric
+  mutate(council = ifelse(!is.na(la), la, council)) |>  #replace the value in council with the value in la if it's there
+  
+  #Merge in the HB lookup table
+  merge(y = la_hb_lut, by = "council") |> 
+  
+  #Select final variables
+  select(year, long_term_illness, ind_wt, all_of(vars), sex, simd5, urban_rural, age_grp, hb) #vars being vector of indicator variables specified above
+
+###################################
+### Apply Design Effects       ###
+###################################
+
+#When running a new year of data, find the design effect for that year and 
+#manually input into the file read in below
+#It should be found in the file "Scottish Household Survey Confidence Intervals" found at the URL below:
+#https://www.gov.scot/publications/scottish-household-survey-2024-methodology-and-fieldwork-outcomes/documents/
+
+shs_design_effects <- read.csv("/conf/MHI_Data/big/big_mhi_data/unzipped/shs/SHoS Design Effects Formatted.csv")
+
+shs_data2 <- shs_data2 |> 
+  merge(y = shs_design_effects, by.x = "year", by.y = "Year", all.x = TRUE)
 
 
-
-  
-  mutate(across(c(ends_with("wt")), as.numeric)) %>%
-  mutate(md06quin = ifelse(year == "2011", as.character(NA), md06quin),
-         md09quin = ifelse(year == "2009-2010", as.character(NA), md09quin),
-         md12quin = ifelse(year %in% c("2017", "2018"), as.character(NA), md12quin)) %>%
-
-  mutate(council = ifelse(!is.na(la), la, council)) %>%
-  select(-la) %>%
-  merge(y = la_hb_lut, by = "council") %>%
-  mutate(sex = case_when(sex %in% c("female", "Female",  "Woman/Girl") ~ "Female",
-                         sex %in% c("male", "Male", "Man/Boy") ~ "Male",
-                         is.na(sex) ~ "Total")) %>%
-  mutate(simd5 = case_when(simd5 %in% c("1 - 20% most deprived", "Most deprived 20% data zones", "most deprived 20% data zones") ~ "1",
-                           simd5 %in% c("5 - 20% least deprived", "Least deprived 20% data zones", "least deprived 20% data zones") ~ "5",
-                           TRUE ~ simd5)) %>%
-  mutate(randage = as.numeric(substr(randage, 1, 2)), #removing plus sign from 86+
-         age_grp = case_when(randage < 65 ~ "16-64", #recoding into 16-64 and 65+ due to different guidelines. 
-                             randage >= 65 ~ "65+", #Consider revisiting later and adding more granular groups
-                             TRUE ~ as.character(randage))) %>% 
-  rename(long_term_illness = rg5a) %>%
-  
-  select(-shs_2cla, shs_2cla_11) %>%
-  mutate(long_term_illness = recode(long_term_illness, !!!lookup_rg5a)) |> 
-  
-  
-  select(-contains(c("hlth", "rand", "pc15", "dec", "file", "quin", "cred")), -la_code, -md04quin, -council) %>% #drop if not needed
-  merge(y = shs_design_effects, by.x="year", by.y="Year", all.x=TRUE) |> 
-  filter(year >= 2012) #none of my variables have data from before 2012 so getting rid of unneeded data
-#Some age rows were already NAs so during case_when refactoring cause NAs. 
-
+################################################################################
 # # save a uniqidnew lookup for use in SHCS analysis
 uniqidnew_lut <- shs_data %>%
   select(year, uniqidnew, #la_wt, ind_wt,
          simd5#, la, hb, Design.Factor
   ) %>%
   filter(!is.na(uniqidnew)) # halves the number of rows...
-
-
-
-
 
 # # save the file
 saveRDS(uniqidnew_lut, paste0(derived_data, "uniqidnew_lut_pa.rds"))
