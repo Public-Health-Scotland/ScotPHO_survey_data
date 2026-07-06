@@ -135,56 +135,12 @@ shs_years_vars <- extracted_survey_data_shs %>%
   mutate(value=1) %>%
   pivot_wider(names_from=var_label, values_from = value)
 
-# # Geography codes: 
-# 
-# # Geographies are a mess in these data (see the possible codings printed out above).
-# # There should be 32 codes for LA/council, and 14 for health boards, but in reality:
-# 
-# # council: 123 unique, mix of names, numbers and letters. Massive jumble. 
-# # la = 32 unique, letters and numbers (1 to Z)
-# # la_code = 32 unique (correct), all S120000xx codes, from S12000005 to S12000046 (some numbers not used) 
-# 
-# # hlth06 = 29 unique, but all text, so could be standardised
-# # hlth14 = 29 unique, mix of S08 codes and numbers, and numbers don't correspond to the codes. 
-# # hlthbd2014 = 16 unique S08 codes, from S08000015 to S08000030
-# # hlth19 = 14 unique numbers, 2 to 17
-# # hlthbd2019 = 14 unique S080000xx codes.
-
-# # Most straightforward approach to consolidating and standardising codes and names: (I tried a lot)
-la_code_to_council_code <- extracted_survey_data_shs %>%
-  filter(year=="2016") %>%
-  select(survey_data) %>%
-  unnest(cols = c(survey_data)) %>%
-  group_by(la_code, council) %>%
-  summarise() %>%
-  ungroup()
-# 32 obs, so correct.
-# council =  1 to Z here,
-# la_code = S12000005 to S12000046. Corresponds to CA2011 codes (found this in the datazone lookup here:
-dz2011_lut <- read_csv("/conf/linkage/output/lookups/Unicode/Geography/DataZone2011/Datazone2011lookup.csv")
-#arrow::write_parquet(dz2011_lut, paste0(derived_data, "dz2011_lut.parquet"))
-# read in from here if don't have access to the stats box lookups:
-#dz2011_lut <- arrow::read_parquet(paste0(derived_data, "dz2011_lut.parquet"))
-
-# # make a LUT for council and HB names, based on 2011 CA codes (S12000005 to S12000046)
-ca2011_la_name_hb2019name <- dz2011_lut %>%
-  group_by(LA_Name, CA2011, hb2019name) %>%
-  summarise() %>%
-  ungroup() %>%
-  rename(la_code = CA2011, # S12000005 to S12000046
-         la = LA_Name,
-         hb = hb2019name)
-
-# # combine:
-la_hb_lut <- ca2011_la_name_hb2019name %>%
-  merge(y = la_code_to_council_code, by="la_code") %>%
-  select(-la_code)
 
 
 ###################################
 ### Unnest data frames          ###
 ###################################
-shs_data2 <- extracted_survey_data_shs |> 
+shs_data <- extracted_survey_data_shs |> 
   mutate(survey_data = map(survey_data, ~.x |> 
                              mutate(across(.cols = everything(), as.character))),  # to deal with some incompatible formats that mucked up the unnest()
          year = as.numeric(substr(year, 1, 4))) |> #keep first 4 digits of year to then convert to numeric. Needed as e.g. 2010-2011 can't be converted to numeric due to chr. 
@@ -198,13 +154,13 @@ shs_data2 <- extracted_survey_data_shs |>
 #Read in lookup table which shows how survey responses should be converted to TRUE/FALSE to calculate percentages
 variable_recode_lookup <- read.csv("/conf/MHI_Data/big/big_mhi_data/unzipped/shs/variable_recoding_table_SHS_PA.csv") 
 
-shs_data2 <- shs_data2 |> 
+shs_data <- shs_data |> 
   mutate(across(where(is.character), ~ stringr::str_to_lower(.x))) #convert all character cols to lower case to save fiddling with variations in case in responses between years
 
 #Next apply lookups to all indicator variables
 vars <- unique(variable_recode_lookup$variable) #get a vector of all variables that need recoding
 
-shs_data2 <- shs_data2 |> 
+shs_data <- shs_data |> 
   mutate(rowid = row_number()) |> #create a row id column to keep track of the different survey responses for each variable when pivoting 
   tidyr::pivot_longer(cols = all_of(vars), names_to = "variable", values_to = "value") |> #pivoting longer to get all recoded variables into a col, to compare against lookup 
   left_join(variable_recode_lookup, by = c("variable", "value")) |> #join the recode lookup to the data
@@ -231,13 +187,23 @@ shs_data2 <- shs_data2 |>
   #Tidy up some variables
   rename(long_term_illness = rg5a) |> 
   mutate(across(ends_with("wt"), as.numeric)) |> #convert weights to numeric
-  mutate(council = ifelse(!is.na(la), la, council)) |>  #replace the value in council with the value in la if it's there
+  mutate(council = ifelse(!is.na(la), la, council))  #replace the value in council with the value in la if it's there
   
-  #Merge in the HB lookup table
-  merge(y = la_hb_lut, by = "council") |> 
-  
+
+###################################
+### Harmonise Geography Names   ###
+###################################
+
+#Read in lookup for all the various geography name columns
+geog_lookup <- readRDS(file.path("/conf/MHI_Data/big/big_mhi_data/unzipped/shs/SHoS_CA_HB_lookup.rds"))
+
+shs_data <- shs_data |> 
+  mutate(la_code = str_to_title(la_code),
+         la = str_to_title(la)) |> #re-capitalise the S in the S-code to match lookup and same for alphanumeric la code
+  merge(geog_lookup, by = c("council", "la_code")) |>    #join lookup
+
   #Select final variables
-  select(year, long_term_illness, ind_wt, all_of(vars), sex, simd5, urban_rural, age_grp, hb) #vars being vector of indicator variables specified above
+  select(year, long_term_illness, ind_wt, all_of(vars), sex, simd5, urban_rural, age_grp, hb_code, la_code) #vars being vector of indicator variables specified above
 
 ###################################
 ### Apply Design Effects       ###
@@ -250,7 +216,7 @@ shs_data2 <- shs_data2 |>
 
 shs_design_effects <- read.csv("/conf/MHI_Data/big/big_mhi_data/unzipped/shs/SHoS Design Effects Formatted.csv")
 
-shs_data2 <- shs_data2 |> 
+shs_data <- shs_data |> 
   merge(y = shs_design_effects, by.x = "year", by.y = "Year", all.x = TRUE)
 
 
@@ -259,8 +225,6 @@ shs_data2 <- shs_data2 |>
 table(shs_data$sex, useNA = "always") # Female/Male/Total
 table(shs_data$age_grp, useNA = "always") # 16-86+, 7442 NAs. Assume some people refused to say
 table(shs_data$simd5, useNA = "always") # 5 classes, plus a small number of NA
-table(shs_data$hb, useNA = "always") # standard names, no NAs
-table(shs_data$la, useNA = "always") # standard names, no NAs
 table(shs_data$outdoor, useNA = "always") # just yes, no and NA, so coding has worked
 table(shs_data$serv3a, useNA = "always")# just yes, no and NA, so coding has worked
 table(shs_data$serv3e, useNA = "always")# just yes, no and NA, so coding has worked
@@ -269,10 +233,23 @@ table(shs_data$anysportnowalk, useNA = "always") # just yes, no and NA, so codin
 table(shs_data$long_term_illness, useNA = "always") # just yes, no and NA, so coding has worked
 table(shs_data$greenfar13, useNA = "always") # just yes, no and NA, so coding has worked
 table(shs_data$urban_rural, useNA = "always") # just urban and rural so coding has worked
+table(shs_data$urban_rural, useNA = "always") # just urban and rural so coding has worked
+table(shs_data$la_code, useNA = "always")
 
-# # repeat the data with sex=="Total"
-shs_data <- shs_data %>%
-  filter(sex!="Total") #remove those that were total in the first place
+
+
+
+###################################
+### Append Split Totals         ###
+###################################
+
+#Create a helper function which filters on each split and then appends the data back on to get the total
+append_split_total <- function(data, split_name){
+  data <- data |> filter()
+}
+
+
+
 
 # # make long by geographical scale, to make aggregating and analysing easier:
 shs_data2 <- shs_data %>%
