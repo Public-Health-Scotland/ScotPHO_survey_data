@@ -144,7 +144,7 @@ shs_data <- extracted_survey_data_shs |>
   mutate(survey_data = map(survey_data, ~.x |> 
                              mutate(across(.cols = everything(), as.character))),  # to deal with some incompatible formats that mucked up the unnest()
          year = as.numeric(substr(year, 1, 4))) |> #keep first 4 digits of year to then convert to numeric. Needed as e.g. 2010-2011 can't be converted to numeric due to chr. 
-  filter(year >= 2012) |> #Filter to 2012 onwards as it's when PA module was introducted
+  filter(year >= 2012) |> #Filter to 2012 onwards as it's when PA module was introduced
   unnest(cols = c(survey_data))  #unnest
 
 ###################################
@@ -186,9 +186,7 @@ shs_data <- shs_data |>
   
   #Tidy up some variables
   rename(long_term_illness = rg5a) |> 
-  mutate(across(ends_with("wt"), as.numeric)) |> #convert weights to numeric
-  mutate(council = ifelse(!is.na(la), la, council))  #replace the value in council with the value in la if it's there
-  
+  mutate(across(ends_with("wt"), as.numeric))  #convert weights to numeric
 
 ###################################
 ### Harmonise Geography Names   ###
@@ -198,9 +196,10 @@ shs_data <- shs_data |>
 geog_lookup <- readRDS(file.path("/conf/MHI_Data/big/big_mhi_data/unzipped/shs/SHoS_CA_HB_lookup.rds"))
 
 shs_data <- shs_data |> 
-  mutate(la_code = str_to_title(la_code),
-         la = str_to_title(la)) |> #re-capitalise the S in the S-code to match lookup and same for alphanumeric la code
-  merge(geog_lookup, by = c("council", "la_code")) |>    #join lookup
+  mutate(council = ifelse(!is.na(la), la, council),   #replace the value in council with the value in la if it's ther
+         council = str_to_title(council)) |> #re-capitalise the S in the S-code to match lookup and same for alphanumeric la code
+  select(-la_code) |> #drop because interferes with lookup
+  merge(geog_lookup, by = c("council")) |>    #join lookup
 
   #Select final variables
   select(year, long_term_illness, ind_wt, all_of(vars), sex, simd5, urban_rural, age_grp, hb_code, la_code) #vars being vector of indicator variables specified above
@@ -234,8 +233,7 @@ table(shs_data$long_term_illness, useNA = "always") # just yes, no and NA, so co
 table(shs_data$greenfar13, useNA = "always") # just yes, no and NA, so coding has worked
 table(shs_data$urban_rural, useNA = "always") # just urban and rural so coding has worked
 table(shs_data$urban_rural, useNA = "always") # just urban and rural so coding has worked
-table(shs_data$la_code, useNA = "always")
-
+table(shs_data$hb_code, useNA = "always")
 
 
 
@@ -243,53 +241,31 @@ table(shs_data$la_code, useNA = "always")
 ### Append Split Totals         ###
 ###################################
 
+#First need to pivot longer to create 2 cols for split names and values
+#and 2 cols for geography type and geography name
+shs_data <- shs_data |> 
+  mutate(scotland = "S00000001") |> 
+  pivot_longer(cols = c("sex", "long_term_illness", "simd5", "age_grp", "urban_rural"), names_to = "split_name", values_to = "split_value") |> 
+  pivot_longer(cols = c(la_code, hb_code, scotland), names_to = "spatial.scale", values_to = "spatial.unit") #pivoting the areas longer
+
 #Create a helper function which filters on each split and then appends the data back on to get the total
-append_split_total <- function(data, split_name){
-  data <- data |> filter()
+#Takes the name of the split and what the total value is to be called
+
+append_split_total <- function(data, split_name, split_value){
+  data_split <- data |> 
+    filter(split_name == split_name) |> #filter on name of split
+    mutate(split_value == split_value) #apply total name e.g. Total, All ages etc
+  
+  bind_rows(data, data_split) #Join split off totals to main df
 }
 
-
-
-
-# # make long by geographical scale, to make aggregating and analysing easier:
-shs_data2 <- shs_data %>%
-  mutate(hb = gsub(" and ", " & ", hb), # get areanames right for merging into lut
-         hb = paste0 ("NHS ", hb)) %>%
-  mutate(la = gsub(" and ", " & ", la)) %>%
-  mutate(new_Scotland = "Scotland") %>%
-  pivot_longer(cols = c("sex", "long_term_illness", "simd5", "age_grp", "urban_rural"), names_to = "split_name", values_to = "split_value") |> #pivoting the 3x splits longer
-  pivot_longer(cols = c("la", "hb", "new_Scotland"), names_to = "spatial.scale", values_to = "spatial.unit") #pivoting the areas longer
-
-#Add on sex totals
-sex_totals <- shs_data2 |> 
-  filter(split_name == "sex") |> 
-  mutate(split_value = "Total")
-
-shs_data3 <- bind_rows(shs_data2, sex_totals)
-
-lti_totals <- shs_data3 |> 
-  filter(split_name == "long_term_illness") |> 
-  mutate(split_value = "Total")
-
-shs_data4 <- bind_rows(shs_data3, lti_totals)
-
-simd_totals <- shs_data4 |> 
-  filter(split_name == "simd5") |> 
-  mutate(split_value = "Total") 
-
-shs_data5 <- bind_rows(shs_data4, simd_totals)
-
-age_totals <- shs_data5 |> 
-  filter(split_name == "age_grp") |> 
-  mutate(split_value = "All ages")
-
-shs_data6 <- bind_rows(shs_data5, age_totals)
-
-urban_rural_totals <- shs_data6 |> 
-  filter(split_name == "urban_rural") |> 
-  mutate(split_value = "Total")
-
-shs_data7 <- bind_rows(shs_data6, urban_rural_totals)
+#Apply function for each split name
+shs_data2 <- shs_data |> 
+  append_split_total(split_name = sex, split_value = Total) |> 
+  append_split_total(split_name = long_term_illness, split_value = Total) |> 
+  append_split_total(split_name = simd5, split_value = Total) |> 
+  append_split_total(split_name = age_grp, split_value = "All ages") |> 
+  append_split_total(split_name = urban_rural, split_value = Total)
 
 #Checking whether bases look acceptable
 # shs_bases <- shs_data6 |>
