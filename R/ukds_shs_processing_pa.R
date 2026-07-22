@@ -450,7 +450,7 @@ shs_data <- extracted_survey_data_shs_pa %>%
 
 # # data checks
 table(shs_data$sex, useNA = "always") # Female/Male/Total
-table(shs_data$age_grp, useNA = "always") # 16-86+, 7442 NAs. Assume some people refused to say
+table(shs_data$age_grp, useNA = "always") # 16-86+, 7442 NAs. Assume some people refused to say (No: this occurs for the household-level vars (sex=Total), but I think all your vars are individual-level)
 table(shs_data$simd5, useNA = "always") # 5 classes, plus a small number of NA
 table(shs_data$hb, useNA = "always") # standard names, no NAs
 table(shs_data$la, useNA = "always") # standard names, no NAs
@@ -463,9 +463,16 @@ table(shs_data$long_term_illness, useNA = "always") # just yes, no and NA, so co
 table(shs_data$greenfar13, useNA = "always") # just yes, no and NA, so coding has worked
 table(shs_data$urban_rural, useNA = "always") # just urban and rural so coding has worked
 
-# # repeat the data with sex=="Total"
+
+# # remove the data with sex=="Total" (ER: there's a single row with indicator data (sprt and serv vars) for sex==Total but this will be a sex mis-coding I think. All other sex=Total rows have no data, as sex is only provided for individual-level vars, which all of yours are)
 shs_data <- shs_data %>%
-  filter(sex!="Total") #remove those that were total in the first place
+  filter(sex!="Total") #remove those that were total in the first place 
+
+# # Add sex==Total
+shs_data <- shs_data %>%
+  mutate(sex = "Total") %>%
+  rbind(shs_data)
+
 
 # # make long by geographical scale, to make aggregating and analysing easier:
 shs_data2 <- shs_data %>%
@@ -473,47 +480,25 @@ shs_data2 <- shs_data %>%
          hb = paste0 ("NHS ", hb)) %>%
   mutate(la = gsub(" and ", " & ", la)) %>%
   mutate(new_Scotland = "Scotland") %>%
+  mutate(sex2 = sex) %>% # keep a sex column for every record (tho currently can only present SIMD x sex)
   pivot_longer(cols = c("sex", "long_term_illness", "simd5", "age_grp", "urban_rural"), names_to = "split_name", values_to = "split_value") |> #pivoting the 3x splits longer
-  pivot_longer(cols = c("la", "hb", "new_Scotland"), names_to = "spatial.scale", values_to = "spatial.unit") #pivoting the areas longer
+  pivot_longer(cols = c("la", "hb", "new_Scotland"), names_to = "spatial.scale", values_to = "spatial.unit") %>% #pivoting the areas longer
+  filter(!is.na(split_value))
 
-#Add on sex totals
-sex_totals <- shs_data2 |> 
-  filter(split_name == "sex") |> 
-  mutate(split_value = "Total")
-
-shs_data3 <- bind_rows(shs_data2, sex_totals)
-
-lti_totals <- shs_data3 |> 
-  filter(split_name == "long_term_illness") |> 
-  mutate(split_value = "Total")
-
-shs_data4 <- bind_rows(shs_data3, lti_totals)
-
-simd_totals <- shs_data4 |> 
-  filter(split_name == "simd5") |> 
-  mutate(split_value = "Total") 
-
-shs_data5 <- bind_rows(shs_data4, simd_totals)
-
-age_totals <- shs_data5 |> 
-  filter(split_name == "age_grp") |> 
-  mutate(split_value = "All ages")
-
-shs_data6 <- bind_rows(shs_data5, age_totals)
-
-urban_rural_totals <- shs_data6 |> 
-  filter(split_name == "urban_rural") |> 
-  mutate(split_value = "Total")
-
-shs_data7 <- bind_rows(shs_data6, urban_rural_totals)
+# # Add totals for non-sex splits
+shs_data3 <- shs_data2 %>%
+  filter(!split_name=="sex") %>%
+  mutate(split_value = ifelse(split_name=="age_grp", "All ages", "Total")) %>%
+  rbind(shs_data2)
 
 #Checking whether bases look acceptable
-# shs_bases <- shs_data6 |>
-#   filter(split_name == "sex") |>
-#   filter(split_value == "Total" | is.na(split_name)) |>
-#   group_by(spatial.scale, spatial.unit, year) |>
-#   mutate(base = n()) |>
-#   ungroup()
+shs_bases <- shs_data2 |>
+  filter(split_name == "sex") |>
+  filter(split_value == "Total") |> 
+  group_by(spatial.scale, spatial.unit, year) |>
+  summarise(base = n()) |>
+  ungroup()
+
 
 # # Function to aggregate the data for a single variable, with weightings and complex survey design effects applied
 shs_percent_analysis <- function (df, var, wt) {
@@ -570,6 +555,7 @@ shs_results <- mget(ls(pattern = "^aggd_"), .GlobalEnv) %>%
 
 
 write.csv(shs_results, "/PHI_conf/ScotPHO/Profiles/Data/Received Data/Physical Activity/Scottish Household Survey/SHoS_PA.csv", row.names = F)
+#write.csv(shs_results, "/PHI_conf/ScotPHO/Profiles/Data/Received Data/Physical Activity/Scottish Household Survey/SHoS_PA_lizcheck.csv", row.names = F)
 
 
 table(shs_results$split_name, shs_results$split_value, useNA="always") # confirms this has worked
