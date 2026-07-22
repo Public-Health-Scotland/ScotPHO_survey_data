@@ -54,7 +54,7 @@ lookup_auditg <- list(
   "8 or more (hazardous / harmful drinking)"="yes" 
 )
 
-# Healthy weight (for bmivg5, bmivg5_adj, combmivg5_adj)
+# Healthy weight (for bmivg5, bmivg5_adj, combmivg5_adj, bm_ivg5)
 lookup_healthyweight <- list(
   "18.5 to less than 25"="yes",
   "Under 18.5" ="no",              
@@ -65,6 +65,7 @@ lookup_healthyweight <- list(
   "30 to less than 40" ="no",      
   "Over 40" ="no",                 
   "40 and over"="no"   )
+
 
 # For recoding child PA (c00sum7s)
 lookup_childpa1hr <- list(
