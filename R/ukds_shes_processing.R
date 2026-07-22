@@ -630,6 +630,23 @@ shes_data <- shes_data %>%
   mutate(across(c("ca", "hb", "adp", "hscp", "pd"), ~ case_when(nchar(trend_axis)==4 ~ as.character(NA),
                                                                 TRUE ~ .x)))
 
+# temporary step: add bmivg5 for 2021-24 as missed from UKDS data (provided by SHeS team)
+shes_21222324_bmivg5 <- read_csv("/PHI_conf/ScotPHO/Profiles/Data/Received Data/Scottish Health Survey/shes_21222324_bmivg5.csv") %>%
+  mutate(trend_axis="2021-2024") %>%
+  rename(indserial = CPSerialA) %>%
+  mutate(healthywt = case_when(BMIvg5_4yr == 2 ~ "yes", # BMI = "18.5 to less than 25" (coding provided by SHeS team)
+                                BMIvg5_4yr %in% c(1, 3, 4, 5) ~ "no", # other valid BMIs
+                                TRUE ~ as.character(NA))) %>% 
+  select(-syear, -BMIvg5_4yr)
+  
+shes_data <- shes_data %>%
+  merge(y=shes_21222324_bmivg5, by=c("indserial", "trend_axis"), all.x=TRUE) %>%
+  mutate(healthyweight = ifelse(is.na(healthyweight), healthywt, healthyweight)) %>%
+  select(-healthywt)
+
+
+
+
 # save intermediate df:
 #arrow::write_parquet(shes_data, paste0(derived_data, "shes_data.parquet"))
 # read back in if not in memory:
