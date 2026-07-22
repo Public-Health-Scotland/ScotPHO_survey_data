@@ -324,28 +324,6 @@ lookup_greenfar13 <- list(
   "More than a 30 minute walk away" = "no"
 )
 
-# Create a LUT for a person's uniqid to SIMD for the SHCS processing
-# =================================================================================================================
-
-# SIMD codes
-
-# make a uniqidnew to SIMD quintile lookup, for use in SHCS processing:
-uniqidnew_lut <- extracted_survey_data_shs %>%
-  mutate(survey_data = map(survey_data, ~.x %>%
-                             mutate(across(.cols = everything(), as.character)))) %>% # to deal with some incompatible formats that mucked up the unnest()
-  unnest(cols = c(survey_data)) %>%
-  mutate(md06quin = ifelse(year == "2011", as.character(NA), md06quin),
-         md09quin = ifelse(year == "2009-2010", as.character(NA), md09quin),
-         md12quin = ifelse(year %in% c("2017", "2018"), as.character(NA), md12quin)) %>%
-  mutate(simd5 = coalesce(md05quin, md06quin, md09quin, md12quin, md16quin, md20quin)) %>%
-  mutate(simd5 = case_when(simd5 %in% c("1 - 20% most deprived", "Most deprived 20% data zones", "most deprived 20% data zones") ~ "1",
-                           simd5 %in% c("5 - 20% least deprived", "Least deprived 20% data zones", "least deprived 20% data zones") ~ "5",
-                           TRUE ~ simd5)) %>%
-  select(year, uniqidnew, simd5) %>%
-  filter(!is.na(uniqidnew)) # halves the number of rows... 
-
-# save the file
-saveRDS(uniqidnew_lut, paste0(derived_data, "uniqidnew_lut_pa.rds"))
 
 # # 6. Process the survey data to produce the indicator(s)
 # # =================================================================================================================
@@ -469,16 +447,7 @@ shs_data <- extracted_survey_data_shs %>%
 #Some age rows were already NAs so during case_when refactoring cause NAs. 
 
 
-# # save a uniqidnew lookup for use in SHCS analysis
-uniqidnew_lut <- shs_data %>%
-  select(year, uniqidnew, #la_wt, ind_wt,
-         simd5#, la, hb, Design.Factor
-  ) %>%
-  filter(!is.na(uniqidnew)) # halves the number of rows...
 
-# # save the file
-saveRDS(uniqidnew_lut, paste0(derived_data, "uniqidnew_lut_pa.rds"))
-# 
 # # data checks
 table(shs_data$sex, useNA = "always") # Female/Male/Total
 table(shs_data$age_grp, useNA = "always") # 16-86+, 7442 NAs. Assume some people refused to say
