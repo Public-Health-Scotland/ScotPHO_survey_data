@@ -55,7 +55,8 @@ vars_to_keep <- c(
   "porftvg3", #"porftvg5", #(last one used in 2003) # (D) Grouped portions of fruit (including fruit juice) & veg (5/less than 5/none)
   "porftvg3intake", "number_of_recalls", "numberofrecalls",#Intake used in 2021 and 2024 data: SG present this data in same timeseries as previous porftvg3 variable). Published intake24 data = only fom those with 2 recalls.
   # Healthy weight. BMI of higher than 18.5 and lower than 25. 
-  "bmivg5", "bmivg5_adj", "combmivg5_adj",
+  "bmivg5", "bmivg5_adj", "combmivg5_adj", "bm_ivg5", 
+  
   # During the last 12 months, was there a time when you were worried you would run out of food?
   "wrfood", #from 2017
   "drating", "dnnow", "dnany", "drkcat315", # used for Alcohol consumption (guidelines) and (mean weekly units) (dnnow and dnany only needed until ~ 2015)
