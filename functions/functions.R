@@ -239,7 +239,6 @@ save_var_descriptions <- function (survey, name_pattern) {
 #' @return The dataframe is written to a rds file called "extracted_survey_data_", survey, ".rds" 
 #'
 #' @examples
-
 extract_survey_data <- function (survey, pa = FALSE, additional = NULL) {
   
   # Set the directory containing the data (assumes it is a folder within /conf/MHI_Data/big/big_mhi_data/unzipped/)
@@ -497,7 +496,7 @@ prep_df_for_svy_calc <- function(df, var, wt, variables) {
     group_by(across(all_of(variables))) %>%
     mutate(count_n = sum(var=="yes", na.rm=TRUE)) %>%
     ungroup() %>%
-  #  filter(count_n>0) %>%  # drop groups where there's no cases (N but no n) (breaks the survey calc otherwise)(not anymore!)
+    #  filter(count_n>0) %>%  # drop groups where there's no cases (N but no n) (breaks the survey calc otherwise)(not anymore!)
     select(all_of(variables), var, wt, psu, strata)
   
 }
@@ -585,6 +584,7 @@ add_more_required_cols <- function(df, var, svy_result, variables, type) {
     "Error: type should be score or percent"
     
   }
+  
 }  
 
 
@@ -653,11 +653,11 @@ run_splits <- function (df, var, wt, type, split, lowergeogs=NULL) {
       
       if (nrow(df1) > 0) {
         
-      # run the survey calculation to produce the results
-      results <- calc_single_breakdown(df1, var, wt, variables = c("trend_axis", "sex", "code", split), type) %>% 
-        mutate(split_name = split_nm) %>%
-        rename(split_value = split) # includes total
-      assign(paste0("results_", geog, "_", split), results, envir = .GlobalEnv) # name it to differentiate from other 'results' generated here, so it isn't overwritten
+        # run the survey calculation to produce the results
+        results <- calc_single_breakdown(df1, var, wt, variables = c("trend_axis", "sex", "code", split), type) %>% 
+          mutate(split_name = split_nm) %>%
+          rename(split_value = split) # includes total
+        assign(paste0("results_", geog, "_", split), results, envir = .GlobalEnv) # name it to differentiate from other 'results' generated here, so it isn't overwritten
       }
     }
   }
@@ -678,11 +678,11 @@ add_totals <- function (df, split_col) {
 }
 
 get_geogs <- function(df) {
-   
+  
   # which geogs are in the data?
   all_geogs <- c("hb", "ca", "hscp", "adp", "pd") # add any others needed from other surveys
   available_geogs = intersect(names(df), all_geogs)
- 
+  
 }
 
 prep_data <- function(df, var, wt, split_cols=NULL) {
@@ -718,7 +718,7 @@ calc_indicator_data <- function (df, var, wt, ind_id, type, split_cols=NULL) {
   
   # DATA PREP
   df <- prep_data(df, var, wt, split_cols)
-
+  
   # which geogs are in the data?
   available_geogs <- get_geogs(df)
   
@@ -745,38 +745,14 @@ calc_indicator_data <- function (df, var, wt, ind_id, type, split_cols=NULL) {
         filter(!is.na(code))
       
       if (nrow(df1) > 0) {
-      # lower geog calcs by sex (male, female, total)
-      results_geog_sex <- calc_single_breakdown(df1, var, wt, variables = c("trend_axis", "sex", "code"), type) %>%
-        mutate(split_name = "Sex",
-               split_value = sex) 
-      assign(paste0("results_", geog, "_sex"), results_geog_sex, envir = .GlobalEnv) # name it to differentiate from other results generated here, so it isn't overwritten
+        # lower geog calcs by sex (male, female, total)
+        results_geog_sex <- calc_single_breakdown(df1, var, wt, variables = c("trend_axis", "sex", "code"), type) %>%
+          mutate(split_name = "Sex",
+                 split_value = sex) 
+        assign(paste0("results_", geog, "_sex"), results_geog_sex, envir = .GlobalEnv) # name it to differentiate from other results generated here, so it isn't overwritten
       }
     }
   }
-    
-  # Now calculate for all other splits:
-  for (split in split_cols) {
-    
-    results <- run_splits(sex_df, var, wt, type, split)
-    assign(paste0("results_", split), results) # name it to differentiate from other results generated here, so it isn't overwritten
-    
-    # Lower geographies (currently just HB in SHeS data)
-    if (wt %in% c("intwt", "cintwt") ) { # variables with these SHeS weights can be analysed at lower geographies. 
-      
-      results <- run_splits(sex_df, var, wt, type, split, lowergeogs=TRUE) %>%
-        mutate(spatial.scale = "Health board") # (amend this if different geographies are possible/needed)
-      assign(paste0("results_hb_", split), results) # name it to differentiate from other results generated here, so it isn't overwritten
-      
-    }
-  }
-  
-  # rbind all the splits together  
-  results <- mget(ls(pattern = "^results_")) %>% # finds all the "results_" dataframes produced by this function
-    bind_rows(.) %>%
-    mutate(spatial.scale = ifelse(is.na(spatial.scale), "Scotland", spatial.scale),
-           spatial.unit = ifelse(is.na(spatial.unit), "Scotland", spatial.unit),
-           quintile = ifelse(split_name=="Deprivation (SIMD)", split_value, "Total")) #needed later?
-  rm(list=ls(pattern="^results_"))
   
   # 3. Results for all other splits:
   for (split in split_cols) {
@@ -825,4 +801,3 @@ calc_indicator_data <- function (df, var, wt, ind_id, type, split_cols=NULL) {
 ## END
 ##########################################################################################
 ##########################################################################################
-  
