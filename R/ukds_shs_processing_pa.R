@@ -75,29 +75,29 @@ save_var_descriptions(survey = "shs",
 # 3. Extract the relevant survey data from the files 
 # =================================================================================================================
 
-extracted_survey_data_shs <- extract_survey_data("shs", pa = TRUE) 
+extracted_survey_data_shs_pa <- extract_survey_data("shs", pa = TRUE, additional="randgender") 
 # takes ~ 3 mins 
 
 # keep only the survey files we are interested in
 
-extracted_survey_data_shs <- extracted_survey_data_shs %>%
+extracted_survey_data_shs_pa <- extracted_survey_data_shs_pa %>%
   filter(!grepl('_td_|0708_c_and_s', filename))  # don't need the travel diary files or the 0708_c_and_s file
 
-# save the file
-saveRDS(extracted_survey_data_shs, paste0(derived_data, "extracted_survey_data_shs_pa.rds"))
+# save the file (it already was saved with this name during the extract_survey_data() call, but this overwrites that with this pruned version)
+saveRDS(extracted_survey_data_shs_pa, paste0(derived_data, "extracted_survey_data_shs_pa.rds"))
 
 # 4. What are the possible responses?
 # =================================================================================================================
 
 # Read in data if not in memory:
-extracted_survey_data_shs <- readRDS(paste0(derived_data, "extracted_survey_data_shs_pa.rds"))
+extracted_survey_data_shs_pa <- readRDS(paste0(derived_data, "extracted_survey_data_shs_pa.rds"))
 
 # get the responses recorded for each variable (combined over the years), and save to xlsx and rds
 
 # 1st run through to see how to identify variables that can be excluded (and the unique characters that will identify these):
-# extract_responses(survey = "shs") 
-# responses_as_list_shs <- readRDS(paste0(derived_data, "responses_as_list_shs.rds"))
-# responses_as_list_shs  # examine the output
+# extract_responses(survey = "shs", pa=TRUE) 
+# responses_as_list_shs_pa <- readRDS(paste0(derived_data, "responses_as_list_shs_pa.rds"))
+# responses_as_list_shs_pa  # examine the output
 
 # 2nd run to exclude the numeric vars that don't need codings and/or muck up the output:
 
@@ -107,14 +107,12 @@ extract_responses(survey = "shs", #survey acronym
 # read the responses back in and print out so we can work out how they should be coded
 # (also useful to see how sex/geography/simd variables have been recorded, for later standardisation)
 
-responses_as_list_shs <- readRDS(paste0(derived_data, "responses_as_list_shs_pa.rds"))
-responses_as_list_shs
+responses_as_list_shs_pa <- readRDS(paste0(derived_data, "responses_as_list_shs_pa.rds"))
+responses_as_list_shs_pa
 
-# responses_as_list_shs printed out
+# responses_as_list_shs_pa printed out
 # NB. When updating with more recent data the responses need to be compared with these: are the codings still comprehensive? new coding needed
 
-# responses_as_list_shs printed out
-# NB. When updating with more recent data the responses need to be compared with these: are the codings still comprehensive? new coding needed?
 ###################################
 # $anysportnowalk
 # [1] "Yes" "No"  NA   
