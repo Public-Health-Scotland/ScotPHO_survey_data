@@ -331,7 +331,7 @@ lookup_greenfar13 <- list(
 # # First: make sure there's only one of each grouping variable (geog/SIMD) for each survey file and that these are coded in a standard way
 
 # cross tabulate years and variables, to see what's available when
-shs_years_vars <- extracted_survey_data_shs %>%
+shs_years_vars <- extracted_survey_data_shs_pa %>%
   transmute(year,
             var_label = map(survey_data, names)) %>%
   unnest(var_label) %>%
@@ -355,7 +355,7 @@ shs_years_vars <- extracted_survey_data_shs %>%
 # # hlthbd2019 = 14 unique S080000xx codes.
 
 # # Most straightforward approach to consolidating and standardising codes and names: (I tried a lot)
-la_code_to_council_code <- extracted_survey_data_shs %>%
+la_code_to_council_code <- extracted_survey_data_shs_pa %>%
   filter(year=="2016") %>%
   select(survey_data) %>%
   unnest(cols = c(survey_data)) %>%
@@ -406,7 +406,7 @@ shs_design_effects <- read.xlsx("/conf/MHI_Data/big/big_mhi_data/unzipped/shs/SH
                           TRUE ~ Year))
 
 
-shs_data <- extracted_survey_data_shs %>%
+shs_data <- extracted_survey_data_shs_pa %>%
   mutate(survey_data = map(survey_data, ~.x %>%
                              mutate(across(.cols = everything(), as.character)))) %>% # to deal with some incompatible formats that mucked up the unnest()
   unnest(cols = c(survey_data)) %>%
