@@ -245,6 +245,13 @@ extract_survey_data <- function (survey, pa = FALSE, additional = NULL) {
   
   source_dir <- paste0("/conf/MHI_Data/big/big_mhi_data/unzipped/", survey)  
   
+  # make a suffix in case this is not the 'main' data extract
+  if(pa == TRUE){
+    suffix = "_pa"
+  } else {
+    suffix = ""
+  }
+  
   # Extract the paths to the relevant survey files
   
   survey_year_lookups <- read.xlsx("/conf/MHI_Data/derived data/all_survey_var_info.xlsx", 
@@ -252,12 +259,8 @@ extract_survey_data <- function (survey, pa = FALSE, additional = NULL) {
   
   # Source the variables to extract
   
-  if(pa == TRUE){
-    source(here("R", paste0("vars_to_extract_", survey, "_pa.R")))
-  }else{
-    source(here("R", paste0("vars_to_extract_", survey, ".R")))
-  }
-  
+  source(here("R", paste0("vars_to_extract_", survey, suffix, ".R")))
+
   # Now extract the variables from the relevant survey files, and store in a single dataframe (requires a list column)
   
   start_time = Sys.time()
@@ -290,7 +293,8 @@ extract_survey_data <- function (survey, pa = FALSE, additional = NULL) {
   
   
   # Save this object 
-  write_rds(extracted_survey_data, paste0("/conf/MHI_Data/derived data/extracted_survey_data_", survey, ".rds"))
+  write_rds(extracted_survey_data, paste0("/conf/MHI_Data/derived data/extracted_survey_data_", survey, suffix, ".rds"))
+
 }
 
 
@@ -305,12 +309,16 @@ extract_survey_data <- function (survey, pa = FALSE, additional = NULL) {
 #' @examples
 extract_responses <- function (survey, chars_to_exclude=NULL, pa = FALSE) {
   
-  # read in the survey data
+  # make a suffix in case this is not the 'main' data extract
   if(pa == TRUE){
-    df <- readRDS(paste0("/conf/MHI_Data/derived data/extracted_survey_data_", survey, "_pa.rds"))
-  }else{
-    df <- readRDS(paste0("/conf/MHI_Data/derived data/extracted_survey_data_", survey, ".rds"))}
-  
+    suffix = "_pa"
+  } else {
+    suffix = ""
+  }
+
+  # read in the survey data
+    df <- readRDS(paste0("/conf/MHI_Data/derived data/extracted_survey_data_", survey, suffix, ".rds"))
+
   # Produce a df with var_name column for the variable name, and responses column containing a list of all recorded responses for that variable
   if(survey=="unsoc"){
     # for understanding soc: variable names are prefixed with a letter representing the wave, so no vars are the same
@@ -359,17 +367,17 @@ extract_responses <- function (survey, chars_to_exclude=NULL, pa = FALSE) {
   names(responses_as_list) <- all_responses$var_name # add the variable names to the list
   
   # Save this list
-  write_rds(responses_as_list, paste0("/conf/MHI_Data/derived data/responses_as_list_", survey, ".rds"))
-  
+    write_rds(responses_as_list, paste0("/conf/MHI_Data/derived data/responses_as_list_", survey, suffix, ".rds"))
+
   # Make a flat df (no lists) for saving into xlsx
   responses_df <- data.frame(all_responses %>% unnest(cols = c(responses)))
   
   # Load the workbook in, add a worksheet to store the responses for this survey, and save
   safe_removeWorksheet <- possibly(removeWorksheet, otherwise = NULL)
   wb <- loadWorkbook("/conf/MHI_Data/derived data/all_survey_var_info.xlsx")
-  safe_removeWorksheet(wb, paste0("responses-", survey)) # remove pre-existing worksheet, if it exists
-  addWorksheet(wb, paste0("responses-", survey))
-  writeData(wb, paste0("responses-", survey), responses_df)
+  safe_removeWorksheet(wb, paste0("responses-", survey, suffix)) # remove pre-existing worksheet, if it exists
+  addWorksheet(wb, paste0("responses-", survey, suffix))
+  writeData(wb, paste0("responses-", survey, suffix), responses_df)
   saveWorkbook(wb, file = "/conf/MHI_Data/derived data/all_survey_var_info.xlsx", overwrite = TRUE)
   
 }
@@ -496,7 +504,7 @@ prep_df_for_svy_calc <- function(df, var, wt, variables) {
     group_by(across(all_of(variables))) %>%
     mutate(count_n = sum(var=="yes", na.rm=TRUE)) %>%
     ungroup() %>%
-  #  filter(count_n>0) %>%  # drop groups where there's no cases (N but no n) (breaks the survey calc otherwise)(not anymore!)
+    #  filter(count_n>0) %>%  # drop groups where there's no cases (N but no n) (breaks the survey calc otherwise)(not anymore!)
     select(all_of(variables), var, wt, psu, strata)
   
 }
@@ -653,11 +661,11 @@ run_splits <- function (df, var, wt, type, split, lowergeogs=NULL) {
       
       if (nrow(df1) > 0) {
         
-      # run the survey calculation to produce the results
-      results <- calc_single_breakdown(df1, var, wt, variables = c("trend_axis", "sex", "code", split), type) %>% 
-        mutate(split_name = split_nm) %>%
-        rename(split_value = split) # includes total
-      assign(paste0("results_", geog, "_", split), results, envir = .GlobalEnv) # name it to differentiate from other 'results' generated here, so it isn't overwritten
+        # run the survey calculation to produce the results
+        results <- calc_single_breakdown(df1, var, wt, variables = c("trend_axis", "sex", "code", split), type) %>% 
+          mutate(split_name = split_nm) %>%
+          rename(split_value = split) # includes total
+        assign(paste0("results_", geog, "_", split), results, envir = .GlobalEnv) # name it to differentiate from other 'results' generated here, so it isn't overwritten
       }
     }
   }
@@ -678,11 +686,11 @@ add_totals <- function (df, split_col) {
 }
 
 get_geogs <- function(df) {
-   
+  
   # which geogs are in the data?
   all_geogs <- c("hb", "ca", "hscp", "adp", "pd") # add any others needed from other surveys
   available_geogs = intersect(names(df), all_geogs)
- 
+  
 }
 
 prep_data <- function(df, var, wt, split_cols=NULL) {
@@ -718,7 +726,7 @@ calc_indicator_data <- function (df, var, wt, ind_id, type, split_cols=NULL) {
   
   # DATA PREP
   df <- prep_data(df, var, wt, split_cols)
-
+  
   # which geogs are in the data?
   available_geogs <- get_geogs(df)
   
@@ -745,11 +753,11 @@ calc_indicator_data <- function (df, var, wt, ind_id, type, split_cols=NULL) {
         filter(!is.na(code))
       
       if (nrow(df1) > 0) {
-      # lower geog calcs by sex (male, female, total)
-      results_geog_sex <- calc_single_breakdown(df1, var, wt, variables = c("trend_axis", "sex", "code"), type) %>%
-        mutate(split_name = "Sex",
-               split_value = sex) 
-      assign(paste0("results_", geog, "_sex"), results_geog_sex, envir = .GlobalEnv) # name it to differentiate from other results generated here, so it isn't overwritten
+        # lower geog calcs by sex (male, female, total)
+        results_geog_sex <- calc_single_breakdown(df1, var, wt, variables = c("trend_axis", "sex", "code"), type) %>%
+          mutate(split_name = "Sex",
+                 split_value = sex) 
+        assign(paste0("results_", geog, "_sex"), results_geog_sex, envir = .GlobalEnv) # name it to differentiate from other results generated here, so it isn't overwritten
       }
     }
   }
@@ -801,4 +809,3 @@ calc_indicator_data <- function (df, var, wt, ind_id, type, split_cols=NULL) {
 ## END
 ##########################################################################################
 ##########################################################################################
-  
