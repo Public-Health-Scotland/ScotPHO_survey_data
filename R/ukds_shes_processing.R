@@ -630,21 +630,36 @@ shes_data <- shes_data %>%
   mutate(across(c("ca", "hb", "adp", "hscp", "pd"), ~ case_when(nchar(trend_axis)==4 ~ as.character(NA),
                                                                 TRUE ~ .x)))
 
-# temporary step: add bmivg5 for 2021-24 as missed from UKDS data (provided by SHeS team)
-shes_21222324_bmivg5 <- read_csv("/PHI_conf/ScotPHO/Profiles/Data/Received Data/Scottish Health Survey/shes_21222324_bmivg5.csv") %>%
-  mutate(trend_axis="2021-2024") %>%
-  rename(indserial = CPSerialA) %>%
-  mutate(healthywt = case_when(BMIvg5_4yr == 2 ~ "yes", # BMI = "18.5 to less than 25" (coding provided by SHeS team)
-                                BMIvg5_4yr %in% c(1, 3, 4, 5) ~ "no", # other valid BMIs
-                                TRUE ~ as.character(NA))) %>% 
-  select(-syear, -BMIvg5_4yr)
+# temporary step: add bmivg5 for 2017-21 to 2021-24 as missed from UKDS data (provided by SHeS team)
+
+get_shes_bmivg5_data <- function(year_range) {
   
+  filepath <- paste0("/PHI_conf/ScotPHO/Profiles/Data/Received Data/Scottish Health Survey/shes_", year_range, "_bmivg5.csv")
+  year_range2 <- paste0(
+    "20", str_sub(year_range, 1, 2),
+    "-20", str_sub(year_range, 7, 8)
+  )
+  
+  df <- read_csv(filepath) %>%
+    mutate(trend_axis = year_range2) %>%
+    rename(indserial = cpseriala) %>%
+    mutate(healthywt = case_when(bmivg5_4yr == 2 ~ "yes", # BMI = "18.5 to less than 25" (coding provided by SHeS team)
+                                 bmivg5_4yr %in% c(1, 3, 4, 5) ~ "no", # other valid BMIs
+                                 TRUE ~ as.character(NA))) %>% 
+    select(-syear, -bmivg5_4yr)
+  
+}
+
+bmivg5_A <- get_shes_bmivg5_data(year_range = "17181921")
+bmivg5_B <- get_shes_bmivg5_data(year_range = "18192122")
+bmivg5_C <- get_shes_bmivg5_data(year_range = "19212223")
+bmivg5_D <- get_shes_bmivg5_data(year_range = "21222324")
+bmivg5 <- rbind(bmivg5_A, bmivg5_B, bmivg5_C, bmivg5_D)
+
 shes_data <- shes_data %>%
-  merge(y=shes_21222324_bmivg5, by=c("indserial", "trend_axis"), all.x=TRUE) %>%
+  merge(y=bmivg5, by=c("indserial", "trend_axis"), all.x=TRUE) %>%
   mutate(healthyweight = ifelse(is.na(healthyweight), healthywt, healthyweight)) %>%
   select(-healthywt)
-
-
 
 
 # save intermediate df:
