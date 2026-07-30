@@ -472,21 +472,25 @@ rnd4dp <- function(x) (trunc((x*10000)+sign((x*10000))*0.5))/10000
 # # Adjusts the weight to reflect age-distribution: this allows the final SIMD calc to produce age-standardised estimates
 # # (ER translated this code from SAS code provided by SHeS team, and verified that it functioned correctly)
 
-add_std_weight <- function (df, var, wt) {
+add_std_weight <- function (df, var, wt, split) {
   
   df <- df %>%
-    group_by(trend_axis, agegp7, sex, quintile) %>%
+    # rename the split variable to "split_var" (there will be a neater way to use function arguments for var names but it currently eludes me)
+    rename(split_var = split) %>%
+    filter(!is.na(split_var)) %>%
+    group_by(trend_axis, agegp7, sex, split_var) %>%
     mutate(numsxag = sum(wt[!is.na(var)], na.rm=T)) %>% # sums the weights when there's a valid response for the survey variable
     ungroup() %>%
-    group_by(trend_axis, sex, quintile) %>%
+    group_by(trend_axis, sex, split_var) %>%
     mutate(numsx = sum(wt[!is.na(var)], na.rm=T)) %>% # sums the weights when there's a valid response for the survey variable
     ungroup() %>%
     mutate(scaling = prop_pop * numsx/numsxag) %>% # a scaling factor to upweight or downweight any age groups that are under/over-represented in the valid responses
     mutate(wt = wt * scaling) %>% # makes a new weight for the individual that incorporates the age-standardisation
     filter(!is.na(wt)) %>%
     filter(var!="NA") %>%
-    select(year, trend_axis, var, wt, sex, quintile, any_of(c("hb", "ca", "hscp", "adp", "pd")), psu, strata)
-  
+    mutate(!! split := split_var ) %>%
+    select(year, trend_axis, var, wt, sex, split, any_of(c("hb", "ca", "hscp", "adp", "pd")), psu, strata)
+
   df
   
 }
@@ -628,9 +632,9 @@ run_splits <- function (df, var, wt, type, split, lowergeogs=NULL) {
   # add totals for this split (base df is the data with totals already added for sex)
   df <- add_totals(df, split)  # will add totals for this split, by duplicating the existing data 
   
-  # Adult SHeS SIMD calc only: adjust the weights for age-standardisation
-  if (split == "quintile" & "agegp7" %in% names(df)) { # For SHeS the adult data has agegroups, so that the SIMD calcs can be age-standardised
-    df <- add_std_weight(df, var, wt) # adjust the weight to age-standardise the result
+  # Adult splits (except age and sex): adjust the weights for age-standardisation
+  if (split_nm %in% c("Deprivation (SIMD)", "Long-term Illness", "Income (equivalised)", "Urban-Rural classification") & "agegp7" %in% names(df)) { # For SHeS the adult data has agegroups, so that the calcs can be age-standardised as required
+    df <- add_std_weight(df, var, wt, split) # adjust the weight to age-standardise the result
   }  
   
   # restrict to sex==totals for the splits apart from sex or SIMD

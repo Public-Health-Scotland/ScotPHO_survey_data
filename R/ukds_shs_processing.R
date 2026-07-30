@@ -113,7 +113,7 @@ save_var_descriptions(survey = "shs",
 # 3. Extract the relevant survey data from the files 
 # =================================================================================================================
 
-extracted_survey_data_shs <- extract_survey_data("shs") 
+extracted_survey_data_shs <- extract_survey_data("shs", additional="volunteer") 
 # takes ~ 6 mins 
 
 # keep only the survey files we are interested in
