@@ -447,7 +447,7 @@ shes_data <- shes_data %>%
   mutate(urban_rural = ifelse(urban_rural=="Not applicable", as.character(NA), urban_rural)) %>%
   mutate(gh_qg2 = coalesce(ghqg2, gh_qg2)) %>% 
   mutate(olimlwb = coalesce(olimlwb, olim_l_wb)) %>%
-  mutate(bmi = coalesce(bmivg5, bmivg5_adj, combmivg5_adj)) %>%
+  mutate(bmi = coalesce(combmivg5_adj, bmivg5, bmivg5_adj, bm_ivg5)) %>%
   # delete the redundant vars now
   select(-c(involv19, support1_19, pcris19, dsh5, dvg11, dvj12, musrec, adt10gptw, rg17anew, rg15anew, 
             strwork2, numberofrecalls, ghqg2, urbrur2a, urbrur2a_16, urbrur2a_20, urindsc2, olim_l_wb,
