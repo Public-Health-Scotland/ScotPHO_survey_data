@@ -530,8 +530,8 @@ shes_data <- shes_data %>%
   # porftvg3intake data only in 2021 and 2024 so far
   mutate(porftvg3intake = recode(porftvg3intake, !!!lookup_porftvg3, .default = as.character(NA))) %>% # porftvg3intake variable (from food diary) only used if number_of_recalls == 2
   mutate(porftvg3intake = case_when(number_of_recalls %in% c("1", "Not applicable", "Item not applicable") ~ as.character(NA),
-                                    TRUE ~ porftvg3intake)) %>% # porftvg3intake is only valid if number_of_recalls == 2, so recode other options as NA. Earlier years won't have anything but NA for the recall var. 
-  
+                                    TRUE ~ porftvg3intake)) %>% # porftvg3intake is only valid if number_of_recalls == 2, so recode other options as NA. Earlier years won't have anything but NA for the recall var.
+
   # Hours of unpaid caring needs coding from 2 vars:
   mutate(rg17a_new = recode(rg17a_new, !!!lookup_rg17a_new, .default = as.character(NA))) %>%
   mutate(rg17a_new = case_when(is.na(rg17a_new) & rg15a_new %in% c("Yes", "No", "Don't know", "Don't Know") ~ "no", # need rg15a_new (Do you provide any regular help or care for any sick, disabled or frail person?) to identify those who give no caring per week (0 hrs not included in rg17a_new)
@@ -658,7 +658,7 @@ bmivg5 <- rbind(bmivg5_A, bmivg5_B, bmivg5_C, bmivg5_D)
 
 shes_data <- shes_data %>%
   merge(y=bmivg5, by=c("indserial", "trend_axis"), all.x=TRUE) %>%
-  mutate(healthyweight = ifelse(is.na(healthyweight), healthywt, healthyweight)) %>%
+  mutate(healthyweight = ifelse(!is.na(healthyweight), healthyweight, healthywt)) %>%
   select(-healthywt)
 
 
