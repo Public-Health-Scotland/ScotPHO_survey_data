@@ -53,7 +53,7 @@ vars_to_keep <- c(
   "depsymp", "dvg11", # dvg11 (2008 and 0809) = CISR - DEPRESSION Symptom score [from G5, G6, G7 and G9]
   "anxsymp", "dvj12", # dvj12 (2008 and 0809) = (D) CISR - ANXIETY Symptom score [from J6, J7, J8, J9 and J10]
   "porftvg3", #"porftvg5", #(last one used in 2003) # (D) Grouped portions of fruit (including fruit juice) & veg (5/less than 5/none)
-  "porftvg3intake", "number_of_recalls", "numberofrecalls",#Intake used in 2021 and 2024 data: SG present this data in same timeseries as previous porftvg3 variable). Published intake24 data = only fom those with 2 recalls.
+  "porftvg3intake",  #Intake used in 2021 and 2024 data: SG present this data in same timeseries as previous porftvg3 variable). 
   # Healthy weight. BMI of higher than 18.5 and lower than 25. 
   "bmivg5", "bmivg5_adj", "combmivg5_adj", "bm_ivg5", 
   
