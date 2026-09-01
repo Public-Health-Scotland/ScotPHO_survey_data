@@ -368,7 +368,8 @@ shes_data <- shes_data %>%
 # Harmonise the names of the weights (all have the year in them currently):
 shes_data <- shes_data %>%
   mutate(survey_data = map(survey_data, ~ .x %>% # map() here means this is all being done within the individual items in the list column, while retaining the list format
-                             select(-any_of(starts_with(c("intsc", "biophy")))) %>% 
+                             select(-any_of(starts_with(c("biophy")))) %>% 
+                             rename(scintwt = starts_with("intsc")) %>% # sel-completion wt used in 2023 data
                              rename(intwt = starts_with("int") ) %>% 
                              rename(verawt = starts_with("vera")) %>%
                              rename(bio_wt = starts_with("bio") |  starts_with("nurs")) %>% # biowt called nurswt in early years
@@ -528,9 +529,7 @@ shes_data <- shes_data %>%
   # Portions of fruit and veg: variable changed in 2021 (to a food diary), but SHeS present as a continuous indicator. 
   mutate(porftvg3 = recode(porftvg3, !!!lookup_porftvg3, .default = as.character(NA))) %>% # variable derived from survey questions
   # porftvg3intake data only in 2021 and 2024 so far
-  mutate(porftvg3intake = recode(porftvg3intake, !!!lookup_porftvg3, .default = as.character(NA))) %>% # porftvg3intake variable (from food diary) only used if number_of_recalls == 2
-  mutate(porftvg3intake = case_when(number_of_recalls %in% c("1", "Not applicable", "Item not applicable") ~ as.character(NA),
-                                    TRUE ~ porftvg3intake)) %>% # porftvg3intake is only valid if number_of_recalls == 2, so recode other options as NA. Earlier years won't have anything but NA for the recall var.
+  mutate(porftvg3intake = recode(porftvg3intake, !!!lookup_porftvg3, .default = as.character(NA))) %>% # porftvg3intake variable (from food diary) 
 
   # Hours of unpaid caring needs coding from 2 vars:
   mutate(rg17a_new = recode(rg17a_new, !!!lookup_rg17a_new, .default = as.character(NA))) %>%
@@ -675,6 +674,10 @@ shes_data <- shes_data %>%
 # restrict to adults
 shes_adult_data <- shes_data %>%
   filter(!child) %>%
+  mutate(scintwt = ifelse(!is.na(scintwt), scintwt, intwt)) %>% # makes a self-completion weight for data including 2023 (will be intwt for all other files)
+  mutate(newverawt = case_when(year < 2019 ~ verawt, # weights used for vera/self-completion module changed over time. Only alternate single years have data. (next will be 2025)
+                               year %in% c(2019, 2021) ~ intwt,
+                               year == 2023 ~ scintwt)) %>% 
   select(-c(child, contains("serial"), starts_with("par"), 
             cintwt, age, age_group,
             c00sum7s, spt1ch, ch30plyg, childpa1hr, contains("sdq")
