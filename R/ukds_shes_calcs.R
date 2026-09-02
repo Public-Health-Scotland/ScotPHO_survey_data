@@ -174,14 +174,14 @@ svy_percent_healthyweight <- calc_indicator_data(shes_adult_data, "healthyweight
 arrow::write_parquet(svy_percent_healthyweight, "svy_percent_healthyweight.parquet")
 svy_percent_binge <- calc_indicator_data(shes_adult_data, "binge", "intwt", ind_id = 4170, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7"))
 arrow::write_parquet(svy_percent_binge, "svy_percent_binge.parquet")
-svy_percent_hazharmful <- calc_indicator_data(shes_adult_data, "hazharmful", "intwt", ind_id= 4171, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
-arrow::write_parquet(svy_percent_hazharmful, "svy_percent_hazharmful.parquet")
 
 # 1b. scintwt used with main sample self-completion variables 
 svy_percent_gh_qg2 <- calc_indicator_data(df = shes_adult_data, var = "gh_qg2", wt = "scintwt", ind_id = 30003, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
 arrow::write_parquet(svy_percent_gh_qg2, "svy_percent_gh_qg2.parquet")
 svy_percent_foodinsecure <- calc_indicator_data(shes_adult_data, "foodinsecure", "scintwt", ind_id=99105, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
 arrow::write_parquet(svy_percent_foodinsecure, "svy_percent_foodinsecure.parquet")
+svy_percent_hazharmful <- calc_indicator_data(shes_adult_data, "hazharmful", "scintwt", ind_id= 4171, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
+arrow::write_parquet(svy_percent_hazharmful, "svy_percent_hazharmful.parquet")
 
 
 # 2. verawt used for vera vars: National and SIMD only (samples too small for HB) 
