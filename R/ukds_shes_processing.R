@@ -186,12 +186,14 @@ save_var_descriptions(survey = "shes", # looks in this folder
 ## A. Extract the data we want:
 # N.B. RUNNING THIS WILL OVERWRITE EXISTING DATA AND WILL TAKE ~5 MINS.
 # RECENT RUNS:
+# 02 SEPT 2026: IMPORTING THE NEWLY DOWNLOADED 2021 AND 2023 DATA (WAS UPDATED ON UKDS AFTER WE DOWNLOADED IT)
 # 01 APR 2026: ADDING MORE VARS FROM THE SHES DASHBOARD, AND HARMONISING EXISTING VARS WITH THEIRS.
 # 10 MAR 2026: ADDING 2024 DATA
 # 21 JAN 2026: ADDING IN PA PROFILE INDICATORS
 # 14 JAN 2026: ADDING 2023 DATA
 # 12 JAN 2026: ADDITION OF CHILD SDQ VARS
-extracted_survey_data_shes <- extract_survey_data("shes", additional="^int.*wt$|^cint.*wt$|^bio.*wt$|^vera.*wt$|^nurs.*wt$|intake24_wt_sc")# What this function is doing:
+extracted_survey_data_shes <- extract_survey_data("shes", additional="^int.*wt$|^cint.*wt$|^bio.*wt$|^vera.*wt$|^nurs.*wt$|intake24_wt_sc")
+# What this function is doing:
 #   Uses the file locations saved in the spreadsheet, and opens each file in turn.
 #   Runs the function read_select() to read in the data for any variable listed in the vars_to_extract_xxx file.
 #   Stores all the required data from a single file in a list in a dataframe.
@@ -317,7 +319,8 @@ ca_codes <- rbind(ca_codes1, ca_codes2, ca_codes3) %>%
 
 # keep only single year and 4-year aggregations:
 shes_data <- extracted_survey_data_shes %>% 
-  mutate(year = case_when(year=="2022" ~ "22", 
+  mutate(year = case_when(year=="2021" ~ "21", 
+                          year=="2022" ~ "22", 
                           year=="2023" ~ "23",
                           year=="2024" ~ "24",
                           TRUE ~ year)) %>%
@@ -443,16 +446,16 @@ shes_data <- shes_data %>%
   mutate(rg17a_new = coalesce(rg17a_new, rg17anew)) %>%
   mutate(rg15a_new = coalesce(rg15a_new, rg15anew)) %>%
   mutate(str_work2 = coalesce(str_work2, strwork2)) %>%
-  mutate(number_of_recalls = coalesce(numberofrecalls, number_of_recalls)) %>%
   mutate(urban_rural = coalesce(urbrur2a, urbrur2a_16, urbrur2a_20, urindsc2)) %>%
   mutate(urban_rural = ifelse(urban_rural=="Not applicable", as.character(NA), urban_rural)) %>%
   mutate(gh_qg2 = coalesce(ghqg2, gh_qg2)) %>% 
   mutate(olimlwb = coalesce(olimlwb, olim_l_wb)) %>%
   mutate(bmi = coalesce(combmivg5_adj, bmivg5, bmivg5_adj, bm_ivg5)) %>%
+  mutate(porftvg3intake = coalesce(porftvg3intake, porftvg3intake_ui)) %>%
   # delete the redundant vars now
   select(-c(involv19, support1_19, pcris19, dsh5, dvg11, dvj12, musrec, adt10gptw, rg17anew, rg15anew, 
-            strwork2, numberofrecalls, ghqg2, urbrur2a, urbrur2a_16, urbrur2a_20, urindsc2, olim_l_wb,
-            bmivg5, bmivg5_adj, combmivg5_adj)) 
+            strwork2, ghqg2, urbrur2a, urbrur2a_16, urbrur2a_20, urindsc2, olim_l_wb,
+            bmivg5, bmivg5_adj, combmivg5_adj, porftvg3intake_ui)) 
 
 # standardise the equivalised income column
 shes_data <- shes_data %>%
