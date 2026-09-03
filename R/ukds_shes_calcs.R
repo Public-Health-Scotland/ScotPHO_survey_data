@@ -180,7 +180,7 @@ svy_percent_gh_qg2 <- calc_indicator_data(df = shes_adult_data, var = "gh_qg2", 
 arrow::write_parquet(svy_percent_gh_qg2, "svy_percent_gh_qg2.parquet")
 svy_percent_foodinsecure <- calc_indicator_data(shes_adult_data, "foodinsecure", "scintwt", ind_id=99105, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
 arrow::write_parquet(svy_percent_foodinsecure, "svy_percent_foodinsecure.parquet")
-svy_percent_hazharmful <- calc_indicator_data(shes_adult_data, "hazharmful", "scintwt", ind_id= 4171, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
+svy_percent_hazharmful <- calc_indicator_data(shes_adult_data, "hazharmful", "intwt", ind_id= 4171, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
 arrow::write_parquet(svy_percent_hazharmful, "svy_percent_hazharmful.parquet")
 
 
