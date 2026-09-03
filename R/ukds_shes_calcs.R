@@ -174,14 +174,14 @@ svy_percent_healthyweight <- calc_indicator_data(shes_adult_data, "healthyweight
 arrow::write_parquet(svy_percent_healthyweight, "svy_percent_healthyweight.parquet")
 svy_percent_binge <- calc_indicator_data(shes_adult_data, "binge", "intwt", ind_id = 4170, type = "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7"))
 arrow::write_parquet(svy_percent_binge, "svy_percent_binge.parquet")
+svy_percent_hazharmful <- calc_indicator_data(shes_adult_data, "hazharmful", "intwt", ind_id= 4171, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
+arrow::write_parquet(svy_percent_hazharmful, "svy_percent_hazharmful.parquet")
 
 # 1b. scintwt used with main sample self-completion variables 
 svy_percent_gh_qg2 <- calc_indicator_data(df = shes_adult_data, var = "gh_qg2", wt = "scintwt", ind_id = 30003, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
 arrow::write_parquet(svy_percent_gh_qg2, "svy_percent_gh_qg2.parquet")
 svy_percent_foodinsecure <- calc_indicator_data(shes_adult_data, "foodinsecure", "scintwt", ind_id=99105, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
 arrow::write_parquet(svy_percent_foodinsecure, "svy_percent_foodinsecure.parquet")
-svy_percent_hazharmful <- calc_indicator_data(shes_adult_data, "hazharmful", "intwt", ind_id= 4171, type= "percent", split_cols=c("quintile", "limitill_SPLIT", "urban_rural", "eqv5_15", "agegp7")) 
-arrow::write_parquet(svy_percent_hazharmful, "svy_percent_hazharmful.parquet")
 
 
 # 2. verawt used for vera vars: National and SIMD only (samples too small for HB) 
@@ -279,7 +279,7 @@ svy_results <- list.files(path = paste0(derived_data, "shes_indicator_files"), p
 
 # Read in the files and join them
 shes_results0 <- lapply(svy_results, arrow::read_parquet) %>% #read all the files in and store in a list
-  bind_rows() # Sept 2026: n=1,054,905
+  bind_rows() # Sept 2026: n=1,161,671
 
 
 # # BUT IF ALL DATA ARE IN THE GLOBAL ENVIRONMENT:
@@ -298,7 +298,7 @@ shes_results0 <- arrow::read_parquet(paste0(derived_data, "shes_results0.parquet
 # porftvg3 and porftvg3intake: porftvg3 stops at 2019-23, so use porftvg3intake after this (this is what SHeS team do)
 
 
-shes_results1 <- shes_results0 %>% #n=1,054,905
+shes_results1 <- shes_results0 %>% #n=1,161,671
   unique() %>% # get rid of duplicates. 
   mutate(indicator = ifelse(indicator=="porftvg3intake", "porftvg3", indicator)) %>% # harmonise the indicator name
   group_by(trend_axis, sex, code, ind_id, year, def_period, split_name, split_value) %>%
@@ -306,7 +306,7 @@ shes_results1 <- shes_results0 %>% #n=1,054,905
   ungroup() %>%
   filter(!(indicator=="ch_ghq" & count==2)) %>% # drop our derived data when there's cghq214 data available.
   mutate(indicator = ifelse(indicator=="ch_ghq", "cghq214", indicator)) %>% # harmonise the indicator name
-  select(-count) #n=1,054,757
+  select(-count) #n=1,161,445
 
 
 
@@ -339,21 +339,21 @@ drop_these_splits <- shes_results1 %>%
 
 
 # drop splits as identified above:
-shes_results1 <- shes_results1 %>% # 1,054,757 rows
+shes_results1 <- shes_results1 %>% # 1,161,445 rows
   mutate(area = substr(code, 1, 3)) %>%
   merge(y=drop_these_splits, by=c("area", "indicator", "split_name"), all.x=TRUE) %>%
-  filter(drop==0) %>% # now n=582,236
+  filter(drop==0) %>% # now n=653,701
   select(-c(area, areatype:drop)) 
 
 
 
 # drop splits by SIMD if they have data for fewer than three quintiles (+ total = 4)
-shes_results1 <- shes_results1 %>% # n=582,236
+shes_results1 <- shes_results1 %>% # n=653,701
   group_by(trend_axis, sex, indicator, ind_id, code, year, def_period, split_name) %>%
   mutate(count = n()) %>% # count all the values within each split, including the total
   ungroup() %>%
   filter(!(split_name=="Deprivation (SIMD)" & count<4)) %>% # case where e.g., and island board has 3 quintiles + a total
-  select(-count) # now 577,322
+  select(-count) # now 648,427
 
 # Suppress values where necessary:
 # SHeS suppress values where denominator (unweighted base) is <30
@@ -367,7 +367,7 @@ shes_results1 %>%
   filter(is.na(rate)) %>%
   select(indicator, code, trend_axis, split_value) %>%
   arrange(indicator) 
-# Sept 2026: ~49K values suppressed.
+# Sept 2026: ~54K values suppressed.
 
 # save intermediate df:
 arrow::write_parquet(shes_results1, paste0(derived_data, "shes_results1.parquet"))

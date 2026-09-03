@@ -746,7 +746,7 @@ calc_indicator_data <- function (df, var, wt, ind_id, type, split_cols=NULL) {
   
   
   # 2. Lower geogs by sex (will be run for any indicators that use specific main sample weights: currently intwt and cintwt in SHeS, or ind_wt in SHoS)
-  if (wt %in% c("intwt", "cintwt", "intakewt", "ind_wt") ) { # variables with these SHeS weights (intwt, intakewt, and cintwt) and SHoS weight (ind_wt) can be analysed at lower geographies.
+  if (wt %in% c("intwt", "cintwt", "intakewt", "ind_wt", "scintwt") ) { # variables with these SHeS weights (intwt, intakewt, "scintwt", and cintwt) and SHoS weight (ind_wt) can be analysed at lower geographies.
     
     for (geog in available_geogs) {
       
@@ -769,8 +769,8 @@ calc_indicator_data <- function (df, var, wt, ind_id, type, split_cols=NULL) {
   # 3. Results for all other splits:
   for (split in split_cols) {
     
-    # variables with these SHeS weights (intwt, intakewt, and cintwt) and SHoS weight (ind_wt) can be analysed at lower geographies.
-    if (wt %in% c("intwt", "cintwt", "intakewt", "ind_wt") ) {
+    # variables with these SHeS weights (intwt, intakewt, "scintwt", and cintwt) and SHoS weight (ind_wt) can be analysed at lower geographies.
+    if (wt %in% c("intwt", "cintwt", "intakewt", "ind_wt", "scintwt") ) {
       
       # run splits for Scotland + lower geographies 
       run_splits(df, var, wt, type, split, lowergeogs=TRUE) 
