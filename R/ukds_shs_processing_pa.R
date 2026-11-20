@@ -2,7 +2,7 @@
 # ===== Processing UKDS survey data files: SCOTTISH HOUSEHOLD SURVEY (SHoS) =====
 # ============================================================================
 
-# 5 indicators
+# 6 indicators
 # sprt3aa - adults participating in sport
 # anysportnowalk - adults participating in recreational walking
 # serv3a - satisfaction with local sports and leisure facilities
